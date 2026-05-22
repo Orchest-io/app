@@ -4,6 +4,8 @@ import { Toaster } from 'sonner'
 import LandingPage from './pages/LandingPage/LandingPage'
 import Dashboard from './pages/Dashboard/Dashboard'
 import TeamManagement from './pages/TeamManagement/TeamManagement'
+import ProjectsList from './pages/Projects/ProjectsList'
+import ProjectDetailsOverview from './pages/Projects/ProjectDetails/ProjectDetails'
 
 export default function App() {
   return (
@@ -18,6 +20,8 @@ export default function App() {
             <MainLayout>
               <Routes>
                 <Route path="dashboard" element={<Dashboard />} />
+                <Route path="projects" element={<ProjectsList />} />
+                <Route path="projects/:projectId" element={<ProjectDetailsOverview />} />
                 <Route path="team" element={<TeamManagement />} />
                 <Route
                   path="*"
