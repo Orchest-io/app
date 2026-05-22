@@ -12,12 +12,12 @@ export class NotificationService {
   ) {}
 
   async create(createDto: CreateNotificationDto): Promise<Notification> {
-    const notification = this.notificationRepository.create(createDto);
+    const notification = this.notificationRepository.create(createDto as any) as any;
     return this.notificationRepository.save(notification);
   }
 
   async findAll(userId: string): Promise<Notification[]> {
-    return this.notificationRepository.find({ where: { user_id: userId }, order: { created_at: 'DESC' } });
+    return this.notificationRepository.find({ where: { userId: userId }, order: { createdAt: 'DESC' } });
   }
 
   async findOne(id: string): Promise<Notification> {

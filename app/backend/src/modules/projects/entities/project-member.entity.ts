@@ -7,8 +7,8 @@ import {
   JoinColumn,
   Unique,
 } from 'typeorm';
-import { ProjectMemberRole } from '@orchest/shared';
 import { Project } from './project.entity';
+import { ProjectScopedRole } from './project-scoped-role.entity';
 
 @Entity('project_members')
 @Unique(['projectId', 'userId'])
@@ -22,12 +22,11 @@ export class ProjectMember {
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
-  @Column({
-    type: 'enum',
-    enum: ProjectMemberRole,
-    default: ProjectMemberRole.MEMBER,
-  })
-  role: ProjectMemberRole;
+  @Column({ name: 'project_scoped_role_id', type: 'uuid' })
+  projectScopedRoleId: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  role: string;
 
   @CreateDateColumn({ name: 'joined_at' })
   joinedAt: Date;
@@ -36,4 +35,8 @@ export class ProjectMember {
   @ManyToOne(() => Project, (project) => project.members, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'project_id' })
   project: Project;
+
+  @ManyToOne(() => ProjectScopedRole, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'project_scoped_role_id' })
+  projectScopedRole: ProjectScopedRole;
 }

@@ -7,7 +7,7 @@ import { TaskAssignee } from './entities/task-assignee.entity';
 import { TaskDependency } from './entities/task-dependency.entity';
 import { Comment } from './entities/comment.entity';
 import { Attachment } from './entities/attachment.entity';
-import { CreateTaskDto, UpdateTaskDto } from '../../../../../../shared/src/dtos/task.dtos';
+import { CreateTaskDto, UpdateTaskDto } from '@orchest/shared';
 
 @Injectable()
 export class TasksService {
@@ -17,7 +17,7 @@ export class TasksService {
   ) {}
 
   async create(createTaskDto: CreateTaskDto): Promise<Task> {
-    const task = this.taskRepository.create(createTaskDto);
+    const task = this.taskRepository.create(createTaskDto as any);
     return this.taskRepository.save(task);
   }
 
@@ -35,7 +35,7 @@ export class TasksService {
 
   async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
     const task = await this.findOne(id);
-    this.taskRepository.merge(task, updateTaskDto);
+    this.taskRepository.merge(task, updateTaskDto as any);
     return this.taskRepository.save(task);
   }
 

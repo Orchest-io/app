@@ -1,38 +1,25 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
-import { AiComplexity } from '@orchest/shared';
 
 @Entity('ai_estimations')
 export class AiEstimation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
-  project_id: string;
+  @Column({ name: 'task_id', type: 'uuid', nullable: true })
+  taskId: string;
 
-  @Column({ type: 'uuid' })
-  created_by: string;
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
 
-  @Column({ type: 'uuid', nullable: true })
-  task_id: string;
+  @Column({ name: 'description_embedding', type: 'vector' as any, length: 1536, nullable: true })
+  descriptionEmbedding: number[];
 
-  @Column({ type: 'varchar' })
-  task_description: string;
+  @Column({ name: 'estimated_hours', type: 'int', nullable: true })
+  estimatedHours: number;
 
-  @Column({ type: 'int', nullable: true })
-  estimated_hours: number;
+  @Column({ name: 'confidence_score', type: 'int', nullable: true }) // 0-100
+  confidenceScore: number;
 
-  @Column({ type: 'int', nullable: true })
-  confidence_percent: number;
-
-  @Column({ type: 'enum', enum: AiComplexity, nullable: true })
-  complexity_label: AiComplexity;
-
-  @Column({ type: 'jsonb', nullable: true })
-  similar_tasks_data: any;
-
-  @Column({ type: 'jsonb', nullable: true })
-  breakdown: any;
-
-  @CreateDateColumn()
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
 }

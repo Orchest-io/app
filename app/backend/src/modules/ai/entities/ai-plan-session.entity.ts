@@ -1,39 +1,28 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
-import { AiPlanItem } from './ai-plan-item.entity';
-import { AiSessionStatus } from '@orchest/shared';
 
 @Entity('ai_plan_sessions')
 export class AiPlanSession {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
-  project_id: string;
-
-  @Column({ type: 'uuid' })
-  initiated_by: string;
-
-  @Column({ type: 'enum', enum: AiSessionStatus, default: AiSessionStatus.PENDING })
-  status: AiSessionStatus;
-
-  @Column({ type: 'jsonb', nullable: true })
-  input_data: any;
+  @Column({ name: 'project_id', type: 'uuid' })
+  projectId: string;
 
   @Column({ type: 'jsonb', nullable: true })
   generated_plan: any;
 
   @Column({ type: 'jsonb', nullable: true })
-  risk_analysis: any;
+  generated_structure_snapshot: any;
 
   @Column({ type: 'jsonb', nullable: true })
-  resource_recommendations: any;
+  proposed_milestones_snapshot: any;
 
-  @Column({ type: 'int', nullable: true })
-  generation_time_ms: number;
+  @Column({ type: 'jsonb', nullable: true })
+  proposed_tasks_snapshot: any;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @Column({ type: 'varchar', nullable: true }) // proposed | accepted | rejected | archived
+  status: string;
 
-  @OneToMany(() => AiPlanItem, item => item.session)
-  items: AiPlanItem[];
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
 }

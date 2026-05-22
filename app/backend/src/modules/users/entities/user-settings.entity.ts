@@ -6,7 +6,6 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { ThemeMode } from '@orchest/shared';
 import { User } from './user.entity';
 
 @Entity('user_settings')
@@ -21,10 +20,10 @@ export class UserSettings {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'enum', enum: ThemeMode, nullable: true })
-  theme: ThemeMode;
+  @Column({ type: 'varchar', nullable: true }) // dark | light | system
+  theme: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar', nullable: true }) // en | es | fr | de
   language: string;
 
   @Column({ name: 'email_notifications', type: 'boolean', default: true })
@@ -35,12 +34,6 @@ export class UserSettings {
 
   @Column({ name: 'ai_suggestions', type: 'boolean', default: true })
   aiSuggestions: boolean;
-
-  @Column({ name: 'weekly_reports', type: 'boolean', default: false })
-  weeklyReports: boolean;
-
-  @Column({ name: 'two_factor_enabled', type: 'boolean', default: false })
-  twoFactorEnabled: boolean;
 
   @Column({ type: 'jsonb', nullable: true })
   preferences: Record<string, any>;

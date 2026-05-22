@@ -12,14 +12,14 @@ export class TimeEntryService {
   ) {}
 
   async create(userId: string, createDto: CreateTimeEntryDto): Promise<TimeEntry> {
-    const entry = this.timeEntryRepository.create({ ...createDto, user_id: userId });
+    const entry = this.timeEntryRepository.create({ ...createDto, userId: userId } as any);
     return this.timeEntryRepository.save(entry);
   }
 
   async findAll(projectId?: string, taskId?: string): Promise<TimeEntry[]> {
     const where: any = {};
-    if (projectId) where.project_id = projectId;
-    if (taskId) where.task_id = taskId;
+    if (projectId) where.projectId = projectId;
+    if (taskId) where.taskId = taskId;
     return this.timeEntryRepository.find({ where });
   }
 

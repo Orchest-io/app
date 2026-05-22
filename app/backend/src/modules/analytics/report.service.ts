@@ -14,12 +14,12 @@ export class ReportService {
   ) {}
 
   async create(userId: string, createDto: CreateReportDto): Promise<Report> {
-    const report = this.reportRepository.create({ ...createDto, generated_by: userId });
+    const report = this.reportRepository.create({ ...createDto, generatedBy: userId } as any);
     return this.reportRepository.save(report);
   }
 
   async findAll(projectId?: string): Promise<Report[]> {
-    const where = projectId ? { project_id: projectId } : {};
+    const where = projectId ? { projectId: projectId } : {};
     return this.reportRepository.find({ where, relations: ['snapshots'] });
   }
 
@@ -41,7 +41,7 @@ export class ReportService {
   }
 
   async addSnapshot(reportId: string, snapshotDto: CreateReportSnapshotDto): Promise<ReportSnapshot> {
-    const snapshot = this.snapshotRepository.create({ ...snapshotDto, report_id: reportId });
+    const snapshot = this.snapshotRepository.create({ ...snapshotDto, reportId: reportId } as any);
     return this.snapshotRepository.save(snapshot);
   }
 }
