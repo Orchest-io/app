@@ -1,10 +1,16 @@
 import { useState } from 'react'
 import { MainLayout } from './components/layout'
-import { Button, Input, Card, Checkbox, Toggle, ProgressBar, Tabs, Select, TextArea } from './components/ui'
+import { Button, TextArea } from './components/ui'
 import { Toaster, toast } from 'sonner'
+import Dashboard from './pages/Dashboard/Dashboard'
+import TeamManagement from './pages/TeamManagement/TeamManagement'
 
 export default function App() {
   const [activePage, setActivePage] = useState('dashboard')
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false)
+  const [aiPrompt, setAiPrompt] = useState('')
+  const [aiResponse, setAiResponse] = useState('')
+  const [isAiLoading, setIsAiLoading] = useState(false)
 
   const handleNavigate = (key: string) => {
     setActivePage(key)
@@ -12,12 +18,26 @@ export default function App() {
   }
 
   const handleAiCopilot = () => {
-    const promise = () => new Promise((resolve) => setTimeout(resolve, 1500))
-    toast.promise(promise, {
-      loading: 'AI Copilot is analyzing your team workspace...',
-      success: 'AI Insights generated successfully! Check your planner.',
-      error: 'Failed to connect to AI engine',
-    })
+    setIsAiModalOpen(true)
+  }
+
+  const handleGenerateAiResponse = () => {
+    if (!aiPrompt.trim()) {
+      toast.error('Please enter a query for the AI Copilot')
+      return
+    }
+    setIsAiLoading(true)
+    setTimeout(() => {
+      setIsAiLoading(false)
+      setAiResponse(
+        `Based on the current team workload, Sarah Hassan is heavily loaded with 5 tasks. Ahmed Rayan (3 tasks) and Omar Khaled (2 tasks) have extra capacity.
+
+Recommendation:
+1. Re-route 1 database task from Sarah to Ahmed to balance the sprint velocity.
+2. Schedule a quick design sync with Omar for the upcoming new milestone.`
+      )
+      toast.success('AI suggestions generated successfully!')
+    }, 1200)
   }
 
   return (
@@ -27,121 +47,65 @@ export default function App() {
       onAiCopilotClick={handleAiCopilot}
     >
       <Toaster position="top-right" theme="dark" closeButton richColors />
-      
-      <div className="max-w-[900px]">
-        <h2 className="font-heading text-[32px] mb-8 font-semibold text-on-surface">
-          Dashboard
-        </h2>
 
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card>
-            <p className="text-[12px] text-on-surface-variant mb-2">Active Projects</p>
-            <p className="text-[28px] font-bold font-heading text-on-surface">12</p>
-            <ProgressBar value={72} glow className="mt-3" />
-          </Card>
-          <Card>
-            <p className="text-[12px] text-on-surface-variant mb-2">Tasks Done</p>
-            <p className="text-[28px] font-bold font-heading text-on-surface">84%</p>
-            <ProgressBar value={84} color="purple" className="mt-3" />
-          </Card>
-          <Card>
-            <p className="text-[12px] text-on-surface-variant mb-2">Team Velocity</p>
-            <p className="text-[28px] font-bold font-heading text-on-surface">92%</p>
-            <ProgressBar value={92} glow className="mt-3" />
-          </Card>
+      {activePage === 'dashboard' && (
+        <Dashboard onNavigate={handleNavigate} onExploreAi={handleAiCopilot} />
+      )}
+
+      {activePage === 'team' && (
+        <TeamManagement />
+      )}
+
+      {activePage !== 'team' && activePage !== 'dashboard' && (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center max-w-[900px] mx-auto">
+          <div className="w-16 h-16 rounded-full bg-error-container/10 flex items-center justify-center text-error mb-4">
+            <span className="material-symbols-outlined text-[32px]">error</span>
+          </div>
+          <h2 className="font-heading text-2xl font-bold mb-2">Page Not Found</h2>
+          <p className="text-sm text-on-surface-variant max-w-sm leading-relaxed">
+            The page you are looking for does not exist or has been moved to another route.
+          </p>
         </div>
+      )}
 
-        {/* Buttons */}
-        <Card className="mb-6">
-          <p className="text-sm text-on-surface-variant mb-3">Buttons</p>
-          <div className="flex gap-3 flex-wrap">
-            <Button
-              icon="add"
-              onClick={() => toast.success('Creating a new project...')}
-            >
-              New Project
-            </Button>
-            <Button
-              variant="secondary"
-              icon="visibility"
-              onClick={() => toast.info('Opening code/project review panel')}
-            >
-              Review
-            </Button>
-            <Button
-              variant="ghost"
-              icon="more_horiz"
-              onClick={() => toast('Displaying more options')}
-            >
-              More
-            </Button>
-            <Button size="sm" onClick={() => toast.success('Small button clicked')}>
-              Small
-            </Button>
-            <Button size="lg" onClick={() => toast.success('Large button clicked')}>
-              Large
-            </Button>
-          </div>
-        </Card>
+      {isAiModalOpen && (
+        <div className="fixed inset-0 bg-[#050505]/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-surface-container border border-border-low p-6 rounded-xl relative shadow-2xl">
+            <button className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface cursor-pointer bg-transparent border-none outline-none" onClick={() => setIsAiModalOpen(false)}>
+              <span className="material-symbols-outlined">close</span>
+            </button>
 
-        {/* Tabs */}
-        <Card className="mb-6">
-          <p className="text-sm text-on-surface-variant mb-3">Tabs</p>
-          <Tabs
-            tabs={[
-              { key: 'overview', label: 'Overview', icon: 'dashboard' },
-              { key: 'tasks', label: 'Tasks', icon: 'task_alt' },
-              { key: 'files', label: 'Files', icon: 'folder' },
-              { key: 'analytics', label: 'Analytics', icon: 'insights' },
-            ]}
-            onChange={(key) => toast.info(`Switched active tab to ${key}`)}
-          />
-        </Card>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-full bg-peri-purple/10 flex items-center justify-center text-peri-purple">
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+              </div>
+              <div>
+                <h3 className="font-heading text-lg font-bold text-on-surface">AI Copilot</h3>
+                <p className="text-xs text-on-surface-variant">Intelligent workspace assistant</p>
+              </div>
+            </div>
 
-        {/* Form */}
-        <Card className="mb-6">
-          <p className="text-sm text-on-surface-variant mb-4">Form</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <Input
-              label="Project Name"
-              icon="edit"
-              placeholder="Enter project name"
-              onChange={(e) => {
-                if (e.target.value.length > 0 && e.target.value.length % 5 === 0) {
-                  toast(`Typing project name: ${e.target.value}`)
-                }
-              }}
-            />
-            <Select
-              label="Priority"
-              options={[
-                { value: 'high', label: 'High' },
-                { value: 'medium', label: 'Medium' },
-                { value: 'low', label: 'Low' },
-              ]}
-              onChange={(e) => toast.success(`Priority set to: ${e.target.value}`)}
-            />
+            <div className="flex flex-col gap-4">
+              <TextArea
+                label="How can I help you today?"
+                placeholder="Ask me to assign tasks, analyze velocity, or draft a milestone plan..."
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+              />
+
+              <Button onClick={handleGenerateAiResponse} disabled={isAiLoading}>
+                {isAiLoading ? 'Analyzing Workspace...' : 'Generate Insights'}
+              </Button>
+
+              {aiResponse && (
+                <div className="mt-4 p-4 rounded-lg bg-surface-glass border border-border-low text-sm text-on-surface leading-relaxed whitespace-pre-line">
+                  {aiResponse}
+                </div>
+              )}
+            </div>
           </div>
-          <TextArea label="Description" placeholder="Describe the project..." className="mb-4" />
-          <div className="flex gap-5">
-            <Checkbox
-              label="Auto-assign tasks"
-              defaultChecked
-              onChange={(e) =>
-                toast.info(`Auto-assign tasks is now ${e.target.checked ? 'enabled' : 'disabled'}`)
-              }
-            />
-            <Toggle
-              label="AI Suggestions"
-              defaultChecked
-              onChange={(e) =>
-                toast.info(`AI Suggestions are now ${e.target.checked ? 'enabled' : 'disabled'}`)
-              }
-            />
-          </div>
-        </Card>
-      </div>
+        </div>
+      )}
     </MainLayout>
   )
 }

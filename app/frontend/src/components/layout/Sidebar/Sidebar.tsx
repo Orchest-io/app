@@ -1,4 +1,3 @@
-import { useState } from 'react'
 
 type NavItem = {
   key: string
@@ -12,7 +11,6 @@ const navItems: NavItem[] = [
   { key: 'tasks', label: 'Tasks', icon: 'task_alt' },
   { key: 'team', label: 'Team', icon: 'group' },
   { key: 'analytics', label: 'Analytics', icon: 'insights' },
-  { key: 'calendar', label: 'Calendar', icon: 'calendar_month' },
   { key: 'settings', label: 'Settings', icon: 'settings' },
 ]
 
@@ -29,10 +27,8 @@ export default function Sidebar({
   collapsed = false,
   onToggle,
 }: SidebarProps) {
-  const [active, setActive] = useState(activePage)
 
   const handleNav = (key: string) => {
-    setActive(key)
     onNavigate?.(key)
   }
 
@@ -40,7 +36,7 @@ export default function Sidebar({
     <aside className={`fixed left-0 top-0 h-screen bg-surface-container-low border-r border-border-low flex flex-col p-4 z-50 transition-[width] duration-300 overflow-hidden ${
       collapsed ? 'w-sidebar-c items-center' : 'w-sidebar-w'
     }`}>
-      {/* Logo */}
+
       <div className="flex items-center gap-3 px-2 mb-8 w-full">
         <div className="w-10 h-10 rounded-md bg-electric-blue flex items-center justify-center text-white shadow-[0_0_15px_rgba(0,123,255,0.4)] shrink-0">
           <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -55,7 +51,6 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* New Project */}
       <button
         className={`w-full bg-gradient-to-br from-electric-blue to-primary-container text-white rounded-md font-semibold text-sm flex items-center justify-center gap-2 mb-6 shadow-[0_4px_15px_rgba(0,123,255,0.2)] active:scale-95 cursor-pointer ${
           collapsed ? 'p-3' : 'py-3 px-4'
@@ -66,7 +61,6 @@ export default function Sidebar({
         {!collapsed && 'New Project'}
       </button>
 
-      {/* Nav */}
       <nav className="flex-1 flex flex-col gap-1 w-full">
         {navItems.map((item) => (
           <a
@@ -74,7 +68,7 @@ export default function Sidebar({
             className={`flex items-center rounded-sm text-sm cursor-pointer transition-all duration-150 whitespace-nowrap hover:text-on-surface hover:bg-surface-glass ${
               collapsed ? 'justify-center p-2.5' : 'gap-3 py-2.5 px-4'
             } ${
-              active === item.key
+              activePage === item.key
                 ? 'bg-secondary-container text-on-secondary-container'
                 : 'text-on-surface-variant'
             }`}
@@ -86,7 +80,6 @@ export default function Sidebar({
         ))}
       </nav>
 
-      {/* Bottom */}
       <div className="mt-auto border-t border-border-low pt-3 flex flex-col gap-1 w-full">
         <a
           className={`flex items-center rounded-sm text-sm text-on-surface-variant cursor-pointer transition-all duration-150 whitespace-nowrap hover:text-on-surface hover:bg-surface-glass ${
