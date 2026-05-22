@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TimeEntry } from './entities';
-import { CreateTimeEntryDto, UpdateTimeEntryDto } from '../../../../../shared/src/dtos/analytics.dtos';
+import { CreateTimeEntryDto, UpdateTimeEntryDto } from '@orchest/shared';
 
 @Injectable()
 export class TimeEntryService {

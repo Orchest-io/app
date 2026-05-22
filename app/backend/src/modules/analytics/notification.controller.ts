@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
 import { NotificationService } from './notification.service';
-import { CreateNotificationDto, UpdateNotificationDto } from '../../../../../shared/src/dtos/analytics.dtos';
+import { CreateNotificationDto, UpdateNotificationDto } from '@orchest/shared';
 
 @Controller('notifications')
 export class NotificationController {

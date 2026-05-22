@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ActivityLog } from './entities';
-import { CreateActivityLogDto } from '../../../../../shared/src/dtos/analytics.dtos';
+import { CreateActivityLogDto } from '@orchest/shared';
 
 @Injectable()
 export class ActivityLogService {

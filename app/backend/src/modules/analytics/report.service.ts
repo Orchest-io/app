@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Report, ReportSnapshot } from './entities';
-import { CreateReportDto, UpdateReportDto, CreateReportSnapshotDto } from '../../../../../shared/src/dtos/analytics.dtos';
+import { CreateReportDto, UpdateReportDto, CreateReportSnapshotDto } from '@orchest/shared';
 
 @Injectable()
 export class ReportService {
