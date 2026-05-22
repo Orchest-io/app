@@ -84,3 +84,25 @@
     user-select: none;
   }
 }
+
+/* Landing Page Mockup Utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.electric-glow {
+  box-shadow: 0 0 40px -10px rgba(0, 123, 255, 0.3);
+}
+
+.peri-glow {
+  box-shadow: 0 0 40px -10px rgba(204, 204, 255, 0.2);
+}
+
+.bg-mesh {
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(0, 123, 255, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(204, 204, 255, 0.05) 0%, transparent 40%);
+}
+

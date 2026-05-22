@@ -1,9 +1,8 @@
 type HeaderProps = {
   collapsed?: boolean
-  onAiCopilotClick?: () => void
 }
 
-export default function Header({ collapsed = false, onAiCopilotClick }: HeaderProps) {
+export default function Header({ collapsed = false }: HeaderProps) {
   return (
     <header
       className="fixed top-0 right-0 h-header-h bg-[#131313]/80 backdrop-blur-md border-b border-border-low flex items-center justify-between px-6 z-40 transition-[width] duration-300"
@@ -15,7 +14,7 @@ export default function Header({ collapsed = false, onAiCopilotClick }: HeaderPr
           search
         </span>
         <input
-          className="w-full py-2 pl-10 pr-[60px] bg-surface-container-low border border-border-low rounded-md text-sm text-on-surface transition-colors duration-150 placeholder:text-on-surface-variant/60 focus:border-electric-blue/50 focus:shadow-[0_0_0_2px_rgba(0,123,255,0.1)] outline-none"
+          className="w-full py-2 pl-10 pr-[60px] bg-surface-container-low border border-border-low rounded-md text-sm text-on-surface transition-colors duration-150 placeholder:text-on-surface-variant/60 focus:border-electric-blue/50 focus:shadow-[0_0_0_2px_rgba(0,123,255,0.15)] outline-none"
           placeholder="Search tasks, teams, or AI insights..."
           type="text"
         />
@@ -26,19 +25,18 @@ export default function Header({ collapsed = false, onAiCopilotClick }: HeaderPr
 
       {/* Actions */}
       <div className="flex items-center gap-4">
-        {/* AI Copilot */}
-        <button
-          className="flex items-center gap-1.5 py-1.5 px-3.5 rounded-full bg-surface-container-high border border-peri-purple/20 text-peri-purple text-[12px] font-medium tracking-wider hover:bg-peri-purple/10 cursor-pointer transition-colors duration-150"
-          onClick={onAiCopilotClick}
+        {/* AI Copilot Indicator */}
+        <div
+          className="flex items-center gap-1.5 py-1.5 px-3.5 rounded-full bg-surface-container-high border border-peri-purple/20 text-peri-purple text-[12px] font-medium tracking-wider"
         >
           <span
-            className="material-symbols-outlined"
+            className="material-symbols-outlined animate-pulse"
             style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}
           >
             auto_awesome
           </span>
-          AI Copilot
-        </button>
+          AI Active
+        </div>
 
         {/* Theme Toggle */}
         <button className="text-on-surface-variant p-1.5 rounded-sm hover:text-primary transition-colors duration-150 cursor-pointer">

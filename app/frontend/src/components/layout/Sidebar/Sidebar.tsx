@@ -1,43 +1,42 @@
 
+import { NavLink, useNavigate } from 'react-router-dom'
+
 type NavItem = {
   key: string
   label: string
   icon: string
+  path: string
 }
 
 const navItems: NavItem[] = [
-  { key: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { key: 'projects', label: 'Projects', icon: 'tactic' },
-  { key: 'tasks', label: 'Tasks', icon: 'task_alt' },
-  { key: 'team', label: 'Team', icon: 'group' },
-  { key: 'analytics', label: 'Analytics', icon: 'insights' },
-  { key: 'settings', label: 'Settings', icon: 'settings' },
+  { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
+  { key: 'projects', label: 'Projects', icon: 'tactic', path: '/projects' },
+  { key: 'tasks', label: 'Tasks', icon: 'task_alt', path: '/tasks' },
+  { key: 'team', label: 'Team', icon: 'group', path: '/team' },
+  { key: 'analytics', label: 'Analytics', icon: 'insights', path: '/analytics' },
+  { key: 'settings', label: 'Settings', icon: 'settings', path: '/settings' },
 ]
 
 type SidebarProps = {
-  activePage?: string
-  onNavigate?: (key: string) => void
   collapsed?: boolean
   onToggle?: () => void
 }
 
 export default function Sidebar({
-  activePage = 'dashboard',
-  onNavigate,
   collapsed = false,
   onToggle,
 }: SidebarProps) {
-
-  const handleNav = (key: string) => {
-    onNavigate?.(key)
-  }
+  const navigate = useNavigate()
 
   return (
     <aside className={`fixed left-0 top-0 h-screen bg-surface-container-low border-r border-border-low flex flex-col p-4 z-50 transition-[width] duration-300 overflow-hidden ${
       collapsed ? 'w-sidebar-c items-center' : 'w-sidebar-w'
     }`}>
 
-      <div className="flex items-center gap-3 px-2 mb-8 w-full">
+      <div
+        className="flex items-center gap-3 px-2 mb-8 w-full cursor-pointer hover:opacity-90 select-none"
+        onClick={() => navigate('/')}
+      >
         <div className="w-10 h-10 rounded-md bg-electric-blue flex items-center justify-center text-white shadow-[0_0_15px_rgba(0,123,255,0.4)] shrink-0">
           <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
             tactic
@@ -55,7 +54,7 @@ export default function Sidebar({
         className={`w-full bg-gradient-to-br from-electric-blue to-primary-container text-white rounded-md font-semibold text-sm flex items-center justify-center gap-2 mb-6 shadow-[0_4px_15px_rgba(0,123,255,0.2)] active:scale-95 cursor-pointer ${
           collapsed ? 'p-3' : 'py-3 px-4'
         }`}
-        onClick={() => onNavigate?.('new-project')}
+        onClick={() => navigate('/new-project')}
       >
         <span className="material-symbols-outlined">add</span>
         {!collapsed && 'New Project'}
@@ -63,20 +62,20 @@ export default function Sidebar({
 
       <nav className="flex-1 flex flex-col gap-1 w-full">
         {navItems.map((item) => (
-          <a
+          <NavLink
             key={item.key}
-            className={`flex items-center rounded-sm text-sm cursor-pointer transition-all duration-150 whitespace-nowrap hover:text-on-surface hover:bg-surface-glass ${
+            to={item.path}
+            className={({ isActive }) => `flex items-center rounded-sm text-sm cursor-pointer transition-all duration-150 whitespace-nowrap hover:text-on-surface hover:bg-surface-glass ${
               collapsed ? 'justify-center p-2.5' : 'gap-3 py-2.5 px-4'
             } ${
-              activePage === item.key
+              isActive
                 ? 'bg-secondary-container text-on-secondary-container'
                 : 'text-on-surface-variant'
             }`}
-            onClick={() => handleNav(item.key)}
           >
             <span className="material-symbols-outlined">{item.icon}</span>
             {!collapsed && item.label}
-          </a>
+          </NavLink>
         ))}
       </nav>
 
