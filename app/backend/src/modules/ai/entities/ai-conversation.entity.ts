@@ -1,5 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { AiMessage } from './ai-message.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('ai_conversations')
 export class AiConversation {
@@ -13,11 +23,18 @@ export class AiConversation {
   contextType: string;
 
   @Column({ name: 'context_id', type: 'uuid', nullable: true })
-  contextId: string;
+  contextId: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  @OneToMany(() => AiMessage, message => message.conversation)
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', nullable: true })
+  updatedAt: Date;
+
+  @ManyToOne(() => User, (user) => user.aiConversations, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @OneToMany(() => AiMessage, (message) => message.conversation)
   messages: AiMessage[];
 }

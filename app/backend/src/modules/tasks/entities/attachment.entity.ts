@@ -1,5 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Task } from './task.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('attachments')
 export class Attachment {
@@ -8,10 +16,6 @@ export class Attachment {
 
   @Column({ name: 'task_id', type: 'uuid' })
   taskId: string;
-
-  @ManyToOne(() => Task, task => task.attachments, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'task_id' })
-  task: Task;
 
   @Column({ name: 'uploaded_by', type: 'uuid' })
   uploadedBy: string;
@@ -30,4 +34,12 @@ export class Attachment {
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
+
+  @ManyToOne(() => Task, (task) => task.attachments, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'task_id' })
+  task: Task;
+
+  @ManyToOne(() => User, (user) => user.attachments, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'uploaded_by' })
+  uploadedByUser: User;
 }
