@@ -4,9 +4,12 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Project } from './project.entity';
+import { ProjectRolePermission } from './project-role-permission.entity';
+import { ProjectMember } from './project-member.entity';
 
 @Entity('project_scoped_roles')
 export class ProjectScopedRole {
@@ -28,4 +31,10 @@ export class ProjectScopedRole {
   @ManyToOne(() => Project, (project) => project.roles, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'project_id' })
   project: Project;
+
+  @OneToMany(() => ProjectRolePermission, (rp) => rp.role)
+  rolePermissions: ProjectRolePermission[];
+
+  @OneToMany(() => ProjectMember, (member) => member.projectScopedRole)
+  members: ProjectMember[];
 }

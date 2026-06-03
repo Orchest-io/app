@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { AiCreationPrompt } from './ai-creation-prompt.entity';
 
 @Entity('ai_prompt_snapshots')
 export class AiPromptSnapshot {
@@ -13,4 +20,8 @@ export class AiPromptSnapshot {
 
   @Column({ name: 'prompt_text_at_generation', type: 'text', nullable: true })
   promptTextAtGeneration: string;
+
+  @ManyToOne(() => AiCreationPrompt, (prompt) => prompt.snapshots, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'creation_prompt_id' })
+  creationPrompt: AiCreationPrompt;
 }

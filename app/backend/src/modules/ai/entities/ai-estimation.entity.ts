@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('ai_estimations')
 export class AiEstimation {
@@ -6,7 +14,10 @@ export class AiEstimation {
   id: string;
 
   @Column({ name: 'task_id', type: 'uuid', nullable: true })
-  taskId: string;
+  taskId: string | null;
+
+  @Column({ name: 'project_id', type: 'uuid', nullable: true })
+  projectId: string | null;
 
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
@@ -22,4 +33,17 @@ export class AiEstimation {
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
+
+  @ManyToOne(() => User, (user) => user.aiEstimations, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  // String references to avoid circular cross-module imports
+  @ManyToOne('Task', 'aiEstimations', { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'task_id' })
+  task: any;
+
+  @ManyToOne('Project', { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'project_id' })
+  project: any;
 }

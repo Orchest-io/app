@@ -19,11 +19,11 @@ export class ProjectRolePermission {
   @Column({ name: 'permission_def_id', type: 'uuid' })
   permissionDefId: string;
 
-  @ManyToOne(() => ProjectScopedRole, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ProjectScopedRole, (role) => role.rolePermissions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_id' })
   role: ProjectScopedRole;
 
-  @ManyToOne(() => ProjectPermissionsDef, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ProjectPermissionsDef, (permDef) => permDef.rolePermissions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'permission_def_id' })
   permissionDef: ProjectPermissionsDef;
 }

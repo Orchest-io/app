@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('time_entries')
 export class TimeEntry {
@@ -12,7 +20,7 @@ export class TimeEntry {
   projectId: string;
 
   @Column({ name: 'task_id', type: 'uuid', nullable: true })
-  taskId: string;
+  taskId: string | null;
 
   @Column({ name: 'duration_minutes', type: 'int' })
   durationMinutes: number;
@@ -28,4 +36,17 @@ export class TimeEntry {
 
   @Column({ name: 'entry_date', type: 'date', nullable: true })
   entryDate: string;
+
+  @ManyToOne(() => User, (user) => user.timeEntries, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  // String references to avoid circular cross-module imports
+  @ManyToOne('Project', 'timeEntries', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'project_id' })
+  project: any;
+
+  @ManyToOne('Task', 'timeEntries', { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'task_id' })
+  task: any;
 }
