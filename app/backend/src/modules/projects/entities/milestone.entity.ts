@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Project } from './project.entity';
@@ -17,7 +18,7 @@ export class Milestone {
   projectId: string;
 
   @Column({ name: 'ai_creation_prompt_id', type: 'uuid', nullable: true })
-  aiCreationPromptId: string;
+  aiCreationPromptId: string | null;
 
   @Column({ type: 'varchar' })
   title: string;
@@ -44,4 +45,12 @@ export class Milestone {
   @ManyToOne(() => Project, (project) => project.milestones, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'project_id' })
   project: Project;
+
+  // Lazy string reference to avoid circular import with AiCreationPrompt (cross-module)
+  @ManyToOne('AiCreationPrompt', { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'ai_creation_prompt_id' })
+  aiCreationPrompt: any;
+
+  @OneToMany('Task', 'milestone')
+  tasks: any[];
 }

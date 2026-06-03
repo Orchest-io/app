@@ -1,5 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Report } from './report.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('report_snapshots')
 export class ReportSnapshot {
@@ -9,12 +17,8 @@ export class ReportSnapshot {
   @Column({ name: 'report_id', type: 'uuid' })
   reportId: string;
 
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
-
-  @ManyToOne(() => Report, (report) => report.snapshots, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'report_id' })
-  report: Report;
+  @Column({ name: 'user_id', type: 'uuid', nullable: true })
+  userId: string | null;
 
   @Column({ name: 'metric_name', type: 'varchar' })
   metricName: string;
@@ -27,4 +31,12 @@ export class ReportSnapshot {
 
   @CreateDateColumn({ name: 'captured_at', type: 'timestamp' })
   capturedAt: Date;
+
+  @ManyToOne(() => Report, (report) => report.snapshots, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'report_id' })
+  report: Report;
+
+  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }

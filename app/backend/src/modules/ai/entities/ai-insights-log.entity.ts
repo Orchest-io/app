@@ -1,15 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('ai_insights_logs')
 export class AiInsightsLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'propsset_id', type: 'uuid', nullable: true })
-  propssetId: string;
+  @Column({ name: 'project_id', type: 'uuid', nullable: true })
+  projectId: string | null;
 
-  @Column({ name: 'initiated_fk', type: 'uuid' })
-  initiatedFk: string;
+  @Column({ name: 'initiated_by', type: 'uuid' })
+  initiatedBy: string;
 
   @Column({ name: 'reference_type', type: 'varchar', nullable: true })
   referenceType: string;
@@ -31,4 +32,13 @@ export class AiInsightsLog {
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
+
+  // Relations
+  @ManyToOne('Project', { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'project_id' })
+  project: any;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'initiated_by' })
+  initiator: User;
 }

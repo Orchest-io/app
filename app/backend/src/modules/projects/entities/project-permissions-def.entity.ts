@@ -4,9 +4,11 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Project } from './project.entity';
+import { ProjectRolePermission } from './project-role-permission.entity';
 
 @Entity('project_permissions_def')
 export class ProjectPermissionsDef {
@@ -25,4 +27,7 @@ export class ProjectPermissionsDef {
   @ManyToOne(() => Project, (project) => project.permissionsDefs, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'project_id' })
   project: Project;
+
+  @OneToMany(() => ProjectRolePermission, (rp) => rp.permissionDef)
+  rolePermissions: ProjectRolePermission[];
 }

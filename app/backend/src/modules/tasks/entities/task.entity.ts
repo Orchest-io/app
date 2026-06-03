@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Subtask } from './subtask.entity';
 import { TaskAssignee } from './task-assignee.entity';
 import { TaskDependency } from './task-dependency.entity';
@@ -14,7 +23,7 @@ export class Task {
   projectId: string;
 
   @Column({ name: 'milestone_id', type: 'uuid', nullable: true })
-  milestoneId: string;
+  milestoneId: string | null;
 
   @Column({ name: 'created_by', type: 'uuid' })
   createdBy: string;
@@ -28,7 +37,7 @@ export class Task {
   @Column({ type: 'varchar', nullable: true }) // feature | bug | improvement
   type: string;
 
-  @Column({ type: 'varchar', nullable: true }) // backlog | todo | in-progress | done
+  @Column({ type: 'varchar', nullable: true }) // backlog | todo | in-progress | review | done
   status: string;
 
   @Column({ type: 'varchar', nullable: true }) // low | medium | high | urgent
@@ -43,6 +52,12 @@ export class Task {
   @Column({ name: 'due_date', type: 'date', nullable: true })
   dueDate: Date;
 
+  @Column({ name: 'estimated_hours', type: 'decimal', precision: 5, scale: 2, nullable: true })
+  estimatedHours: number;
+
+  @Column({ name: 'actual_hours', type: 'decimal', precision: 5, scale: 2, nullable: true, default: 0 })
+  actualHours: number;
+
   @Column({ name: 'ai_complexity_vector', type: 'vector' as any, length: 1536, nullable: true })
   aiComplexityVector: number[];
 
@@ -55,31 +70,38 @@ export class Task {
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  // For TypeORM's sake we also keep project relations string to avoid cycles if needed
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  updatedAt: Date;
+
+  // Relations
   @ManyToOne('Project', 'tasks', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'project_id' })
   project: any;
 
-  @ManyToOne('Milestone', 'tasks', { onDelete: 'SET NULL' })
+  @ManyToOne('Milestone', 'tasks', { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'milestone_id' })
   milestone: any;
 
-  @OneToMany(() => Subtask, subtask => subtask.task)
+  @ManyToOne('User', 'createdTasks', { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'created_by' })
+  creator: any;
+
+  @OneToMany(() => Subtask, (subtask) => subtask.task)
   subtasks: Subtask[];
 
-  @OneToMany(() => TaskAssignee, assignee => assignee.task)
+  @OneToMany(() => TaskAssignee, (assignee) => assignee.task)
   assignees: TaskAssignee[];
 
-  @OneToMany(() => TaskDependency, dependency => dependency.task)
+  @OneToMany(() => TaskDependency, (dependency) => dependency.task)
   dependencies: TaskDependency[];
 
-  @OneToMany(() => TaskDependency, dependency => dependency.dependsOnTask)
+  @OneToMany(() => TaskDependency, (dependency) => dependency.dependsOnTask)
   dependentOn: TaskDependency[];
 
-  @OneToMany(() => Comment, comment => comment.task)
+  @OneToMany(() => Comment, (comment) => comment.task)
   comments: Comment[];
 
-  @OneToMany(() => Attachment, attachment => attachment.task)
+  @OneToMany(() => Attachment, (attachment) => attachment.task)
   attachments: Attachment[];
 
   @OneToMany('TimeEntry', 'task')
