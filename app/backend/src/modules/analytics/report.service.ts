@@ -14,7 +14,7 @@ export class ReportService {
   ) {}
 
   async create(userId: string, createDto: CreateReportDto): Promise<Report> {
-    const report = this.reportRepository.create({ ...createDto, generatedBy: userId } as any);
+    const report = this.reportRepository.create({ ...createDto, generatedBy: userId } );
     return this.reportRepository.save(report);
   }
 
@@ -41,7 +41,7 @@ export class ReportService {
   }
 
   async addSnapshot(reportId: string, snapshotDto: CreateReportSnapshotDto): Promise<ReportSnapshot> {
-    const snapshot = this.snapshotRepository.create({ ...snapshotDto, reportId: reportId } as any);
+    const snapshot = this.snapshotRepository.create({ ...snapshotDto, reportId: reportId });
     return this.snapshotRepository.save(snapshot);
   }
 }

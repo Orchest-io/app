@@ -12,7 +12,7 @@ export class ActivityLogService {
   ) {}
 
   async create(userId: string, createDto: CreateActivityLogDto): Promise<ActivityLog> {
-    const log = this.activityLogRepository.create({ ...createDto, userId: userId } as any);
+    const log = this.activityLogRepository.create({ ...createDto, userId: userId });
     return this.activityLogRepository.save(log);
   }
 

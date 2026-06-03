@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TasksService } from './tasks.service';
 import { TasksController } from './tasks.controller';
@@ -8,9 +8,13 @@ import { TaskAssignee } from './entities/task-assignee.entity';
 import { TaskDependency } from './entities/task-dependency.entity';
 import { Comment } from './entities/comment.entity';
 import { Attachment } from './entities/attachment.entity';
+import { ProjectsModule } from '../projects/projects.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Task, Subtask, TaskAssignee, TaskDependency, Comment, Attachment])],
+  imports: [
+    TypeOrmModule.forFeature([Task, Subtask, TaskAssignee, TaskDependency, Comment, Attachment]),
+    forwardRef(() => ProjectsModule),
+  ],
   controllers: [TasksController],
   providers: [TasksService],
   exports: [TasksService],

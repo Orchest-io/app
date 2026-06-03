@@ -25,44 +25,52 @@ export class ProjectsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(id);
+  findOne(@Request() req: any, @Param('id') id: string) {
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    return this.projectsService.findOne(id, userId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectsService.update(id, updateProjectDto);
+  update(@Request() req: any, @Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    return this.projectsService.update(id, updateProjectDto, userId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.projectsService.remove(id);
+  remove(@Request() req: any, @Param('id') id: string) {
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    return this.projectsService.remove(id, userId);
   }
 
   // Members
   @Post(':id/members')
-  addMember(@Param('id') id: string, @Body() dto: AddProjectMemberDto) {
-    return this.projectsService.addMember(id, dto);
+  addMember(@Request() req: any, @Param('id') id: string, @Body() dto: AddProjectMemberDto) {
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    return this.projectsService.addMember(id, dto, userId);
   }
 
-  @Delete(':id/members/:userId')
-  removeMember(@Param('id') id: string, @Param('userId') userId: string) {
-    return this.projectsService.removeMember(id, userId);
+  @Delete(':id/members/:memberUserId')
+  removeMember(@Request() req: any, @Param('id') id: string, @Param('memberUserId') memberUserId: string) {
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    return this.projectsService.removeMember(id, memberUserId, userId);
   }
 
   // Milestones
   @Post(':id/milestones')
-  createMilestone(@Param('id') id: string, @Body() dto: CreateMilestoneDto) {
-    return this.projectsService.createMilestone(id, dto);
+  createMilestone(@Request() req: any, @Param('id') id: string, @Body() dto: CreateMilestoneDto) {
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    return this.projectsService.createMilestone(id, dto, userId);
   }
 
   @Patch('milestones/:milestoneId')
-  updateMilestone(@Param('milestoneId') milestoneId: string, @Body() dto: UpdateMilestoneDto) {
-    return this.projectsService.updateMilestone(milestoneId, dto);
+  updateMilestone(@Request() req: any, @Param('milestoneId') milestoneId: string, @Body() dto: UpdateMilestoneDto) {
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    return this.projectsService.updateMilestone(milestoneId, dto, userId);
   }
 
   @Delete('milestones/:milestoneId')
-  removeMilestone(@Param('milestoneId') milestoneId: string) {
-    return this.projectsService.removeMilestone(milestoneId);
+  removeMilestone(@Request() req: any, @Param('milestoneId') milestoneId: string) {
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    return this.projectsService.removeMilestone(milestoneId, userId);
   }
 }

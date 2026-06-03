@@ -1,4 +1,4 @@
-const API_BASE = '/api/v1';
+const API_BASE = 'http://localhost:3000/api/v1';
 
 export async function apiRequest<T = any>(
   endpoint: string,

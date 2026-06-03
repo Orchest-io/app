@@ -22,8 +22,8 @@ export class ProjectMember {
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
-  @Column({ name: 'project_scoped_role_id', type: 'uuid' })
-  projectScopedRoleId: string;
+  @Column({ name: 'project_scoped_role_id', type: 'uuid', nullable: true })
+  projectScopedRoleId: string | null;
 
   @Column({ type: 'varchar', nullable: true })
   role: string;
