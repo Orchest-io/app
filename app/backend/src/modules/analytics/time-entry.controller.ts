@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
 import { TimeEntryService } from './time-entry.service';
-import { CreateTimeEntryDto, UpdateTimeEntryDto } from '../../../../../shared/src/dtos/analytics.dtos';
+import { CreateTimeEntryDto, UpdateTimeEntryDto } from '@orchest/shared';
 
 @Controller('time-entries')
 export class TimeEntryController {

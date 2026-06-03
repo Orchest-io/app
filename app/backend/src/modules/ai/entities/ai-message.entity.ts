@@ -1,28 +1,30 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { AiConversation } from './ai-conversation.entity';
-import { AiMessageRole } from '@orchest/shared';
 
 @Entity('ai_messages')
 export class AiMessage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
-  conversation_id: string;
+  @Column({ name: 'conversation_id', type: 'uuid' })
+  conversationId: string;
 
   @ManyToOne(() => AiConversation, convo => convo.messages, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'conversation_id' })
   conversation: AiConversation;
 
-  @Column({ type: 'enum', enum: AiMessageRole, nullable: true })
-  role: AiMessageRole;
+  @Column({ name: 'session_fk', type: 'uuid', nullable: true })
+  sessionFk: string;
+
+  @Column({ type: 'varchar', nullable: true }) // user | assistant
+  role: string;
 
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ type: 'jsonb', nullable: true })
-  metadata: any;
+  @Column({ name: 'content_embedding', type: 'vector' as any, length: 1536, nullable: true })
+  contentEmbedding: number[];
 
-  @CreateDateColumn()
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
 }

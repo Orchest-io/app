@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { ActivityLogService } from './activity-log.service';
-import { CreateActivityLogDto } from '../../../../../shared/src/dtos/analytics.dtos';
+import { CreateActivityLogDto } from '@orchest/shared';
 
 @Controller('activity-logs')
 export class ActivityLogController {

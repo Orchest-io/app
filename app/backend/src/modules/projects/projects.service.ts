@@ -67,7 +67,7 @@ export class ProjectsService {
 
   async create(userId: string, createProjectDto: CreateProjectDto): Promise<Project> {
     const project = this.projectsRepository.create({
-      ...createProjectDto,
+      ...(createProjectDto as any),
       createdBy: userId,
     });
     const savedProject = await this.projectsRepository.save(project);

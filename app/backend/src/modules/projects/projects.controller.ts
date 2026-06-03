@@ -13,13 +13,13 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  create(@Request() req, @Body() createProjectDto: CreateProjectDto) {
+  create(@Request() req: any, @Body() createProjectDto: CreateProjectDto) {
     const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.create(userId, createProjectDto);
   }
 
   @Get()
-  findAll(@Request() req) {
+  findAll(@Request() req: any) {
     const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.findAll(userId);
   }

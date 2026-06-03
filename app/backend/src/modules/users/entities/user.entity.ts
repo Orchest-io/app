@@ -7,7 +7,6 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm';
-import { AuthProvider, UserAvailability } from '@orchest/shared';
 import { UserSession } from './user-session.entity';
 import { UserSettings } from './user-settings.entity';
 import { UserSkill } from './user-skill.entity';
@@ -29,28 +28,10 @@ export class User {
   @Column({ name: 'avatar_url', type: 'varchar', nullable: true })
   avatarUrl: string;
 
-  @Column({ name: 'role_title', type: 'varchar', nullable: true })
-  roleTitle: string;
+  @Column({ type: 'jsonb', nullable: true })
+  roles: any; // global roles JSON/array
 
-  @Column({
-    name: 'auth_provider',
-    type: 'enum',
-    enum: AuthProvider,
-    nullable: true,
-  })
-  authProvider: AuthProvider;
-
-  @Column({ name: 'auth_provider_id', type: 'varchar', nullable: true })
-  authProviderId: string;
-
-  @Column({
-    type: 'enum',
-    enum: UserAvailability,
-    nullable: true,
-  })
-  availability: UserAvailability;
-
-  @Column({ name: 'workload_percent', type: 'int', nullable: true })
+  @Column({ name: 'workload_percent', type: 'int', nullable: true, default: 0 })
   workloadPercent: number;
 
   @Column({ name: 'is_email_verified', type: 'boolean', default: false })
@@ -103,4 +84,13 @@ export class User {
 
   @OneToMany('Attachment', 'uploadedBy')
   attachments: any[];
+
+  @OneToMany('Report', 'generatedBy')
+  reports: any[];
+
+  @OneToMany('CustomReport', 'user')
+  customReports: any[];
+
+  @OneToMany('AiEstimation', 'user')
+  aiEstimations: any[];
 }

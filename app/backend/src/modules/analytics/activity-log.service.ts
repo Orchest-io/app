@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ActivityLog } from './entities';
-import { CreateActivityLogDto } from '../../../../../shared/src/dtos/analytics.dtos';
+import { CreateActivityLogDto } from '@orchest/shared';
 
 @Injectable()
 export class ActivityLogService {
@@ -12,15 +12,15 @@ export class ActivityLogService {
   ) {}
 
   async create(userId: string, createDto: CreateActivityLogDto): Promise<ActivityLog> {
-    const log = this.activityLogRepository.create({ ...createDto, user_id: userId });
+    const log = this.activityLogRepository.create({ ...createDto, userId: userId } as any);
     return this.activityLogRepository.save(log);
   }
 
   async findAll(projectId?: string, userId?: string): Promise<ActivityLog[]> {
     const where: any = {};
-    if (projectId) where.project_id = projectId;
-    if (userId) where.user_id = userId;
-    return this.activityLogRepository.find({ where, order: { created_at: 'DESC' } });
+    if (projectId) where.projectId = projectId;
+    if (userId) where.userId = userId;
+    return this.activityLogRepository.find({ where, order: { createdAt: 'DESC' } });
   }
 
   async findOne(id: string): Promise<ActivityLog> {

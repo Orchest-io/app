@@ -1,1 +1,108 @@
-body { margin: 0; }
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-bg-deep: #050505;
+  --color-surface: #131313;
+  --color-surface-dim: #131313;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-container: #201f1f;
+  --color-surface-container-high: #2a2a2a;
+  --color-surface-container-highest: #353534;
+  --color-surface-bright: #3a3939;
+  --color-surface-glass: rgba(255, 255, 255, 0.03);
+
+  --color-on-surface: #e5e2e1;
+  --color-on-surface-variant: #c1c6d7;
+
+  --color-electric-blue: #007BFF;
+  --color-primary: #adc7ff;
+  --color-primary-container: #4a8eff;
+
+  --color-peri-purple: #CCCCFF;
+  --color-secondary: #c2c2f5;
+  --color-secondary-container: #444570;
+  --color-on-secondary-container: #b4b4e6;
+
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+
+  --color-border-low: rgba(255, 255, 255, 0.08);
+  --color-outline: #8b90a0;
+  --color-outline-variant: #414754;
+
+  --color-ai-glow: rgba(0, 123, 255, 0.15);
+
+  /* Spacing */
+  --spacing-sidebar-w: 260px;
+  --spacing-sidebar-c: 64px;
+  --spacing-header-h: 64px;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Fonts */
+  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Geist', sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-bg-deep);
+    color: var(--color-on-surface);
+    overflow-x: hidden;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  /* Selection */
+  ::selection {
+    background: rgba(0, 123, 255, 0.3);
+  }
+
+  /* Material Symbols */
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+    user-select: none;
+  }
+}
+
+/* Landing Page Mockup Utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.electric-glow {
+  box-shadow: 0 0 40px -10px rgba(0, 123, 255, 0.3);
+}
+
+.peri-glow {
+  box-shadow: 0 0 40px -10px rgba(204, 204, 255, 0.2);
+}
+
+.bg-mesh {
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(0, 123, 255, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(204, 204, 255, 0.05) 0%, transparent 40%);
+}
+
