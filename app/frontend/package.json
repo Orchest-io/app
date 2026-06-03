@@ -12,6 +12,8 @@
   "dependencies": {
     "@orchest/shared": "*",
     "@tailwindcss/vite": "^4.3.0",
+    "@tanstack/react-query": "^5.62.0",
+    "axios": "^1.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.15.1",

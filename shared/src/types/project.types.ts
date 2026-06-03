@@ -10,7 +10,7 @@ export interface Project {
   projectType?: ProjectType;
   projectMode?: ProjectMode;
   progress?: number;
-  budget?: string;
+   budgetAmount?: string;
   startDate?: Date;
   endDate?: Date;
   objectives?: string;

@@ -1,90 +1,52 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Card, ProgressBar, Tabs, Button, Input, Select, TextArea } from '../../../components/ui'
-import { mockDb } from '../../../utils/mockDb'
-
-type User = {
-  id: string
-  fullName: string
-  email: string
-  avatarUrl?: string
-}
-
-type ProjectMember = {
-  id: string
-  userId: string
-  role?: string
-  joinedAt: string
-  user?: User
-}
-
-type Milestone = {
-  id: string
-  title: string
-  description?: string
-  status?: string
-  progress: number
-  targetDate?: string
-}
-
-type Task = {
-  id: string
-  title: string
-  description?: string
-  type: string // feature | bug | improvement
-  status: string // backlog | todo | in-progress | done
-  priority: string // low | medium | high | urgent
-  dueDate?: string
-}
-
-type ActivityLog = {
-  id: string
-  action: string
-  entityType: string
-  description: string
-  createdAt: string
-}
-
-type Project = {
-  id: string
-  name: string
-  description?: string
-  status: 'planning' | 'active' | 'completed' | 'archived'
-  priority: 'low' | 'medium' | 'high'
-  progress: number
-  startDate?: string
-  endDate?: string
-  members?: ProjectMember[]
-  milestones?: Milestone[]
-  tasks?: Task[]
-  activityLogs?: ActivityLog[]
-}
+import { useProject } from '../../../hooks/useProject'
+import {
+  useUpdateProject,
+  useDeleteProject,
+  useAddMember,
+  useRemoveMember,
+  useCreateMilestone,
+  useUpdateMilestone,
+  useRemoveMilestone,
+} from '../../../hooks/useProjectMutations'
+import type { UpdateMilestoneDto } from '@orchest/shared'
 
 export default function ProjectDetailsOverview() {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
 
-  const [project, setProject] = useState<Project | null>(null)
-  const [allUsers, setAllUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: project, isLoading, isError } = useProject(projectId)
+
+  // Determine ownership
+  const currentUserId = localStorage.getItem('orchest_user_id')
+  const isOwner =
+    project?.members?.some(
+      (m) => m.userId === currentUserId && m.role === 'owner'
+    ) ?? false
+
   const [activeTab, setActiveTab] = useState('overview')
 
-  // Modals / forms state
+  // Mutations
+  const updateProjectMutation = useUpdateProject()
+  const deleteProjectMutation = useDeleteProject()
+  const addMemberMutation = useAddMember()
+  const removeMemberMutation = useRemoveMember()
+  const createMilestoneMutation = useCreateMilestone()
+  const updateMilestoneMutation = useUpdateMilestone()
+  const removeMilestoneMutation = useRemoveMilestone()
+
+  // Delete project confirm dialog
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+
+  // Add Member modal
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState('')
-  const [memberRole, setMemberRole] = useState('Developer')
+  const [memberRole, setMemberRole] = useState<'member' | 'owner'>('member')
 
-  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false)
-  const [taskData, setTaskData] = useState({
-    title: '',
-    description: '',
-    type: 'feature',
-    status: 'todo',
-    priority: 'medium',
-    dueDate: '',
-  })
-
+  // Add Milestone modal
   const [isAddMilestoneOpen, setIsAddMilestoneOpen] = useState(false)
   const [milestoneData, setMilestoneData] = useState({
     title: '',
@@ -92,6 +54,17 @@ export default function ProjectDetailsOverview() {
     targetDate: '',
   })
 
+  // Edit Milestone modal
+  const [isEditMilestoneOpen, setIsEditMilestoneOpen] = useState(false)
+  const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null)
+  const [editMilestoneData, setEditMilestoneData] = useState<{
+    title: string
+    description: string
+    targetDate: string
+    status: string
+  }>({ title: '', description: '', targetDate: '', status: 'upcoming' })
+
+  // Edit Project modal
   const [isEditProjectOpen, setIsEditProjectOpen] = useState(false)
   const [projectEditData, setProjectEditData] = useState({
     name: '',
@@ -102,93 +75,41 @@ export default function ProjectDetailsOverview() {
     endDate: '',
   })
 
-  const fetchProjectDetails = () => {
-    if (!projectId) return
-    setLoading(true)
-    setTimeout(() => {
-      try {
-        const data = mockDb.getProject(projectId)
-        if (data) {
-          setProject(data as any)
-          setProjectEditData({
-            name: data.name,
-            description: data.description || '',
-            status: data.status,
-            priority: data.priority,
-            startDate: data.startDate ? data.startDate.split('T')[0] : '',
-            endDate: data.endDate ? data.endDate.split('T')[0] : '',
-          })
-        } else {
-          setProject(null)
-        }
-      } catch (err: any) {
-        toast.error('Failed to load project details: ' + err.message)
-      } finally {
-        setLoading(false)
-      }
-    }, 300)
-  }
-
-  const fetchUsers = () => {
-    try {
-      const data = mockDb.getUsers()
-      setAllUsers(data as any)
-      if (data.length > 0) {
-        setSelectedUserId(data[0].id)
-      }
-    } catch (err: any) {
-      console.error('Failed to fetch users:', err)
-    }
-  }
-
-  useEffect(() => {
-    fetchProjectDetails()
-    fetchUsers()
-  }, [projectId])
+  // ─── Handlers ────────────────────────────────────────────────────────────────
 
   const handleAddMember = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedUserId || !projectId) {
-      toast.warning('Please select a user')
+    if (!selectedUserId.trim() || !projectId) {
+      toast.warning('Please enter a user ID')
       return
     }
-
-    try {
-      mockDb.addProjectMember(projectId, selectedUserId, memberRole)
-      toast.success('Team member added successfully!')
-      setIsAddMemberOpen(false)
-      fetchProjectDetails()
-    } catch (err: any) {
-      toast.error('Failed to add member: ' + err.message)
-    }
+    addMemberMutation.mutate(
+      { projectId, dto: { userId: selectedUserId, role: memberRole as any } },
+      {
+        onSuccess: () => {
+          toast.success('Team member added successfully!')
+          setIsAddMemberOpen(false)
+          setSelectedUserId('')
+          setMemberRole('member')
+        },
+        onError: (err: any) => {
+          toast.error('Failed to add member: ' + (err?.response?.data?.message ?? err.message))
+        },
+      }
+    )
   }
 
-  const handleAddTask = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!taskData.title.trim() || !projectId) {
-      toast.warning('Please enter a task title')
-      return
-    }
-
-    try {
-      mockDb.createTask({
-        ...taskData,
-        projectId,
-      })
-      toast.success('Task created successfully!')
-      setIsAddTaskOpen(false)
-      setTaskData({
-        title: '',
-        description: '',
-        type: 'feature',
-        status: 'todo',
-        priority: 'medium',
-        dueDate: '',
-      })
-      fetchProjectDetails()
-    } catch (err: any) {
-      toast.error('Failed to create task: ' + err.message)
-    }
+  const handleRemoveMember = (userId: string) => {
+    if (!projectId) return
+    removeMemberMutation.mutate(
+      { projectId, userId },
+      {
+        onSuccess: () => toast.success('Member removed'),
+        onError: (err: any) => {
+          toast.error('Failed to remove member: ' + (err?.response?.data?.message ?? err.message))
+        },
+      }
+    )
   }
 
   const handleAddMilestone = (e: React.FormEvent) => {
@@ -197,24 +118,94 @@ export default function ProjectDetailsOverview() {
       toast.warning('Please enter a milestone title')
       return
     }
+    createMilestoneMutation.mutate(
+      { projectId, dto: milestoneData },
+      {
+        onSuccess: () => {
+          toast.success('Milestone created successfully!')
+          setIsAddMilestoneOpen(false)
+          setMilestoneData({ title: '', description: '', targetDate: '' })
+        },
+        onError: (err: any) => {
+          toast.error('Failed to create milestone: ' + (err?.response?.data?.message ?? err.message))
+        },
+      }
+    )
+  }
 
-    try {
-      mockDb.createMilestone({
-        ...milestoneData,
-        projectId,
-        progress: 0,
-      })
-      toast.success('Milestone created successfully!')
-      setIsAddMilestoneOpen(false)
-      setMilestoneData({
-        title: '',
-        description: '',
-        targetDate: '',
-      })
-      fetchProjectDetails()
-    } catch (err: any) {
-      toast.error('Failed to create milestone: ' + err.message)
+  const handleEditMilestoneOpen = (milestone: {
+    id: string; title: string; description?: string; targetDate?: Date | string; status?: string
+  }) => {
+    setEditingMilestoneId(milestone.id)
+    setEditMilestoneData({
+      title: milestone.title,
+      description: milestone.description ?? '',
+      targetDate: milestone.targetDate
+        ? (typeof milestone.targetDate === 'string'
+          ? milestone.targetDate.split('T')[0]
+          : (milestone.targetDate as Date).toISOString().split('T')[0])
+        : '',
+      status: milestone.status ?? 'upcoming',
+    })
+    setIsEditMilestoneOpen(true)
+  }
+
+  const handleEditMilestoneSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingMilestoneId || !projectId) return
+    const dto: UpdateMilestoneDto = {
+      title: editMilestoneData.title,
+      description: editMilestoneData.description || undefined,
+      targetDate: editMilestoneData.targetDate || undefined,
+      status: editMilestoneData.status as any,
     }
+    updateMilestoneMutation.mutate(
+      { milestoneId: editingMilestoneId, projectId, dto },
+      {
+        onSuccess: () => {
+          toast.success('Milestone updated')
+          setIsEditMilestoneOpen(false)
+          setEditingMilestoneId(null)
+        },
+        onError: (err: any) => {
+          toast.error('Failed to update milestone: ' + (err?.response?.data?.message ?? err.message))
+        },
+      }
+    )
+  }
+
+  const handleRemoveMilestone = (milestoneId: string) => {
+    if (!projectId) return
+    removeMilestoneMutation.mutate(
+      { milestoneId, projectId },
+      {
+        onSuccess: () => toast.success('Milestone deleted'),
+        onError: (err: any) => {
+          toast.error('Failed to delete milestone: ' + (err?.response?.data?.message ?? err.message))
+        },
+      }
+    )
+  }
+
+  const handleEditProjectOpen = () => {
+    if (!project) return
+    setProjectEditData({
+      name: project.name,
+      description: project.description ?? '',
+      status: project.status ?? 'planning',
+      priority: project.priority ?? 'medium',
+      startDate: project.startDate
+        ? (typeof project.startDate === 'string'
+          ? project.startDate.split('T')[0]
+          : (project.startDate as Date).toISOString().split('T')[0])
+        : '',
+      endDate: project.endDate
+        ? (typeof project.endDate === 'string'
+          ? project.endDate.split('T')[0]
+          : (project.endDate as Date).toISOString().split('T')[0])
+        : '',
+    })
+    setIsEditProjectOpen(true)
   }
 
   const handleEditProject = (e: React.FormEvent) => {
@@ -223,16 +214,34 @@ export default function ProjectDetailsOverview() {
       toast.warning('Please enter a project name')
       return
     }
-
-    try {
-      mockDb.updateProject(projectId, projectEditData as any)
-      toast.success('Project updated successfully!')
-      setIsEditProjectOpen(false)
-      fetchProjectDetails()
-    } catch (err: any) {
-      toast.error('Failed to update project: ' + err.message)
-    }
+    updateProjectMutation.mutate(
+      { id: projectId, dto: projectEditData as any },
+      {
+        onSuccess: () => {
+          toast.success('Project updated successfully!')
+          setIsEditProjectOpen(false)
+        },
+        onError: (err: any) => {
+          toast.error('Failed to update project: ' + (err?.response?.data?.message ?? err.message))
+        },
+      }
+    )
   }
+
+  const handleDeleteProject = () => {
+    if (!projectId) return
+    deleteProjectMutation.mutate(projectId, {
+      onSuccess: () => {
+        toast.success('Project deleted')
+        navigate('/projects')
+      },
+      onError: (err: any) => {
+        toast.error('Failed to delete project: ' + (err?.response?.data?.message ?? err.message))
+      },
+    })
+  }
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────────
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -262,7 +271,9 @@ export default function ProjectDetailsOverview() {
     }
   }
 
-  if (loading) {
+  // ─── Loading / Error States ──────────────────────────────────────────────────
+
+  if (isLoading) {
     return (
       <div className="max-w-[1100px] mx-auto py-16 flex flex-col items-center justify-center">
         <div className="w-12 h-12 border-4 border-electric-blue border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -271,7 +282,7 @@ export default function ProjectDetailsOverview() {
     )
   }
 
-  if (!project) {
+  if (isError || !project) {
     return (
       <Card className="max-w-[600px] mx-auto py-16 text-center mt-12">
         <div className="w-16 h-16 rounded-full bg-error-container/10 flex items-center justify-center text-error mx-auto mb-4">
@@ -287,6 +298,8 @@ export default function ProjectDetailsOverview() {
       </Card>
     )
   }
+
+  // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <div className="max-w-[1100px] mx-auto py-8">
@@ -310,9 +323,19 @@ export default function ProjectDetailsOverview() {
         </div>
 
         <div className="flex gap-3">
-          <Button variant="secondary" icon="edit" onClick={() => setIsEditProjectOpen(true)}>
+          <Button variant="secondary" icon="edit" onClick={handleEditProjectOpen}>
             Edit Project
           </Button>
+          {isOwner && (
+            <Button
+              variant="secondary"
+              icon="delete"
+              onClick={() => setIsDeleteConfirmOpen(true)}
+              className="text-red-400 border-red-400/30 hover:bg-red-400/10"
+            >
+              Delete Project
+            </Button>
+          )}
         </div>
       </div>
 
@@ -322,7 +345,7 @@ export default function ProjectDetailsOverview() {
         onChange={setActiveTab}
         tabs={[
           { key: 'overview', label: 'Overview', icon: 'dashboard' },
-          { key: 'tasks', label: `Tasks (${project.tasks?.length || 0})`, icon: 'task_alt' },
+          { key: 'tasks', label: `Tasks (${(project as any).tasks?.length || 0})`, icon: 'task_alt' },
           { key: 'milestones', label: `Milestones (${project.milestones?.length || 0})`, icon: 'flag' },
           { key: 'activity', label: 'Activity Logs', icon: 'history' },
         ]}
@@ -339,9 +362,9 @@ export default function ProjectDetailsOverview() {
                 Project Progress
               </p>
               <p className="text-[28px] font-bold font-heading text-on-surface mb-3">
-                {project.progress}%
+                {project.progress ?? 0}%
               </p>
-              <ProgressBar value={project.progress} glow />
+              <ProgressBar value={project.progress ?? 0} glow />
             </Card>
 
             <Card>
@@ -349,7 +372,7 @@ export default function ProjectDetailsOverview() {
                 Status
               </p>
               <div className="flex items-center gap-2 mt-1">
-                <span className={`text-xs uppercase font-bold tracking-wider px-3 py-1 rounded border ${getStatusColor(project.status)}`}>
+                <span className={`text-xs uppercase font-bold tracking-wider px-3 py-1 rounded border ${getStatusColor(project.status ?? '')}`}>
                   {project.status}
                 </span>
               </div>
@@ -363,7 +386,7 @@ export default function ProjectDetailsOverview() {
                 Priority
               </p>
               <div className="flex items-center gap-2 mt-1">
-                <span className={`text-xs uppercase font-bold tracking-wider px-3 py-1 rounded border ${getPriorityColor(project.priority)}`}>
+                <span className={`text-xs uppercase font-bold tracking-wider px-3 py-1 rounded border ${getPriorityColor(project.priority ?? '')}`}>
                   {project.priority}
                 </span>
               </div>
@@ -380,9 +403,11 @@ export default function ProjectDetailsOverview() {
                 <h3 className="font-heading text-lg font-semibold text-on-surface">
                   Team Members
                 </h3>
-                <Button variant="secondary" size="sm" icon="add" onClick={() => setIsAddMemberOpen(true)}>
-                  Add Member
-                </Button>
+                {isOwner && (
+                  <Button variant="secondary" size="sm" icon="add" onClick={() => setIsAddMemberOpen(true)}>
+                    Add Member
+                  </Button>
+                )}
               </div>
 
               <div className="flex flex-col gap-4">
@@ -396,15 +421,26 @@ export default function ProjectDetailsOverview() {
                     >
                       <div>
                         <p className="font-medium text-on-surface">
-                          {member.user?.fullName || 'Unknown User'}
+                          {(member as any).user?.fullName || member.userId}
                         </p>
                         <p className="text-xs text-on-surface-variant">
                           {member.role || 'Member'} • Joined {new Date(member.joinedAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <span className="text-[11px] font-semibold text-on-surface-variant bg-surface-glass border border-border-low px-2.5 py-1 rounded-sm">
-                        {member.user?.email || 'N/A'}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-semibold text-on-surface-variant bg-surface-glass border border-border-low px-2.5 py-1 rounded-sm">
+                          {(member as any).user?.email || member.userId}
+                        </span>
+                        {isOwner && member.role !== 'owner' && (
+                          <button
+                            onClick={() => handleRemoveMember(member.userId)}
+                            className="text-red-400 hover:text-red-300 transition-colors cursor-pointer ml-1"
+                            title="Remove member"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">person_remove</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))
                 )}
@@ -417,10 +453,10 @@ export default function ProjectDetailsOverview() {
                 Recent Activity
               </h3>
               <div className="flex flex-col gap-3">
-                {!project.activityLogs || project.activityLogs.length === 0 ? (
+                {!(project as any).activityLogs || (project as any).activityLogs.length === 0 ? (
                   <p className="text-sm text-on-surface-variant italic">No activities logged yet.</p>
                 ) : (
-                  project.activityLogs.slice(0, 5).map((log) => (
+                  (project as any).activityLogs.slice(0, 5).map((log: any) => (
                     <div
                       key={log.id}
                       className="p-3 rounded-lg bg-surface-container-low border border-border-low text-xs"
@@ -441,24 +477,20 @@ export default function ProjectDetailsOverview() {
       {/* TASKS TAB */}
       {activeTab === 'tasks' && (
         <Card>
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
-              <p className="text-xs text-on-surface-variant mt-0.5">Tasks scope for active milestones.</p>
-            </div>
-            <Button icon="add" onClick={() => setIsAddTaskOpen(true)}>Create Task</Button>
+          <div className="mb-6">
+            <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
+            <p className="text-xs text-on-surface-variant mt-0.5">Tasks scope for active milestones.</p>
           </div>
 
-          {!project.tasks || project.tasks.length === 0 ? (
+          {!(project as any).tasks || (project as any).tasks.length === 0 ? (
             <div className="text-center py-12">
               <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-3">task_alt</span>
               <p className="text-sm text-on-surface-variant font-medium">No tasks found for this project</p>
-              <p className="text-xs text-on-surface-variant/60 mt-1 mb-4">Get started by creating the first task.</p>
-              <Button size="sm" icon="add" onClick={() => setIsAddTaskOpen(true)}>Add Task</Button>
+              <p className="text-xs text-on-surface-variant/60 mt-1 mb-4">Tasks will appear here once created.</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {project.tasks.map((task) => (
+              {(project as any).tasks.map((task: any) => (
                 <div
                   key={task.id}
                   className="p-4 rounded-lg bg-surface-container-low border border-border-low flex flex-col md:flex-row justify-between md:items-center gap-3 hover:border-outline/35 transition-colors"
@@ -510,12 +542,30 @@ export default function ProjectDetailsOverview() {
                   <div>
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-heading text-sm font-semibold text-on-surface">{milestone.title}</h4>
-                      {milestone.targetDate && (
-                        <span className="text-[10px] text-on-surface-variant flex items-center gap-0.5">
-                          <span className="material-symbols-outlined text-[12px]">calendar_today</span>
-                          {new Date(milestone.targetDate).toLocaleDateString()}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        {milestone.targetDate && (
+                          <span className="text-[10px] text-on-surface-variant flex items-center gap-0.5">
+                            <span className="material-symbols-outlined text-[12px]">calendar_today</span>
+                            {new Date(milestone.targetDate).toLocaleDateString()}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => handleEditMilestoneOpen(milestone as any)}
+                          className="text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+                          title="Edit milestone"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">edit</span>
+                        </button>
+                        {isOwner && (
+                          <button
+                            onClick={() => handleRemoveMilestone(milestone.id)}
+                            className="text-red-400 hover:text-red-300 transition-colors cursor-pointer"
+                            title="Delete milestone"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">delete</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <p className="text-xs text-on-surface-variant mb-4">{milestone.description || 'No description provided.'}</p>
                   </div>
@@ -523,9 +573,9 @@ export default function ProjectDetailsOverview() {
                   <div>
                     <div className="flex justify-between text-[11px] mb-1">
                       <span className="text-on-surface-variant">Progress</span>
-                      <span className="font-semibold text-on-surface">{milestone.progress}%</span>
+                      <span className="font-semibold text-on-surface">{milestone.progress ?? 0}%</span>
                     </div>
-                    <ProgressBar value={milestone.progress} />
+                    <ProgressBar value={milestone.progress ?? 0} />
                   </div>
                 </Card>
               ))}
@@ -539,10 +589,10 @@ export default function ProjectDetailsOverview() {
         <Card>
           <h3 className="font-heading text-lg font-semibold text-on-surface mb-6">Activity Audit Logs</h3>
           <div className="flex flex-col gap-3">
-            {!project.activityLogs || project.activityLogs.length === 0 ? (
+            {!(project as any).activityLogs || (project as any).activityLogs.length === 0 ? (
               <p className="text-sm text-on-surface-variant italic">No activity logs recorded yet.</p>
             ) : (
-              project.activityLogs.map((log) => (
+              (project as any).activityLogs.map((log: any) => (
                 <div
                   key={log.id}
                   className="p-4 rounded-lg bg-surface-container-low border border-border-low flex justify-between items-center text-sm"
@@ -563,7 +613,46 @@ export default function ProjectDetailsOverview() {
         </Card>
       )}
 
-      {/* Add Member Modal */}
+      {/* ── Delete Confirm Dialog ───────────────────────────────────────────────── */}
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="max-w-sm w-full" padding="lg">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-red-400/10 flex items-center justify-center text-red-400">
+                <span className="material-symbols-outlined text-[32px]">delete_forever</span>
+              </div>
+              <div>
+                <h3 className="font-heading text-lg font-semibold text-on-surface">Delete Project?</h3>
+                <p className="text-sm text-on-surface-variant mt-1">
+                  This will permanently delete <span className="font-semibold text-on-surface">{project.name}</span> and all its members and milestones. This action cannot be undone.
+                </p>
+              </div>
+              <div className="flex gap-3 w-full mt-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() => setIsDeleteConfirmOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  className="flex-1 bg-red-500 hover:bg-red-600 border-red-500"
+                  onClick={() => {
+                    setIsDeleteConfirmOpen(false)
+                    handleDeleteProject()
+                  }}
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* ── Add Member Modal ────────────────────────────────────────────────────── */}
       {isAddMemberOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-md w-full" padding="lg">
@@ -578,123 +667,38 @@ export default function ProjectDetailsOverview() {
             </div>
 
             <form onSubmit={handleAddMember} className="flex flex-col gap-4">
-              <Select
-                label="Workspace User"
+              <Input
+                label="User ID"
+                placeholder="Enter the user's ID (UUID)"
                 value={selectedUserId}
                 onChange={(e) => setSelectedUserId(e.target.value)}
-                options={allUsers.map((user) => ({
-                  value: user.id,
-                  label: `${user.fullName} (${user.email})`,
-                }))}
+                required
               />
 
-              <Input
-                label="Role Title"
-                placeholder="e.g. Frontend Engineer, Product Owner"
+              <Select
+                label="Role"
                 value={memberRole}
-                onChange={(e) => setMemberRole(e.target.value)}
-                required
+                onChange={(e) => setMemberRole(e.target.value as 'member' | 'owner')}
+                options={[
+                  { value: 'member', label: 'Member' },
+                  { value: 'owner', label: 'Owner' },
+                ]}
               />
 
               <div className="flex gap-3 justify-end mt-4">
                 <Button type="button" variant="secondary" onClick={() => setIsAddMemberOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">Add Member</Button>
-              </div>
-            </form>
-          </Card>
-        </div>
-      )}
-
-      {/* Add Task Modal */}
-      {isAddTaskOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full" padding="lg">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-heading text-xl font-semibold text-on-surface">Create Project Task</h3>
-              <button
-                className="text-on-surface-variant hover:text-on-surface cursor-pointer"
-                onClick={() => setIsAddTaskOpen(false)}
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleAddTask} className="flex flex-col gap-4">
-              <Input
-                label="Task Title"
-                placeholder="e.g. Implement OAuth Flow"
-                value={taskData.title}
-                onChange={(e) => setTaskData({ ...taskData, title: e.target.value })}
-                required
-              />
-
-              <TextArea
-                label="Description"
-                placeholder="Enter details of what needs to be done..."
-                value={taskData.description}
-                onChange={(e) => setTaskData({ ...taskData, description: e.target.value })}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <Select
-                  label="Type"
-                  value={taskData.type}
-                  onChange={(e) => setTaskData({ ...taskData, type: e.target.value })}
-                  options={[
-                    { value: 'feature', label: 'Feature' },
-                    { value: 'bug', label: 'Bug' },
-                    { value: 'improvement', label: 'Improvement' },
-                  ]}
-                />
-
-                <Select
-                  label="Priority"
-                  value={taskData.priority}
-                  onChange={(e) => setTaskData({ ...taskData, priority: e.target.value })}
-                  options={[
-                    { value: 'low', label: 'Low' },
-                    { value: 'medium', label: 'Medium' },
-                    { value: 'high', label: 'High' },
-                    { value: 'urgent', label: 'Urgent' },
-                  ]}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Select
-                  label="Status"
-                  value={taskData.status}
-                  onChange={(e) => setTaskData({ ...taskData, status: e.target.value })}
-                  options={[
-                    { value: 'backlog', label: 'Backlog' },
-                    { value: 'todo', label: 'Todo' },
-                    { value: 'in-progress', label: 'In Progress' },
-                    { value: 'done', label: 'Done' },
-                  ]}
-                />
-
-                <Input
-                  label="Due Date"
-                  type="date"
-                  value={taskData.dueDate}
-                  onChange={(e) => setTaskData({ ...taskData, dueDate: e.target.value })}
-                />
-              </div>
-
-              <div className="flex gap-3 justify-end mt-4">
-                <Button type="button" variant="secondary" onClick={() => setIsAddTaskOpen(false)}>
-                  Cancel
+                <Button type="submit" disabled={addMemberMutation.isPending}>
+                  {addMemberMutation.isPending ? 'Adding...' : 'Add Member'}
                 </Button>
-                <Button type="submit">Create Task</Button>
               </div>
             </form>
           </Card>
         </div>
       )}
 
-      {/* Add Milestone Modal */}
+      {/* ── Add Milestone Modal ─────────────────────────────────────────────────── */}
       {isAddMilestoneOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-md w-full" padding="lg">
@@ -735,14 +739,76 @@ export default function ProjectDetailsOverview() {
                 <Button type="button" variant="secondary" onClick={() => setIsAddMilestoneOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">Create Milestone</Button>
+                <Button type="submit" disabled={createMilestoneMutation.isPending}>
+                  {createMilestoneMutation.isPending ? 'Creating...' : 'Create Milestone'}
+                </Button>
               </div>
             </form>
           </Card>
         </div>
       )}
 
-      {/* Edit Project Modal */}
+      {/* ── Edit Milestone Modal ────────────────────────────────────────────────── */}
+      {isEditMilestoneOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full" padding="lg">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-heading text-xl font-semibold text-on-surface">Edit Milestone</h3>
+              <button
+                className="text-on-surface-variant hover:text-on-surface cursor-pointer"
+                onClick={() => setIsEditMilestoneOpen(false)}
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleEditMilestoneSubmit} className="flex flex-col gap-4">
+              <Input
+                label="Milestone Title"
+                value={editMilestoneData.title}
+                onChange={(e) => setEditMilestoneData({ ...editMilestoneData, title: e.target.value })}
+                required
+              />
+
+              <TextArea
+                label="Description"
+                value={editMilestoneData.description}
+                onChange={(e) => setEditMilestoneData({ ...editMilestoneData, description: e.target.value })}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <Select
+                  label="Status"
+                  value={editMilestoneData.status}
+                  onChange={(e) => setEditMilestoneData({ ...editMilestoneData, status: e.target.value })}
+                  options={[
+                    { value: 'upcoming', label: 'Upcoming' },
+                    { value: 'in-progress', label: 'In Progress' },
+                    { value: 'completed', label: 'Completed' },
+                  ]}
+                />
+                <Input
+                  label="Target Date"
+                  type="date"
+                  value={editMilestoneData.targetDate}
+                  onChange={(e) => setEditMilestoneData({ ...editMilestoneData, targetDate: e.target.value })}
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end mt-4">
+                <Button type="button" variant="secondary" onClick={() => setIsEditMilestoneOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateMilestoneMutation.isPending}>
+                  {updateMilestoneMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
+
+      {/* ── Edit Project Modal ──────────────────────────────────────────────────── */}
       {isEditProjectOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-lg w-full" padding="lg">
@@ -815,7 +881,9 @@ export default function ProjectDetailsOverview() {
                 <Button type="button" variant="secondary" onClick={() => setIsEditProjectOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">Save Changes</Button>
+                <Button type="submit" disabled={updateProjectMutation.isPending}>
+                  {updateProjectMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
               </div>
             </form>
           </Card>

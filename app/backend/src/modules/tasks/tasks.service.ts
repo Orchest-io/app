@@ -20,7 +20,7 @@ export class TasksService {
   ) {}
 
   async create(createTaskDto: CreateTaskDto): Promise<Task> {
-    const task = this.taskRepository.create(createTaskDto as any);
+    const task = this.taskRepository.create(createTaskDto);
     return this.taskRepository.save(task);
   }
 
@@ -38,7 +38,6 @@ export class TasksService {
 
   async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
     const task = await this.findOne(id);
-<<<<<<< HEAD
     const oldStatus = task.status;
 
     this.taskRepository.merge(task, updateTaskDto);
@@ -57,10 +56,6 @@ export class TasksService {
     }
 
     return savedTask;
-=======
-    this.taskRepository.merge(task, updateTaskDto as any);
-    return this.taskRepository.save(task);
->>>>>>> main
   }
 
   async remove(id: string): Promise<void> {

@@ -47,7 +47,7 @@ export class ProjectsService {
     const member = await this.projectMembersRepository.findOne({
       where: { projectId, userId },
     });
-    return member ? member.role : null;
+    return member ? (member.role as ProjectMemberRole) : null;
   }
 
   private async requireMember(projectId: string, userId: string): Promise<ProjectMemberRole> {
@@ -67,7 +67,7 @@ export class ProjectsService {
 
   async create(userId: string, createProjectDto: CreateProjectDto): Promise<Project> {
     const project = this.projectsRepository.create({
-      ...(createProjectDto as any),
+      ...createProjectDto,
       createdBy: userId,
     });
     const savedProject = await this.projectsRepository.save(project);
@@ -114,7 +114,7 @@ export class ProjectsService {
 
     const oldStatus = project.status;
 
-    await this.projectsRepository.update(id, updateProjectDto);
+    await this.projectsRepository.update(id, updateProjectDto as any);
 
     // If status changed, log activity and notify all members
     if (updateProjectDto.status && updateProjectDto.status !== oldStatus) {

@@ -1,24 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import type { ProjectListItemDto } from '@orchest/shared'
 import { Card, ProgressBar, Button, Input, Select, TextArea } from '../../components/ui'
-import { mockDb } from '../../utils/mockDb'
-
-type Project = {
-  id: string
-  name: string
-  description?: string
-  status: 'planning' | 'active' | 'completed' | 'archived'
-  priority: 'low' | 'medium' | 'high'
-  progress: number
-  startDate?: string
-  endDate?: string
-}
+import { useProjects } from '../../hooks/useProjects'
+import { useCreateProject } from '../../hooks/useProjectMutations'
 
 export default function ProjectsList() {
   const navigate = useNavigate()
-  const [projects, setProjects] = useState<Project[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: projects = [], isLoading, isError, refetch } = useProjects()
+  const createProjectMutation = useCreateProject()
+
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Form state
@@ -30,25 +22,8 @@ export default function ProjectsList() {
     startDate: '',
     endDate: '',
   })
-  const [submitting, setSubmitting] = useState(false)
 
-  const fetchProjects = () => {
-    setLoading(true)
-    setTimeout(() => {
-      try {
-        const data = mockDb.getProjects()
-        setProjects(data as any)
-      } catch (err: any) {
-        toast.error('Failed to load projects: ' + err.message)
-      } finally {
-        setLoading(false)
-      }
-    }, 300)
-  }
-
-  useEffect(() => {
-    fetchProjects()
-  }, [])
+  const submitting = createProjectMutation.isPending
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,25 +32,22 @@ export default function ProjectsList() {
       return
     }
 
-    try {
-      setSubmitting(true)
-      mockDb.createProject(formData as any)
-      toast.success('Project created successfully!')
-      setIsModalOpen(false)
-      setFormData({
-        name: '',
-        description: '',
-        status: 'planning',
-        priority: 'medium',
-        startDate: '',
-        endDate: '',
-      })
-      fetchProjects()
-    } catch (err: any) {
-      toast.error('Failed to create project: ' + err.message)
-    } finally {
-      setSubmitting(false)
-    }
+    createProjectMutation.mutate(formData as any, {
+      onSuccess: (newProject) => {
+        navigate('/projects/' + newProject.id)
+        setIsModalOpen(false)
+        setFormData({
+          name: '',
+          description: '',
+          status: 'planning',
+          priority: 'medium',
+          startDate: '',
+          endDate: '',
+        })
+        toast.success('Project created!')
+      },
+      onError: () => toast.error('Failed to create project'),
+    })
   }
 
   const getPriorityColor = (priority: string) => {
@@ -121,7 +93,7 @@ export default function ProjectsList() {
       </div>
 
       {/* Grid List */}
-      {loading ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[1, 2, 4].map((i) => (
             <Card key={i} className="animate-pulse">
@@ -132,6 +104,19 @@ export default function ProjectsList() {
             </Card>
           ))}
         </div>
+      ) : isError ? (
+        <Card className="text-center py-16 flex flex-col items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-surface-glass border border-border-low flex items-center justify-center text-red-400 mb-4">
+            <span className="material-symbols-outlined text-[32px]">error</span>
+          </div>
+          <h3 className="font-heading text-xl font-bold mb-2">Failed to Load Projects</h3>
+          <p className="text-sm text-on-surface-variant max-w-sm mb-6 leading-relaxed">
+            There was an error loading your projects. Please try again.
+          </p>
+          <Button icon="refresh" onClick={() => refetch()}>
+            Retry
+          </Button>
+        </Card>
       ) : projects.length === 0 ? (
         <Card className="text-center py-16 flex flex-col items-center justify-center">
           <div className="w-16 h-16 rounded-full bg-surface-glass border border-border-low flex items-center justify-center text-on-surface-variant mb-4">
@@ -147,7 +132,7 @@ export default function ProjectsList() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {projects.map((project) => (
+          {projects.map((project: ProjectListItemDto) => (
             <Card
               key={project.id}
               hoverable
@@ -170,7 +155,7 @@ export default function ProjectsList() {
                 </div>
 
                 <p className="text-sm text-on-surface-variant mb-6 line-clamp-3 leading-relaxed">
-                  {project.description || 'No description provided.'}
+                  No description provided.
                 </p>
               </div>
 

@@ -12,7 +12,7 @@ export class TimeEntryService {
   ) {}
 
   async create(userId: string, createDto: CreateTimeEntryDto): Promise<TimeEntry> {
-    const entry = this.timeEntryRepository.create({ ...createDto, userId: userId } as any);
+    const entry = this.timeEntryRepository.create({ ...createDto, userId: userId });
     return this.timeEntryRepository.save(entry);
   }
 
