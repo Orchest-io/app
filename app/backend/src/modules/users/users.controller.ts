@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto, UpdateUserSettingsDto, AddUserSkillDto } from '@orchest/shared';
+import { AuthProvider } from '@orchest/shared';
 
 @Controller('users')
 export class UsersController {
@@ -42,11 +43,14 @@ export class UsersController {
   }
 
   @Post('login')
-  async login(@Body() body: { email: string }) {
-    const user = await this.usersService.findByEmail(body.email);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    return user;
+  async login(@Body() body: { email: string; password: string }) {
+    return this.usersService.login(body.email, body.password);
+  }
+
+  @Post('google')
+  async googleAuth(
+    @Body() body: { email: string; fullName: string; avatarUrl?: string; authProviderId: string },
+  ) {
+    return this.usersService.findOrCreateByGoogle(body);
   }
 }

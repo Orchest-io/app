@@ -106,3 +106,8 @@
     radial-gradient(circle at 80% 80%, rgba(204, 204, 255, 0.05) 0%, transparent 40%);
 }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
