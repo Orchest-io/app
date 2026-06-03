@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto, UpdateUserSettingsDto, AddUserSkillDto } from '@orchest/shared';
 
@@ -39,5 +39,14 @@ export class UsersController {
   @Post(':id/skills')
   addSkill(@Param('id') id: string, @Body() addSkillDto: AddUserSkillDto) {
     return this.usersService.addSkill(id, addSkillDto);
+  }
+
+  @Post('login')
+  async login(@Body() body: { email: string }) {
+    const user = await this.usersService.findByEmail(body.email);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 }

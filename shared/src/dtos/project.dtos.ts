@@ -17,6 +17,7 @@ import {
   ProjectMemberRole,
   MilestoneStatus,
 } from '../enums';
+import { ProjectMember, Milestone } from '../types';
 
 export class CreateProjectDto {
   @IsString()
@@ -171,4 +172,35 @@ export class UpdateMilestoneDto {
   @IsOptional()
   @IsInt()
   sortOrder?: number;
+}
+
+export interface ProjectListItemDto {
+  id: string;
+  name: string;
+  status: ProjectStatus;
+  priority: ProjectPriority;
+  progress: number;
+  projectType: ProjectType;
+  projectMode: ProjectMode;
+  createdBy: string;
+  startDate?: string;
+  endDate?: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+export interface ProjectDetailDto extends ProjectListItemDto {
+  description?: string;
+  budget?: string;
+  objectives?: string;
+  requirements?: string;
+  settings?: Record<string, any>;
+  members: ProjectMember[];
+  milestones: Milestone[];
+}
+
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  pageSize: number;
 }

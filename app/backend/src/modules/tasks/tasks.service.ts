@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
@@ -7,13 +7,16 @@ import { TaskAssignee } from './entities/task-assignee.entity';
 import { TaskDependency } from './entities/task-dependency.entity';
 import { Comment } from './entities/comment.entity';
 import { Attachment } from './entities/attachment.entity';
-import { CreateTaskDto, UpdateTaskDto } from '../../../../../../shared/src/dtos/task.dtos';
+import { CreateTaskDto, UpdateTaskDto, TaskStatus } from '@orchest/shared';
+import { ProjectsService } from '../projects/projects.service';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
+    @Inject(forwardRef(() => ProjectsService))
+    private readonly projectsService: ProjectsService,
   ) {}
 
   async create(createTaskDto: CreateTaskDto): Promise<Task> {
@@ -35,8 +38,24 @@ export class TasksService {
 
   async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
     const task = await this.findOne(id);
+    const oldStatus = task.status;
+
     this.taskRepository.merge(task, updateTaskDto);
-    return this.taskRepository.save(task);
+    const savedTask = await this.taskRepository.save(task);
+
+    // If task status changed to done, recalculate project and milestone progress
+    if (updateTaskDto.status && updateTaskDto.status !== oldStatus) {
+      await this.projectsService.recalculateProjectProgress(savedTask.projectId);
+      if (savedTask.milestoneId) {
+        // userId is not available at this level, pass empty to avoid null
+        await this.projectsService.recalculateMilestoneProgress(
+          savedTask.milestoneId,
+          savedTask.createdBy,
+        );
+      }
+    }
+
+    return savedTask;
   }
 
   async remove(id: string): Promise<void> {
