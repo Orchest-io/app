@@ -10,6 +10,7 @@ import {
 import { UserSession } from './user-session.entity';
 import { UserSettings } from './user-settings.entity';
 import { UserSkill } from './user-skill.entity';
+import { AuthProvider } from '@orchest/shared';
 
 @Entity('users')
 export class User {
@@ -27,6 +28,17 @@ export class User {
 
   @Column({ name: 'avatar_url', type: 'varchar', nullable: true })
   avatarUrl: string;
+
+  @Column({
+    name: 'auth_provider',
+    type: 'varchar',
+    nullable: true,
+    default: AuthProvider.LOCAL,
+  })
+  authProvider: AuthProvider;
+
+  @Column({ name: 'auth_provider_id', type: 'varchar', nullable: true })
+  authProviderId: string;
 
   @Column({ type: 'jsonb', nullable: true })
   roles: any; // global roles JSON/array
