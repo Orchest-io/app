@@ -22,7 +22,7 @@ export class AiEstimation {
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
-   @Column({ name: 'description_embedding', type: 'vector' as any, length: 1536, nullable: true })
+  @Column({ name: 'description_embedding', type: 'vector' as any, length: 1536, nullable: true })
   descriptionEmbedding: number[];
 
   @Column({ name: 'estimated_hours', type: 'int', nullable: true })
