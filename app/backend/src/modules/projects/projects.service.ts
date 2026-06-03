@@ -66,7 +66,6 @@ export class ProjectsService {
   // ─── CRUD ──────────────────────────────────────────────────────────
 
   async create(userId: string, createProjectDto: CreateProjectDto): Promise<Project> {
-    // Extract only fields that exist directly on the Project entity
     const project = this.projectsRepository.create({
       ...createProjectDto,
       createdBy: userId,
