@@ -128,6 +128,12 @@ export class AddProjectMemberDto {
   role?: ProjectMemberRole;
 }
 
+export class UpdateProjectMemberDto {
+  @IsOptional()
+  @IsString()
+  role?: string;
+}
+
 export class CreateMilestoneDto {
   @IsString()
   title: string;

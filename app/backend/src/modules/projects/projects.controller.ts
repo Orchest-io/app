@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, Query } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import {
   CreateProjectDto,
   UpdateProjectDto,
   AddProjectMemberDto,
+  UpdateProjectMemberDto,
   CreateMilestoneDto,
   UpdateMilestoneDto,
 } from '@orchest/shared';
@@ -19,9 +20,14 @@ export class ProjectsController {
   }
 
   @Get()
-  findAll(@Request() req: any) {
+  findAll(
+    @Request() req: any,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('priority') priority?: string,
+  ) {
     const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
-    return this.projectsService.findAll(userId);
+    return this.projectsService.findAll(userId, { search, status, priority });
   }
 
   @Get(':id')
@@ -40,9 +46,23 @@ export class ProjectsController {
   }
 
   // Members
+  @Get(':id/members')
+  getMembers(@Param('id') id: string) {
+    return this.projectsService.getMembers(id);
+  }
+
   @Post(':id/members')
   addMember(@Param('id') id: string, @Body() dto: AddProjectMemberDto) {
     return this.projectsService.addMember(id, dto);
+  }
+
+  @Patch(':id/members/:userId')
+  updateMemberRole(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @Body() dto: UpdateProjectMemberDto,
+  ) {
+    return this.projectsService.updateMemberRole(id, userId, dto);
   }
 
   @Delete(':id/members/:userId')

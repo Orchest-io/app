@@ -44,6 +44,17 @@ export type ActivityLog = {
   createdAt: string;
 };
 
+export type ProjectAttachment = {
+  id: string;
+  projectId: string;
+  uploadedBy: string;
+  fileName: string;
+  fileUrl: string;
+  fileType?: string;
+  fileSizeBytes?: number;
+  createdAt: string;
+};
+
 export type Project = {
   id: string;
   name: string;
@@ -57,6 +68,7 @@ export type Project = {
   milestones?: Milestone[];
   tasks?: Task[];
   activityLogs?: ActivityLog[];
+  attachments?: ProjectAttachment[];
 };
 
 // Initial Data
@@ -282,12 +294,16 @@ export const mockDb = {
       project.progress = Math.round((completed / tasks.length) * 100);
     }
 
+    const allAttachments = getStored<ProjectAttachment[]>('orchest_project_attachments', []);
+    const attachments = allAttachments.filter((a) => a.projectId === id);
+
     return {
       ...project,
       members,
       tasks,
       milestones,
       activityLogs: activityLogs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+      attachments,
     };
   },
 
@@ -405,5 +421,60 @@ export const mockDb = {
       createdAt: new Date().toISOString(),
     });
     setStored('orchest_activity_logs', logs);
+  },
+
+  updateProjectMember: (projectId: string, memberId: string, role: string): ProjectMember => {
+    const members = getStored<ProjectMember[]>('orchest_members', DEFAULT_MEMBERS);
+    const idx = members.findIndex((m) => m.id === memberId && m.projectId === projectId);
+    if (idx === -1) throw new Error('Member not found');
+    members[idx] = { ...members[idx], role };
+    setStored('orchest_members', members);
+    mockDb.logActivity(projectId, 'update_member', 'project', `Member role updated to ${role}.`);
+    return members[idx];
+  },
+
+  removeProjectMember: (projectId: string, memberId: string): void => {
+    const members = getStored<ProjectMember[]>('orchest_members', DEFAULT_MEMBERS);
+    const member = members.find((m) => m.id === memberId && m.projectId === projectId);
+    const updated = members.filter((m) => !(m.id === memberId && m.projectId === projectId));
+    setStored('orchest_members', updated);
+    if (member) {
+      const users = mockDb.getUsers();
+      const user = users.find((u) => u.id === member.userId);
+      mockDb.logActivity(projectId, 'remove_member', 'project', `${user?.fullName || 'A member'} was removed from the project.`);
+    }
+  },
+
+  getProjectAttachments: (projectId: string): ProjectAttachment[] => {
+    const all = getStored<ProjectAttachment[]>('orchest_project_attachments', []);
+    return all.filter((a) => a.projectId === projectId);
+  },
+
+  addProjectAttachment: (projectId: string, file: { name: string; size: number; type: string }, dataUrl: string): ProjectAttachment => {
+    const all = getStored<ProjectAttachment[]>('orchest_project_attachments', []);
+    const newAttachment: ProjectAttachment = {
+      id: 'att_' + Math.random().toString(36).substr(2, 9),
+      projectId,
+      uploadedBy: 'u1',
+      fileName: file.name,
+      fileUrl: dataUrl,
+      fileType: file.type,
+      fileSizeBytes: file.size,
+      createdAt: new Date().toISOString(),
+    };
+    all.push(newAttachment);
+    setStored('orchest_project_attachments', all);
+    mockDb.logActivity(projectId, 'upload_attachment', 'project', `File '${file.name}' was uploaded.`);
+    return newAttachment;
+  },
+
+  removeProjectAttachment: (projectId: string, attachmentId: string): void => {
+    const all = getStored<ProjectAttachment[]>('orchest_project_attachments', []);
+    const attachment = all.find((a) => a.id === attachmentId);
+    const updated = all.filter((a) => a.id !== attachmentId);
+    setStored('orchest_project_attachments', updated);
+    if (attachment) {
+      mockDb.logActivity(projectId, 'remove_attachment', 'project', `File '${attachment.fileName}' was removed.`);
+    }
   },
 };

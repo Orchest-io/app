@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Card, ProgressBar, Tabs, Button, Input, Select, TextArea } from '../../../components/ui'
 import { mockDb } from '../../../utils/mockDb'
+import type { ProjectAttachment } from '../../../utils/mockDb'
 
 type User = {
   id: string
@@ -102,6 +103,10 @@ export default function ProjectDetailsOverview() {
     endDate: '',
   })
 
+  const [attachments, setAttachments] = useState<ProjectAttachment[]>([])
+  const [uploadingFile, setUploadingFile] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const fetchProjectDetails = () => {
     if (!projectId) return
     setLoading(true)
@@ -118,6 +123,7 @@ export default function ProjectDetailsOverview() {
             startDate: data.startDate ? data.startDate.split('T')[0] : '',
             endDate: data.endDate ? data.endDate.split('T')[0] : '',
           })
+          setAttachments((data.attachments || []) as ProjectAttachment[])
         } else {
           setProject(null)
         }
@@ -234,6 +240,65 @@ export default function ProjectDetailsOverview() {
     }
   }
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !projectId) return
+
+    const maxSize = 10 * 1024 * 1024 // 10 MB
+    if (file.size > maxSize) {
+      toast.error('File size must be under 10 MB')
+      return
+    }
+
+    setUploadingFile(true)
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        mockDb.addProjectAttachment(projectId, file, reader.result as string)
+        toast.success(`'${file.name}' uploaded successfully!`)
+        fetchProjectDetails()
+      } catch (err: any) {
+        toast.error('Failed to upload file: ' + err.message)
+      } finally {
+        setUploadingFile(false)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+      }
+    }
+    reader.onerror = () => {
+      toast.error('Failed to read file')
+      setUploadingFile(false)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveAttachment = (attachmentId: string) => {
+    if (!projectId) return
+    try {
+      mockDb.removeProjectAttachment(projectId, attachmentId)
+      toast.info('Attachment removed')
+      fetchProjectDetails()
+    } catch (err: any) {
+      toast.error('Failed to remove attachment: ' + err.message)
+    }
+  }
+
+  const formatFileSize = (bytes?: number): string => {
+    if (!bytes) return 'Unknown size'
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const getFileIcon = (fileType?: string): string => {
+    if (!fileType) return 'attach_file'
+    if (fileType.startsWith('image/')) return 'image'
+    if (fileType.includes('pdf')) return 'picture_as_pdf'
+    if (fileType.includes('word') || fileType.includes('document')) return 'description'
+    if (fileType.includes('sheet') || fileType.includes('excel')) return 'table_chart'
+    if (fileType.includes('zip') || fileType.includes('archive')) return 'folder_zip'
+    return 'attach_file'
+  }
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
@@ -313,6 +378,20 @@ export default function ProjectDetailsOverview() {
           <Button variant="secondary" icon="edit" onClick={() => setIsEditProjectOpen(true)}>
             Edit Project
           </Button>
+          <Button
+            variant="secondary"
+            icon="group"
+            onClick={() => navigate(`/projects/${project.id}/members`)}
+          >
+            Members
+          </Button>
+          <Button
+            variant="secondary"
+            icon="settings"
+            onClick={() => navigate(`/projects/${project.id}/settings`)}
+          >
+            Settings
+          </Button>
         </div>
       </div>
 
@@ -324,6 +403,7 @@ export default function ProjectDetailsOverview() {
           { key: 'overview', label: 'Overview', icon: 'dashboard' },
           { key: 'tasks', label: `Tasks (${project.tasks?.length || 0})`, icon: 'task_alt' },
           { key: 'milestones', label: `Milestones (${project.milestones?.length || 0})`, icon: 'flag' },
+          { key: 'attachments', label: `Attachments (${attachments.length})`, icon: 'attach_file' },
           { key: 'activity', label: 'Activity Logs', icon: 'history' },
         ]}
         className="mb-8"
@@ -528,6 +608,91 @@ export default function ProjectDetailsOverview() {
                     <ProgressBar value={milestone.progress} />
                   </div>
                 </Card>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* ATTACHMENTS TAB */}
+      {activeTab === 'attachments' && (
+        <Card>
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="font-heading text-lg font-semibold text-on-surface">Project Attachments</h3>
+              <p className="text-xs text-on-surface-variant mt-0.5">Files and documents attached to this project.</p>
+            </div>
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileSelect}
+                accept="*/*"
+              />
+              <Button
+                icon="upload"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingFile}
+              >
+                {uploadingFile ? 'Uploading...' : 'Upload File'}
+              </Button>
+            </div>
+          </div>
+
+          {attachments.length === 0 ? (
+            <div className="text-center py-12">
+              <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-3">attach_file</span>
+              <p className="text-sm text-on-surface-variant font-medium">No attachments yet</p>
+              <p className="text-xs text-on-surface-variant/60 mt-1 mb-4">Upload files to keep all project resources in one place.</p>
+              <Button
+                size="sm"
+                icon="upload"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingFile}
+              >
+                Upload File
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {attachments.map((attachment) => (
+                <div
+                  key={attachment.id}
+                  className="p-4 rounded-lg bg-surface-container-low border border-border-low flex flex-col md:flex-row justify-between md:items-center gap-3"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-md bg-electric-blue/10 border border-electric-blue/20 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-electric-blue text-[20px]">
+                        {getFileIcon(attachment.fileType)}
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="font-heading text-sm font-semibold text-on-surface">{attachment.fileName}</h4>
+                      <p className="text-xs text-on-surface-variant">
+                        {formatFileSize(attachment.fileSizeBytes)} • Uploaded {new Date(attachment.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 border-t md:border-t-0 pt-3 md:pt-0 border-border-low">
+                    <a
+                      href={attachment.fileUrl}
+                      download={attachment.fileName}
+                      className="inline-flex items-center gap-1.5 py-1.5 px-3.5 text-xs font-semibold rounded-md bg-surface-glass border border-border-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200 whitespace-nowrap"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">download</span>
+                      Download
+                    </a>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon="delete"
+                      onClick={() => handleRemoveAttachment(attachment.id)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </div>
               ))}
             </div>
           )}

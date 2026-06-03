@@ -6,9 +6,16 @@ import {
   CreateProjectDto,
   UpdateProjectDto,
   AddProjectMemberDto,
+  UpdateProjectMemberDto,
   CreateMilestoneDto,
   UpdateMilestoneDto,
 } from '@orchest/shared';
+
+export interface ProjectFilterQuery {
+  search?: string;
+  status?: string;
+  priority?: string;
+}
 
 @Injectable()
 export class ProjectsService {
@@ -39,10 +46,27 @@ export class ProjectsService {
     return savedProject;
   }
 
-  async findAll(userId: string): Promise<Project[]> {
-    return this.projectsRepository.createQueryBuilder('project')
-      .innerJoin('project.members', 'member', 'member.userId = :userId', { userId })
-      .getMany();
+  async findAll(userId: string, filters?: ProjectFilterQuery): Promise<Project[]> {
+    const qb = this.projectsRepository
+      .createQueryBuilder('project')
+      .innerJoin('project.members', 'member', 'member.userId = :userId', { userId });
+
+    if (filters?.search) {
+      qb.andWhere(
+        '(LOWER(project.name) LIKE :search OR LOWER(project.description) LIKE :search)',
+        { search: `%${filters.search.toLowerCase()}%` },
+      );
+    }
+
+    if (filters?.status) {
+      qb.andWhere('project.status = :status', { status: filters.status });
+    }
+
+    if (filters?.priority) {
+      qb.andWhere('project.priority = :priority', { priority: filters.priority });
+    }
+
+    return qb.getMany();
   }
 
   async findOne(id: string): Promise<Project> {
@@ -70,6 +94,19 @@ export class ProjectsService {
       ...dto,
     });
     return this.projectMembersRepository.save(member);
+  }
+
+  async getMembers(projectId: string): Promise<ProjectMember[]> {
+    return this.projectMembersRepository.find({ where: { projectId } });
+  }
+
+  async updateMemberRole(projectId: string, userId: string, dto: UpdateProjectMemberDto): Promise<ProjectMember> {
+    const member = await this.projectMembersRepository.findOne({ where: { projectId, userId } });
+    if (!member) throw new NotFoundException('Project member not found');
+    await this.projectMembersRepository.update(member.id, dto);
+    const updated = await this.projectMembersRepository.findOne({ where: { id: member.id } });
+    if (!updated) throw new NotFoundException('Project member not found after update');
+    return updated;
   }
 
   async removeMember(projectId: string, userId: string): Promise<void> {

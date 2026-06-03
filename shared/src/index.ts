@@ -6,3 +6,4 @@ export * from './dtos/project.dtos';
 export * from './dtos/task.dtos';
 export * from './dtos/ai.dtos';
 export * from './dtos/analytics.dtos';
+export * from './dtos/attachment.dtos';
