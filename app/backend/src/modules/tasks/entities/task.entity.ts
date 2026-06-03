@@ -1,90 +1,59 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
-import { Subtask } from './subtask.entity';
-import { TaskAssignee } from './task-assignee.entity';
-import { TaskDependency } from './task-dependency.entity';
-import { Comment } from './comment.entity';
-import { Attachment } from './attachment.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+  Unique,
+} from 'typeorm';
+import { Project } from '../../projects/entities/project.entity';
+import { Milestone } from './milestone.entity';
+import { TaskAssignment } from './task-assignment.entity';
+import { TaskStatusLog } from './task-status-log.entity';
 
 @Entity('tasks')
+@Unique(['taskId', 'projectId'])
 export class Task {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn('uuid', { name: 'task_id' })
+  taskId: string;
 
   @Column({ name: 'project_id', type: 'uuid' })
   projectId: string;
 
   @Column({ name: 'milestone_id', type: 'uuid', nullable: true })
-  milestoneId: string;
+  milestoneId: string | null;
 
-  @Column({ name: 'created_by', type: 'uuid' })
-  createdBy: string;
-
-  @Column({ type: 'varchar' })
+  @Column({ name: 'title', type: 'varchar' })
   title: string;
 
-  @Column({ type: 'text', nullable: true })
-  description: string;
+  @Column({ name: 'description', type: 'text', nullable: true })
+  description: string | null;
 
-  @Column({ type: 'varchar', nullable: true }) // feature | bug | improvement
-  type: string;
-
-  @Column({ type: 'varchar', nullable: true }) // backlog | todo | in-progress | done
+  @Column({ name: 'status', type: 'enum', enum: ['To Do', 'In Progress', 'Done'] })
   status: string;
 
-  @Column({ type: 'varchar', nullable: true }) // low | medium | high | urgent
-  priority: string;
+  @Column({ name: 'order_index', type: 'float' })
+  orderIndex: number;
 
-  @Column({ type: 'varchar', nullable: true })
-  label: string;
-
-  @Column({ name: 'is_ai_suggested', type: 'boolean', default: false })
-  isAiSuggested: boolean;
-
-  @Column({ name: 'due_date', type: 'date', nullable: true })
-  dueDate: Date;
-
-  @Column({ name: 'ai_complexity_vector', type: 'vector' as any, length: 1536, nullable: true })
-  aiComplexityVector: number[];
-
-  @Column({ name: 'ai_risk_score', type: 'vector' as any, length: 1536, nullable: true })
-  aiRiskScore: number[];
-
-  @Column({ name: 'completed_at', type: 'timestamp', nullable: true })
-  completedAt: Date;
+  @Column({ name: 'due_date', type: 'timestamp', nullable: true })
+  dueDate: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  // For TypeORM's sake we also keep project relations string to avoid cycles if needed
-  @ManyToOne('Project', 'tasks', { onDelete: 'CASCADE' })
+  @ManyToOne(() => Project, (project) => project.tasks, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'project_id' })
-  project: any;
+  project: Project;
 
-  @ManyToOne('Milestone', 'tasks', { onDelete: 'SET NULL' })
+  @ManyToOne(() => Milestone, (milestone) => milestone.tasks, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'milestone_id' })
-  milestone: any;
+  milestone: Milestone | null;
 
-  @OneToMany(() => Subtask, subtask => subtask.task)
-  subtasks: Subtask[];
+  @OneToMany(() => TaskAssignment, (assignment) => assignment.task)
+  assignments: TaskAssignment[];
 
-  @OneToMany(() => TaskAssignee, assignee => assignee.task)
-  assignees: TaskAssignee[];
-
-  @OneToMany(() => TaskDependency, dependency => dependency.task)
-  dependencies: TaskDependency[];
-
-  @OneToMany(() => TaskDependency, dependency => dependency.dependsOnTask)
-  dependentOn: TaskDependency[];
-
-  @OneToMany(() => Comment, comment => comment.task)
-  comments: Comment[];
-
-  @OneToMany(() => Attachment, attachment => attachment.task)
-  attachments: Attachment[];
-
-  @OneToMany('TimeEntry', 'task')
-  timeEntries: any[];
-
-  @OneToMany('AiEstimation', 'task')
-  aiEstimations: any[];
+  @OneToMany(() => TaskStatusLog, (log) => log.task)
+  statusLogs: TaskStatusLog[];
 }

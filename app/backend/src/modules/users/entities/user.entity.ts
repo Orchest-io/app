@@ -3,94 +3,41 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
   OneToMany,
-  OneToOne,
+  Index,
 } from 'typeorm';
-import { UserSession } from './user-session.entity';
-import { UserSettings } from './user-settings.entity';
-import { UserSkill } from './user-skill.entity';
+import { RefreshToken } from './refresh-token.entity';
+import { Project } from '../../projects/entities/project.entity';
+import { ProjectMembership } from '@/modules/projects/entities';
+import { TaskAssignment } from '../../tasks/entities/task-assignment.entity';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn('uuid', { name: 'user_id' })
+  userId: string;
 
-  @Column({ name: 'full_name', type: 'varchar' })
-  fullName: string;
-
-  @Column({ type: 'varchar', unique: true })
+  @Index({ unique: true })
+  @Column({ name: 'email', type: 'varchar', unique: true })
   email: string;
 
-  @Column({ name: 'password_hash', type: 'varchar', nullable: true })
+  @Column({ name: 'password_hash', type: 'text' })
   passwordHash: string;
 
-  @Column({ name: 'avatar_url', type: 'varchar', nullable: true })
-  avatarUrl: string;
-
-  @Column({ type: 'jsonb', nullable: true })
-  roles: any; // global roles JSON/array
-
-  @Column({ name: 'workload_percent', type: 'int', nullable: true, default: 0 })
-  workloadPercent: number;
-
-  @Column({ name: 'is_email_verified', type: 'boolean', default: false })
-  isEmailVerified: boolean;
-
-  @Column({ name: 'is_active', type: 'boolean', default: true })
-  isActive: boolean;
-
-  @Column({ name: 'last_login_at', type: 'timestamp', nullable: true })
-  lastLoginAt: Date;
+  @Column({ name: 'name', type: 'varchar' })
+  name: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', nullable: true })
-  updatedAt: Date;
+  @OneToMany(() => RefreshToken, (token) => token.user)
+  refreshTokens: RefreshToken[];
 
-  @OneToMany(() => UserSession, (session) => session.user)
-  sessions: UserSession[];
+  @OneToMany(() => Project, (project) => project.creator)
+  projectsCreated: Project[];
 
-  @OneToOne(() => UserSettings, (settings) => settings.user)
-  settings: UserSettings;
+  @OneToMany(() => ProjectMembership, (membership) => membership.user)
+  projectMemberships: ProjectMembership[];
 
-  @OneToMany(() => UserSkill, (skill) => skill.user)
-  skills: UserSkill[];
-
-  @OneToMany('Project', 'createdBy')
-  createdProjects: any[];
-
-  @OneToMany('ProjectMember', 'user')
-  projectMemberships: any[];
-
-  @OneToMany('TaskAssignee', 'user')
-  taskAssignments: any[];
-
-  @OneToMany('Comment', 'user')
-  comments: any[];
-
-  @OneToMany('Notification', 'user')
-  notifications: any[];
-
-  @OneToMany('ActivityLog', 'user')
-  activityLogs: any[];
-
-  @OneToMany('TimeEntry', 'user')
-  timeEntries: any[];
-
-  @OneToMany('AiConversation', 'user')
-  aiConversations: any[];
-
-  @OneToMany('Attachment', 'uploadedBy')
-  attachments: any[];
-
-  @OneToMany('Report', 'generatedBy')
-  reports: any[];
-
-  @OneToMany('CustomReport', 'user')
-  customReports: any[];
-
-  @OneToMany('AiEstimation', 'user')
-  aiEstimations: any[];
+  @OneToMany(() => TaskAssignment, (assignment) => assignment.user)
+  taskAssignments: TaskAssignment[];
 }
