@@ -67,13 +67,11 @@ export class ProjectsService {
 
   async create(userId: string, createProjectDto: CreateProjectDto): Promise<Project> {
     // Extract only fields that exist directly on the Project entity
-    const { budget: _budget, ...projectFields } = createProjectDto as any;
-
     const project = this.projectsRepository.create({
-      ...projectFields,
+      ...createProjectDto,
       createdBy: userId,
     });
-    const savedProject = (await this.projectsRepository.save(project)) as unknown as Project;
+    const savedProject = await this.projectsRepository.save(project);
 
     // Add creator as owner
     const member = this.projectMembersRepository.create({
