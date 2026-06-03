@@ -6,25 +6,25 @@ export class ReportSnapshot {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
-  report_id: string;
+  @Column({ name: 'report_id', type: 'uuid' })
+  reportId: string;
+
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
 
   @ManyToOne(() => Report, (report) => report.snapshots, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'report_id' })
   report: Report;
 
-  @Column({ type: 'varchar' })
-  metric_name: string;
+  @Column({ name: 'metric_name', type: 'varchar' })
+  metricName: string;
 
-  @Column({ type: 'decimal', nullable: true })
-  metric_value: number;
+  @Column({ name: 'metric_value', type: 'varchar', nullable: true })
+  metricValue: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  metric_unit: string;
+  @Column({ name: 'chart_data', type: 'jsonb', nullable: true })
+  chartData: any;
 
-  @Column({ type: 'jsonb', nullable: true })
-  chart_data: any;
-
-  @CreateDateColumn({ type: 'timestamp' })
-  captured_at: Date;
+  @CreateDateColumn({ name: 'captured_at', type: 'timestamp' })
+  capturedAt: Date;
 }

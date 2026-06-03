@@ -1,16 +1,12 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
-import { NotificationType, ReferenceType } from '@orchest/shared';
 
 @Entity('notifications')
 export class Notification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
-  user_id: string;
-
-  @Column({ type: 'enum', enum: NotificationType })
-  type: NotificationType;
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
 
   @Column({ type: 'varchar' })
   title: string;
@@ -18,18 +14,15 @@ export class Notification {
   @Column({ type: 'text', nullable: true })
   message: string;
 
-  @Column({ type: 'enum', enum: ReferenceType, nullable: true })
-  reference_type: ReferenceType;
+  @Column({ name: 'reference_type', type: 'varchar', nullable: true }) // task | project | comment
+  referenceType: string;
 
-  @Column({ type: 'uuid', nullable: true })
-  reference_id: string;
+  @Column({ name: 'reference_id', type: 'uuid', nullable: true })
+  referenceId: string;
 
-  @Column({ type: 'boolean', default: false })
-  is_read: boolean;
+  @Column({ name: 'is_read', type: 'boolean', default: false })
+  isRead: boolean;
 
-  @Column({ type: 'boolean', default: false })
-  is_archived: boolean;
-
-  @CreateDateColumn({ type: 'timestamp' })
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
 }

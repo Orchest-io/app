@@ -5,10 +5,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
-import { ProjectStatus, ProjectPriority, ProjectType, ProjectMode } from '@orchest/shared';
 import { ProjectMember } from './project-member.entity';
 import { Milestone } from './milestone.entity';
+import { ProjectScopedRole } from './project-scoped-role.entity';
+import { ProjectPermissionsDef } from './project-permissions-def.entity';
+import { ProjectBudget } from './project-budget.entity';
 
 @Entity('projects')
 export class Project {
@@ -24,41 +27,14 @@ export class Project {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({
-    type: 'enum',
-    enum: ProjectStatus,
-    default: ProjectStatus.PLANNING,
-  })
-  status: ProjectStatus;
+  @Column({ type: 'varchar', nullable: true }) // planning | active | completed | archived
+  status: string;
 
-  @Column({
-    type: 'enum',
-    enum: ProjectPriority,
-    default: ProjectPriority.MEDIUM,
-  })
-  priority: ProjectPriority;
-
-  @Column({
-    name: 'project_type',
-    type: 'enum',
-    enum: ProjectType,
-    default: ProjectType.MANUAL,
-  })
-  projectType: ProjectType;
-
-  @Column({
-    name: 'project_mode',
-    type: 'enum',
-    enum: ProjectMode,
-    default: ProjectMode.TEAM,
-  })
-  projectMode: ProjectMode;
+  @Column({ type: 'varchar', nullable: true }) // low | medium | high
+  priority: string;
 
   @Column({ type: 'int', default: 0 })
   progress: number;
-
-  @Column({ type: 'varchar', nullable: true })
-  budget: string;
 
   @Column({ name: 'start_date', type: 'date', nullable: true })
   startDate: Date;
@@ -66,14 +42,8 @@ export class Project {
   @Column({ name: 'end_date', type: 'date', nullable: true })
   endDate: Date;
 
-  @Column({ type: 'text', nullable: true })
-  objectives: string;
-
-  @Column({ type: 'text', nullable: true })
-  requirements: string;
-
-  @Column({ type: 'jsonb', nullable: true })
-  settings: Record<string, any>;
+  @Column({ name: 'is_ai_generated', type: 'boolean', default: false })
+  isAiGenerated: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -87,4 +57,28 @@ export class Project {
 
   @OneToMany(() => Milestone, (milestone) => milestone.project)
   milestones: Milestone[];
+
+  @OneToMany(() => ProjectScopedRole, (role) => role.project)
+  roles: ProjectScopedRole[];
+
+  @OneToMany(() => ProjectPermissionsDef, (permDef) => permDef.project)
+  permissionsDefs: ProjectPermissionsDef[];
+
+  @OneToOne(() => ProjectBudget, (budget) => budget.project)
+  budget: ProjectBudget;
+
+  @OneToMany('Task', 'project')
+  tasks: any[];
+
+  @OneToMany('ActivityLog', 'project')
+  activityLogs: any[];
+
+  @OneToMany('Report', 'project')
+  reports: any[];
+
+  @OneToMany('AiPlanSession', 'project')
+  aiPlanSessions: any[];
+
+  @OneToMany('TimeEntry', 'project')
+  timeEntries: any[];
 }

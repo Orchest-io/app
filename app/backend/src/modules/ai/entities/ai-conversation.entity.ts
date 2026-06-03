@@ -1,29 +1,22 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
 import { AiMessage } from './ai-message.entity';
-import { AiContextType } from '@orchest/shared';
 
 @Entity('ai_conversations')
 export class AiConversation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
-  user_id: string;
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  title: string;
+  @Column({ name: 'context_type', type: 'varchar', nullable: true }) // general | project | task
+  contextType: string;
 
-  @Column({ type: 'enum', enum: AiContextType, nullable: true })
-  context_type: AiContextType;
+  @Column({ name: 'context_id', type: 'uuid', nullable: true })
+  contextId: string;
 
-  @Column({ type: 'uuid', nullable: true })
-  context_id: string;
-
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
 
   @OneToMany(() => AiMessage, message => message.conversation)
   messages: AiMessage[];

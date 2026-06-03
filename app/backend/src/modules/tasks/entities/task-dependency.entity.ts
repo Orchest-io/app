@@ -1,31 +1,27 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, Unique, Check } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Unique, Check } from 'typeorm';
 import { Task } from './task.entity';
-import { DependencyType } from '@orchest/shared';
 
 @Entity('task_dependencies')
 @Unique(['taskId', 'dependsOnTaskId'])
-@Check(`"taskId" != "dependsOnTaskId"`)
+@Check(`"task_id" != "depends_on_task_id"`)
 export class TaskDependency {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'task_id', type: 'uuid' })
   taskId: string;
 
   @ManyToOne(() => Task, task => task.dependencies, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'taskId' })
+  @JoinColumn({ name: 'task_id' })
   task: Task;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'depends_on_task_id', type: 'uuid' })
   dependsOnTaskId: string;
 
   @ManyToOne(() => Task, task => task.dependentOn, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'dependsOnTaskId' })
+  @JoinColumn({ name: 'depends_on_task_id' })
   dependsOnTask: Task;
 
-  @Column({ type: 'enum', enum: DependencyType, default: DependencyType.BLOCKS })
-  type: DependencyType;
-
-  @CreateDateColumn({ type: 'timestamp' })
-  createdAt: Date;
+  @Column({ type: 'varchar', nullable: true }) // blocks | requires
+  type: string;
 }

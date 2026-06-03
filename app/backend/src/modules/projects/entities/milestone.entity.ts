@@ -3,11 +3,9 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { MilestoneStatus } from '@orchest/shared';
 import { Project } from './project.entity';
 
 @Entity('milestones')
@@ -18,18 +16,17 @@ export class Milestone {
   @Column({ name: 'project_id', type: 'uuid' })
   projectId: string;
 
+  @Column({ name: 'ai_creation_prompt_id', type: 'uuid', nullable: true })
+  aiCreationPromptId: string;
+
   @Column({ type: 'varchar' })
   title: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({
-    type: 'enum',
-    enum: MilestoneStatus,
-    default: MilestoneStatus.UPCOMING,
-  })
-  status: MilestoneStatus;
+  @Column({ type: 'varchar', nullable: true })
+  status: string;
 
   @Column({ type: 'int', default: 0 })
   progress: number;
@@ -37,14 +34,11 @@ export class Milestone {
   @Column({ name: 'target_date', type: 'date', nullable: true })
   targetDate: Date;
 
-  @Column({ name: 'sort_order', type: 'int', nullable: true })
-  sortOrder: number;
+  @Column({ name: 'is_ai_generated', type: 'boolean', default: false })
+  isAiGenerated: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
 
   // Relations
   @ManyToOne(() => Project, (project) => project.milestones, { onDelete: 'CASCADE' })

@@ -6,28 +6,28 @@ export class Attachment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'task_id', type: 'uuid' })
   taskId: string;
 
   @ManyToOne(() => Task, task => task.attachments, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'taskId' })
+  @JoinColumn({ name: 'task_id' })
   task: Task;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'uploaded_by', type: 'uuid' })
   uploadedBy: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ name: 'file_name', type: 'varchar' })
   fileName: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ name: 'file_url', type: 'varchar' })
   fileUrl: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ name: 'file_type', type: 'varchar', nullable: true })
   fileType: string;
 
-  @Column({ type: 'bigint', nullable: true })
+  @Column({ name: 'file_size_bytes', type: 'bigint', nullable: true })
   fileSizeBytes: number;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 }

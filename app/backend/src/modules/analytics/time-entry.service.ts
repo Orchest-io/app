@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TimeEntry } from './entities';
-import { CreateTimeEntryDto, UpdateTimeEntryDto } from '../../../../../shared/src/dtos/analytics.dtos';
+import { CreateTimeEntryDto, UpdateTimeEntryDto } from '@orchest/shared';
 
 @Injectable()
 export class TimeEntryService {
@@ -12,14 +12,14 @@ export class TimeEntryService {
   ) {}
 
   async create(userId: string, createDto: CreateTimeEntryDto): Promise<TimeEntry> {
-    const entry = this.timeEntryRepository.create({ ...createDto, user_id: userId });
+    const entry = this.timeEntryRepository.create({ ...createDto, userId: userId } as any);
     return this.timeEntryRepository.save(entry);
   }
 
   async findAll(projectId?: string, taskId?: string): Promise<TimeEntry[]> {
     const where: any = {};
-    if (projectId) where.project_id = projectId;
-    if (taskId) where.task_id = taskId;
+    if (projectId) where.projectId = projectId;
+    if (taskId) where.taskId = taskId;
     return this.timeEntryRepository.find({ where });
   }
 

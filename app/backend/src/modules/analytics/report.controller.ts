@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
 import { ReportService } from './report.service';
-import { CreateReportDto, UpdateReportDto, CreateReportSnapshotDto } from '../../../../../shared/src/dtos/analytics.dtos';
+import { CreateReportDto, UpdateReportDto, CreateReportSnapshotDto } from '@orchest/shared';
 
 @Controller('reports')
 export class ReportController {

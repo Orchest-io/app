@@ -23,7 +23,7 @@ export class ProjectsService {
 
   async create(userId: string, createProjectDto: CreateProjectDto): Promise<Project> {
     const project = this.projectsRepository.create({
-      ...createProjectDto,
+      ...(createProjectDto as any),
       createdBy: userId,
     });
     const savedProject = await this.projectsRepository.save(project);
@@ -55,7 +55,7 @@ export class ProjectsService {
   }
 
   async update(id: string, updateProjectDto: UpdateProjectDto): Promise<Project> {
-    await this.projectsRepository.update(id, updateProjectDto);
+    await this.projectsRepository.update(id, updateProjectDto as any);
     return this.findOne(id);
   }
 
