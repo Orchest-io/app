@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, UseGuards } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import {
   CreateProjectDto,
@@ -7,70 +7,90 @@ import {
   CreateMilestoneDto,
   UpdateMilestoneDto,
 } from '@orchest/shared';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('projects')
+@UseGuards(JwtAuthGuard)
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
   create(@Request() req: any, @Body() createProjectDto: CreateProjectDto) {
-    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.create(userId, createProjectDto);
   }
 
   @Get()
   findAll(@Request() req: any) {
-    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.findAll(userId);
   }
 
   @Get(':id')
   findOne(@Request() req: any, @Param('id') id: string) {
-    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.findOne(id, userId);
   }
 
   @Patch(':id')
   update(@Request() req: any, @Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.update(id, updateProjectDto, userId);
   }
 
   @Delete(':id')
   remove(@Request() req: any, @Param('id') id: string) {
-    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.remove(id, userId);
   }
 
   // Members
   @Post(':id/members')
   addMember(@Request() req: any, @Param('id') id: string, @Body() dto: AddProjectMemberDto) {
-    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.addMember(id, dto, userId);
+  }
+
+  @Post(':id/members/by-email')
+  async addMemberByEmail(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() dto: { email: string; role: string; jobTitle?: string; skills?: string; status?: string },
+  ) {
+    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
+    return this.projectsService.addMemberByEmail(
+      id,
+      dto.email,
+      dto.role as any,
+      userId,
+      dto.jobTitle,
+      dto.skills,
+      dto.status,
+    );
   }
 
   @Delete(':id/members/:memberUserId')
   removeMember(@Request() req: any, @Param('id') id: string, @Param('memberUserId') memberUserId: string) {
-    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.removeMember(id, memberUserId, userId);
   }
 
   // Milestones
   @Post(':id/milestones')
   createMilestone(@Request() req: any, @Param('id') id: string, @Body() dto: CreateMilestoneDto) {
-    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.createMilestone(id, dto, userId);
   }
 
   @Patch('milestones/:milestoneId')
   updateMilestone(@Request() req: any, @Param('milestoneId') milestoneId: string, @Body() dto: UpdateMilestoneDto) {
-    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.updateMilestone(milestoneId, dto, userId);
   }
 
   @Delete('milestones/:milestoneId')
   removeMilestone(@Request() req: any, @Param('milestoneId') milestoneId: string) {
-    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.removeMilestone(milestoneId, userId);
   }
 }

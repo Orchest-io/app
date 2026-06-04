@@ -1,54 +1,11 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 import type { ProjectListItemDto } from '@orchest/shared'
-import { Card, ProgressBar, Button, Input, Select, TextArea } from '../../components/ui'
+import { Card, ProgressBar, Button } from '../../components/ui'
 import { useProjects } from '../../hooks/useProjects'
-import { useCreateProject } from '../../hooks/useProjectMutations'
 
 export default function ProjectsList() {
   const navigate = useNavigate()
   const { data: projects = [], isLoading, isError, refetch } = useProjects()
-  const createProjectMutation = useCreateProject()
-
-  const [isModalOpen, setIsModalOpen] = useState(false)
-
-  // Form state
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    status: 'planning',
-    priority: 'medium',
-    startDate: '',
-    endDate: '',
-  })
-
-  const submitting = createProjectMutation.isPending
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!formData.name.trim()) {
-      toast.warning('Please enter a project name')
-      return
-    }
-
-    createProjectMutation.mutate(formData as any, {
-      onSuccess: (newProject) => {
-        navigate('/projects/' + newProject.id)
-        setIsModalOpen(false)
-        setFormData({
-          name: '',
-          description: '',
-          status: 'planning',
-          priority: 'medium',
-          startDate: '',
-          endDate: '',
-        })
-        toast.success('Project created!')
-      },
-      onError: () => toast.error('Failed to create project'),
-    })
-  }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -87,7 +44,7 @@ export default function ProjectsList() {
           </p>
         </div>
 
-        <Button icon="add" onClick={() => setIsModalOpen(true)}>
+        <Button icon="add" onClick={() => navigate('/projects/create')}>
           New Project
         </Button>
       </div>
@@ -124,9 +81,9 @@ export default function ProjectsList() {
           </div>
           <h3 className="font-heading text-xl font-bold mb-2">No Projects Found</h3>
           <p className="text-sm text-on-surface-variant max-w-sm mb-6 leading-relaxed">
-            Create your first workspace project to start tracking tasks, managing teams, and mapping milestones.
+            Create your first project to start tracking tasks and milestones.
           </p>
-          <Button icon="add" onClick={() => setIsModalOpen(true)}>
+          <Button icon="add" onClick={() => navigate('/projects/create')}>
             Create Project
           </Button>
         </Card>
@@ -155,7 +112,7 @@ export default function ProjectsList() {
                 </div>
 
                 <p className="text-sm text-on-surface-variant mb-6 line-clamp-3 leading-relaxed">
-                  No description provided.
+                  {project.description || 'No description provided.'}
                 </p>
               </div>
 
@@ -179,97 +136,6 @@ export default function ProjectsList() {
               </div>
             </Card>
           ))}
-        </div>
-      )}
-
-      {/* Create Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="max-w-lg w-full" padding="lg">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-heading text-xl font-semibold text-on-surface">
-                Create New Project
-              </h3>
-              <button
-                className="text-on-surface-variant hover:text-on-surface cursor-pointer"
-                onClick={() => setIsModalOpen(false)}
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <Input
-                label="Project Name"
-                placeholder="e.g. Core System Migration"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-
-              <TextArea
-                label="Description"
-                placeholder="Brief summary of the goals, context, and dependencies..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <Select
-                  label="Status"
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  options={[
-                    { value: 'planning', label: 'Planning' },
-                    { value: 'active', label: 'Active' },
-                    { value: 'completed', label: 'Completed' },
-                    { value: 'archived', label: 'Archived' },
-                  ]}
-                />
-
-                <Select
-                  label="Priority"
-                  value={formData.priority}
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                  options={[
-                    { value: 'low', label: 'Low' },
-                    { value: 'medium', label: 'Medium' },
-                    { value: 'high', label: 'High' },
-                  ]}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="Start Date"
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                />
-
-                <Input
-                  label="End Date"
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                />
-              </div>
-
-              <div className="flex gap-3 justify-end mt-4">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => setIsModalOpen(false)}
-                  disabled={submitting}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Creating...' : 'Create Project'}
-                </Button>
-              </div>
-            </form>
-          </Card>
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { AiService } from './ai.service';
 import {
   CreateAiPlanSessionDto,
@@ -14,8 +14,10 @@ import {
   CreateAiMessageDto,
   UpdateAiMessageDto,
 } from '@orchest/shared';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('ai')
+@UseGuards(JwtAuthGuard)
 export class AiController {
 
   constructor(private readonly aiService: AiService) {}

@@ -2,12 +2,14 @@ type InputProps = {
   label?: string
   icon?: string
   error?: string
+  helperText?: string
 } & React.InputHTMLAttributes<HTMLInputElement>
 
 export default function Input({
   label,
   icon,
   error,
+  helperText,
   className = '',
   id,
   ...props
@@ -36,6 +38,7 @@ export default function Input({
         />
       </div>
       {error && <span className="text-[12px] text-error">{error}</span>}
+      {helperText && !error && <span className="text-[12px] text-on-surface-variant">{helperText}</span>}
     </div>
   )
 }

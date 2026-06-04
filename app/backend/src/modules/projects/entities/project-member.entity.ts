@@ -29,6 +29,15 @@ export class ProjectMember {
   @Column({ type: 'varchar', nullable: true })
   role: string;
 
+  @Column({ name: 'job_title', type: 'varchar', nullable: true })
+  jobTitle: string;
+
+  @Column({ name: 'skills', type: 'text', nullable: true })
+  skills: string; // Comma-separated skills
+
+  @Column({ name: 'status', type: 'varchar', default: 'available' })
+  status: string; // available, busy, on-leave
+
   @CreateDateColumn({ name: 'joined_at' })
   joinedAt: Date;
 

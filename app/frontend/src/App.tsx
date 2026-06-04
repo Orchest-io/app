@@ -6,6 +6,7 @@ import AuthPage from './pages/AuthPage'
 import Dashboard from './pages/Dashboard/Dashboard'
 import TeamManagement from './pages/TeamManagement/TeamManagement'
 import ProjectsList from './pages/Projects/ProjectsList'
+import CreateProjectWizard from './pages/Projects/CreateProjectWizard'
 import ProjectDetailsOverview from './pages/Projects/ProjectDetails/ProjectDetails'
 import Settings from './pages/Settings/Settings'
 
@@ -14,9 +15,9 @@ function isLoggedIn() {
   return !!localStorage.getItem('orchest_user_id')
 }
 
-// Redirect to /dashboard if already logged in
+// Redirect to /projects if already logged in
 function GuestRoute({ children }: { children: React.ReactNode }) {
-  return isLoggedIn() ? <Navigate to="/dashboard" replace /> : <>{children}</>
+  return isLoggedIn() ? <Navigate to="/projects" replace /> : <>{children}</>
 }
 
 // Redirect to /login if not logged in
@@ -34,7 +35,7 @@ export default function App() {
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* Auth pages — redirect to dashboard if already logged in */}
+        {/* Auth pages — redirect to projects if already logged in */}
         <Route
           path="/login"
           element={
@@ -61,6 +62,7 @@ export default function App() {
                 <Routes>
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="projects" element={<ProjectsList />} />
+                  <Route path="projects/create" element={<CreateProjectWizard />} />
                   <Route path="projects/:projectId" element={<ProjectDetailsOverview />} />
                   <Route path="team" element={<TeamManagement />} />
                   <Route path="settings" element={<Settings />} />

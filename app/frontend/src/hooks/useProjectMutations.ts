@@ -56,7 +56,7 @@ export const useDeleteProject = () => {
 export const useAddMember = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ projectId, dto }: { projectId: string; dto: AddProjectMemberDto }) =>
+    mutationFn: ({ projectId, dto }: { projectId: string; dto: { email: string; role: string; jobTitle?: string; skills?: string; status?: string } }) =>
       addMember(projectId, dto),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });

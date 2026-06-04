@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, Query, UseGuards } from '@nestjs/common';
 import { TimeEntryService } from './time-entry.service';
 import { CreateTimeEntryDto, UpdateTimeEntryDto } from '@orchest/shared';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('time-entries')
+@UseGuards(JwtAuthGuard)
 export class TimeEntryController {
   constructor(private readonly timeEntryService: TimeEntryService) {}
 
