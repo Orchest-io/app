@@ -6,12 +6,11 @@ import { useProject } from '../../../hooks/useProject'
 import {
   useUpdateProject,
   useDeleteProject,
-  useAddMember,
-  useRemoveMember,
   useCreateMilestone,
   useUpdateMilestone,
   useRemoveMilestone,
 } from '../../../hooks/useProjectMutations'
+import TeamManagementTab from './TeamManagementTab'
 import type { UpdateMilestoneDto } from '@orchest/shared'
 
 export default function ProjectDetailsOverview() {
@@ -32,19 +31,12 @@ export default function ProjectDetailsOverview() {
   // Mutations
   const updateProjectMutation = useUpdateProject()
   const deleteProjectMutation = useDeleteProject()
-  const addMemberMutation = useAddMember()
-  const removeMemberMutation = useRemoveMember()
   const createMilestoneMutation = useCreateMilestone()
   const updateMilestoneMutation = useUpdateMilestone()
   const removeMilestoneMutation = useRemoveMilestone()
 
   // Delete project confirm dialog
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
-
-  // Add Member modal
-  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
-  const [selectedUserId, setSelectedUserId] = useState('')
-  const [memberRole, setMemberRole] = useState<'member' | 'owner'>('member')
 
   // Add Milestone modal
   const [isAddMilestoneOpen, setIsAddMilestoneOpen] = useState(false)
@@ -76,41 +68,6 @@ export default function ProjectDetailsOverview() {
   })
 
   // ─── Handlers ────────────────────────────────────────────────────────────────
-
-  const handleAddMember = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedUserId.trim() || !projectId) {
-      toast.warning('Please enter a user ID')
-      return
-    }
-    addMemberMutation.mutate(
-      { projectId, dto: { userId: selectedUserId, role: memberRole as any } },
-      {
-        onSuccess: () => {
-          toast.success('Team member added successfully!')
-          setIsAddMemberOpen(false)
-          setSelectedUserId('')
-          setMemberRole('member')
-        },
-        onError: (err: any) => {
-          toast.error('Failed to add member: ' + (err?.response?.data?.message ?? err.message))
-        },
-      }
-    )
-  }
-
-  const handleRemoveMember = (userId: string) => {
-    if (!projectId) return
-    removeMemberMutation.mutate(
-      { projectId, userId },
-      {
-        onSuccess: () => toast.success('Member removed'),
-        onError: (err: any) => {
-          toast.error('Failed to remove member: ' + (err?.response?.data?.message ?? err.message))
-        },
-      }
-    )
-  }
 
   const handleAddMilestone = (e: React.FormEvent) => {
     e.preventDefault()
@@ -345,6 +302,7 @@ export default function ProjectDetailsOverview() {
         onChange={setActiveTab}
         tabs={[
           { key: 'overview', label: 'Overview', icon: 'dashboard' },
+          { key: 'team', label: `Team (${project.members?.length || 0})`, icon: 'group' },
           { key: 'tasks', label: `Tasks (${(project as any).tasks?.length || 0})`, icon: 'task_alt' },
           { key: 'milestones', label: `Milestones (${project.milestones?.length || 0})`, icon: 'flag' },
           { key: 'activity', label: 'Activity Logs', icon: 'history' },
@@ -396,57 +354,7 @@ export default function ProjectDetailsOverview() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Team Members */}
-            <Card className="md:col-span-2">
-              <div className="flex justify-between items-center mb-5">
-                <h3 className="font-heading text-lg font-semibold text-on-surface">
-                  Team Members
-                </h3>
-                {isOwner && (
-                  <Button variant="secondary" size="sm" icon="add" onClick={() => setIsAddMemberOpen(true)}>
-                    Add Member
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-4">
-                {!project.members || project.members.length === 0 ? (
-                  <p className="text-sm text-on-surface-variant italic">No members assigned to this project.</p>
-                ) : (
-                  project.members.map((member) => (
-                    <div
-                      key={member.id}
-                      className="p-4 rounded-lg bg-surface-container-low border border-border-low flex justify-between items-center"
-                    >
-                      <div>
-                        <p className="font-medium text-on-surface">
-                          {(member as any).user?.fullName || member.userId}
-                        </p>
-                        <p className="text-xs text-on-surface-variant">
-                          {member.role || 'Member'} • Joined {new Date(member.joinedAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-semibold text-on-surface-variant bg-surface-glass border border-border-low px-2.5 py-1 rounded-sm">
-                          {(member as any).user?.email || member.userId}
-                        </span>
-                        {isOwner && member.role !== 'owner' && (
-                          <button
-                            onClick={() => handleRemoveMember(member.userId)}
-                            className="text-red-400 hover:text-red-300 transition-colors cursor-pointer ml-1"
-                            title="Remove member"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">person_remove</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </Card>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Quick Summary Activity */}
             <Card>
               <h3 className="font-heading text-lg font-semibold text-on-surface mb-5">
@@ -470,8 +378,61 @@ export default function ProjectDetailsOverview() {
                 )}
               </div>
             </Card>
+
+            {/* Project Timeline */}
+            <Card>
+              <h3 className="font-heading text-lg font-semibold text-on-surface mb-5">
+                Project Timeline
+              </h3>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-electric-blue/10 border border-electric-blue/30 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[18px] text-electric-blue">event</span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-on-surface-variant">Start Date</p>
+                    <p className="text-sm font-semibold text-on-surface">
+                      {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'Not set'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-purple-400/10 border border-purple-400/30 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[18px] text-purple-400">flag</span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-on-surface-variant">Target End Date</p>
+                    <p className="text-sm font-semibold text-on-surface">
+                      {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'Not set'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[18px] text-emerald-400">group</span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-on-surface-variant">Team Size</p>
+                    <p className="text-sm font-semibold text-on-surface">
+                      {project.members?.length || 0} members
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
+      )}
+
+      {/* TEAM TAB */}
+      {activeTab === 'team' && (
+        <TeamManagementTab
+          projectId={projectId!}
+          members={project.members || []}
+          isOwner={isOwner}
+        />
       )}
 
       {/* TASKS TAB */}
@@ -648,52 +609,6 @@ export default function ProjectDetailsOverview() {
                 </Button>
               </div>
             </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ── Add Member Modal ────────────────────────────────────────────────────── */}
-      {isAddMemberOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full" padding="lg">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-heading text-xl font-semibold text-on-surface">Add Team Member</h3>
-              <button
-                className="text-on-surface-variant hover:text-on-surface cursor-pointer"
-                onClick={() => setIsAddMemberOpen(false)}
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleAddMember} className="flex flex-col gap-4">
-              <Input
-                label="User ID"
-                placeholder="Enter the user's ID (UUID)"
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                required
-              />
-
-              <Select
-                label="Role"
-                value={memberRole}
-                onChange={(e) => setMemberRole(e.target.value as 'member' | 'owner')}
-                options={[
-                  { value: 'member', label: 'Member' },
-                  { value: 'owner', label: 'Owner' },
-                ]}
-              />
-
-              <div className="flex gap-3 justify-end mt-4">
-                <Button type="button" variant="secondary" onClick={() => setIsAddMemberOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={addMemberMutation.isPending}>
-                  {addMemberMutation.isPending ? 'Adding...' : 'Add Member'}
-                </Button>
-              </div>
-            </form>
           </Card>
         </div>
       )}

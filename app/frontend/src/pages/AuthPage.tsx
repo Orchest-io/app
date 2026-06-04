@@ -96,11 +96,11 @@ function AuthField({
   const errorId = `${id}-error`
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex min-h-[20px] items-center justify-between gap-3">
+    <div className="flex flex-col gap-1.5">
+      <div className="flex min-h-[18px] items-center justify-between gap-3">
         <label
           htmlFor={id}
-          className="text-[12px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant"
+          className="text-[11px] font-semibold uppercase tracking-[0.15em] text-on-surface-variant"
         >
           {label}
         </label>
@@ -111,7 +111,7 @@ function AuthField({
         aria-describedby={error ? errorId : undefined}
         aria-invalid={!!error}
         autoComplete={autoComplete}
-        className={`h-[58px] w-full rounded-[14px] border bg-[#09101a]/65 px-5 text-[15px] text-on-surface shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] outline-none transition-all duration-200 placeholder:text-[#687184] focus:border-electric-blue/70 focus:bg-[#0a1420] focus:shadow-[0_0_0_3px_rgba(0,123,255,0.16)] disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`h-[52px] w-full rounded-xl border bg-[#09101a]/65 px-4 text-[14px] text-on-surface shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] outline-none transition-all duration-200 placeholder:text-[#687184] focus:border-electric-blue/70 focus:bg-[#0a1420] focus:shadow-[0_0_0_3px_rgba(0,123,255,0.16)] disabled:cursor-not-allowed disabled:opacity-60 ${
           error ? 'border-error/80' : 'border-white/12'
         }`}
         disabled={disabled}
@@ -121,7 +121,7 @@ function AuthField({
         onChange={(event) => onChange(id, event.target.value)}
       />
       {error && (
-        <p id={errorId} className="text-[12px] font-medium text-error" role="alert">
+        <p id={errorId} className="text-[11px] font-medium text-error" role="alert">
           {error}
         </p>
       )}
@@ -131,16 +131,16 @@ function AuthField({
 
 function AuthLogo() {
   return (
-    <div className="flex items-center gap-5">
-      <div className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-[#4b8fff] text-[#05101f] shadow-[0_16px_45px_rgba(0,123,255,0.22)]">
+    <div className="flex items-center gap-4">
+      <div className="flex h-[42px] w-[42px] items-center justify-center rounded-[10px] bg-[#4b8fff] text-[#05101f] shadow-[0_12px_35px_rgba(0,123,255,0.22)]">
         <span
-          className="material-symbols-outlined text-[29px]"
+          className="material-symbols-outlined text-[24px]"
           style={{ fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" }}
         >
           conversion_path
         </span>
       </div>
-      <h1 className="font-heading text-[27px] font-bold tracking-[-0.03em] text-on-surface md:text-[30px]">
+      <h1 className="font-heading text-[24px] font-bold tracking-[-0.03em] text-on-surface">
         AI Smart Team Planner
       </h1>
     </div>
@@ -182,21 +182,21 @@ function MarketingScene() {
           <span className="h-2.5 w-2.5 rounded-full bg-[#33404a]" />
         </div>
         <h2 className="max-w-[470px] font-heading text-[31px] font-extrabold leading-[1.18] tracking-[-0.04em] text-white drop-shadow-[0_2px_0_rgba(0,0,0,0.55)] md:text-[38px]">
-          Orchestrate your team's velocity with AI.
+          Manage projects with AI-powered insights.
         </h2>
         <p className="mt-6 max-w-[520px] text-[16px] leading-[1.55] text-[#d7dee8] md:text-[18px]">
-          Experience a workspace that doesn't just manage tasks, but predicts roadblocks and optimizes your entire workflow in real-time.
+          Track tasks, coordinate teams, and deliver projects on time. Get intelligent estimates and progress analytics.
         </p>
         <div className="mt-7 flex items-center gap-4 rounded-[16px] border border-white/10 bg-white/7 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#5a647c] text-white">
-            <span className="material-symbols-outlined text-[28px]">auto_awesome</span>
+            <span className="material-symbols-outlined text-[28px]">insights</span>
           </div>
           <div>
             <p className="font-heading text-[12px] font-bold uppercase tracking-[0.15em] text-[#d8dcff]">
-              Copilot Suggestion
+              AI Insight
             </p>
             <p className="mt-1 text-[15px] leading-snug text-white">
-              "The Q4 Project timeline is 12% faster than last month."
+              "Backend milestone is on track. Frontend needs 2 more days."
             </p>
           </div>
         </div>
@@ -251,10 +251,9 @@ export default function AuthPage({ mode }: AuthPageProps) {
     googleMutation.mutate(
       { email, fullName: name, avatarUrl: picture, authProviderId: sub },
       {
-        onSuccess: (user) => {
-          localStorage.setItem('orchest_user_id', user.id)
+        onSuccess: (data) => {
           toast.success('Signed in with Google.')
-          navigate('/dashboard')
+          navigate('/projects')
         },
         onError: (error) => toast.error(getErrorMessage(error)),
       },
@@ -337,15 +336,12 @@ export default function AuthPage({ mode }: AuthPageProps) {
         {
           fullName: form.fullName.trim(),
           email: form.email.trim().toLowerCase(),
-          passwordHash: form.password,
-          isEmailVerified: true,
-          isActive: true,
+          password: form.password,
         },
         {
-          onSuccess: (user) => {
-            localStorage.setItem('orchest_user_id', user.id)
-            toast.success('Workspace account created.')
-            navigate('/dashboard')
+          onSuccess: (data) => {
+            toast.success('Account created successfully.')
+            navigate('/projects')
           },
           onError: (error) => toast.error(getErrorMessage(error)),
         },
@@ -356,10 +352,9 @@ export default function AuthPage({ mode }: AuthPageProps) {
     loginMutation.mutate(
       { email: form.email.trim().toLowerCase(), password: form.password },
       {
-        onSuccess: (user) => {
-          localStorage.setItem('orchest_user_id', user.id)
+        onSuccess: (data) => {
           toast.success('Signed in successfully.')
-          navigate('/dashboard')
+          navigate('/projects')
         },
         onError: (error) => toast.error(getErrorMessage(error)),
       },
@@ -389,13 +384,13 @@ export default function AuthPage({ mode }: AuthPageProps) {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_50%,rgba(0,123,255,0.13),transparent_34%),linear-gradient(120deg,#000_0%,#020406_46%,#061222_100%)]" />
           <div className="absolute inset-y-0 right-0 hidden w-px bg-white/5 lg:block" />
 
-          <div className="relative z-10 mx-auto w-full max-w-[480px]">
+          <div className="relative z-10 mx-auto w-full max-w-[420px]">
             <AuthLogo />
-            <p className="mt-5 text-[19px] leading-relaxed text-[#d0d4de]">
-              {copy.subtitle}
+            <p className="mt-4 text-[16px] leading-relaxed text-[#d0d4de]">
+              Smart project planning for modern teams.
             </p>
 
-            <form className="mt-16 flex flex-col gap-5" noValidate onSubmit={handleSubmit}>
+            <form className="mt-12 flex flex-col gap-4" noValidate onSubmit={handleSubmit}>
               {isRegister && (
                 <AuthField
                   id="fullName"
@@ -460,50 +455,50 @@ export default function AuthPage({ mode }: AuthPageProps) {
               )}
 
               <Button
-                className="mt-3 h-[70px] w-full rounded-full !bg-[linear-gradient(90deg,#1595ff_0%,#bfc6ff_100%)] !text-[#081326] shadow-[0_18px_38px_rgba(0,0,0,0.5),0_0_34px_rgba(0,123,255,0.22)] hover:scale-[1.01] disabled:pointer-events-none disabled:opacity-65"
+                className="mt-3 h-14 w-full rounded-full bg-electric-blue hover:bg-electric-blue/90 text-white font-bold shadow-[0_0_20px_rgba(0,123,255,0.3)] hover:scale-[1.01] disabled:pointer-events-none disabled:opacity-65 transition-all"
                 disabled={isSubmitting}
                 type="submit"
                 variant="ghost"
               >
                 <span>{isSubmitting ? 'Working...' : copy.primaryAction}</span>
-                <span className="material-symbols-outlined text-[30px]">arrow_forward</span>
+                <span className="material-symbols-outlined text-[24px]">arrow_forward</span>
               </Button>
             </form>
 
-            <div className="my-10 flex items-center gap-5">
+            <div className="my-6 flex items-center gap-4">
               <span className="h-px flex-1 bg-white/12" />
-              <span className="font-heading text-[12px] font-semibold uppercase tracking-[0.14em] text-[#687184]">
+              <span className="font-heading text-[11px] font-semibold uppercase tracking-[0.12em] text-[#687184]">
                 Or Continue With
               </span>
               <span className="h-px flex-1 bg-white/12" />
             </div>
 
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Button
-                className="h-[66px] rounded-[14px] border-white/12 !bg-white/[0.035] !text-white hover:!bg-white/[0.06] disabled:pointer-events-none disabled:opacity-60"
+                className="h-[54px] rounded-xl border-white/12 !bg-white/[0.035] !text-white hover:!bg-white/[0.06] disabled:pointer-events-none disabled:opacity-60"
                 disabled={isSubmitting}
                 type="button"
                 variant="secondary"
                 onClick={handleGoogleClick}
               >
-                <span className="relative h-6 w-6 rounded-[2px] bg-[#151827]">
-                  <span className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#4285f4] border-r-[#fbbc05] border-t-[#ea4335]" />
+                <span className="relative h-5 w-5 rounded-[2px] bg-[#151827]">
+                  <span className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#4285f4] border-r-[#fbbc05] border-t-[#ea4335]" />
                 </span>
-                <span className="text-[20px] font-medium">Google</span>
+                <span className="text-[16px] font-medium">Google</span>
               </Button>
 
               <Button
-                className="h-[66px] rounded-[14px] border-white/12 !bg-white/[0.035] !text-white hover:!bg-white/[0.06]"
+                className="h-[54px] rounded-xl border-white/12 !bg-white/[0.035] !text-white hover:!bg-white/[0.06]"
                 type="button"
                 variant="secondary"
-                onClick={() => toast.info('SSO sign-in is not connected yet.')}
+                onClick={() => toast.info('Enterprise SSO is available for Business plans.')}
               >
-                <span className="material-symbols-outlined text-[24px]">terminal</span>
-                <span className="text-[20px] font-medium">SSO</span>
+                <span className="material-symbols-outlined text-[20px]">corporate_fare</span>
+                <span className="text-[16px] font-medium">Enterprise SSO</span>
               </Button>
             </div>
 
-            <p className="mt-16 text-center text-[19px] text-[#d5d8df]">
+            <p className="mt-12 text-center text-[16px] text-[#d5d8df]">
               {copy.footerLead}{' '}
               <button
                 className="font-bold text-[#c7d3ff] transition-colors hover:text-primary"

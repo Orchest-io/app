@@ -25,6 +25,7 @@ import {
 } from "@orchest/shared";
 import { ActivityLogService } from "../analytics/activity-log.service";
 import { NotificationService } from "../analytics/notification.service";
+import { UsersService } from "../users/users.service";
 
 @Injectable()
 export class ProjectsService {
@@ -39,6 +40,7 @@ export class ProjectsService {
 		private tasksRepository: Repository<Task>,
 		private readonly activityLogService: ActivityLogService,
 		private readonly notificationService: NotificationService,
+		private readonly usersService: UsersService,
 	) {}
 
 	// ─── Helpers ───────────────────────────────────────────────────────
@@ -116,7 +118,7 @@ export class ProjectsService {
 	async findOne(id: string, userId?: string): Promise<Project> {
 		const project = await this.projectsRepository.findOne({
 			where: { id },
-			relations: ["members", "milestones"],
+			relations: ["members", "members.user", "milestones"],
 		});
 		if (!project) throw new NotFoundException("Project not found");
 		return project;
@@ -179,6 +181,66 @@ export class ProjectsService {
 	}
 
 	// ─── Members ───────────────────────────────────────────────────────
+
+	async addMemberByEmail(
+		projectId: string,
+		email: string,
+		role: ProjectMemberRole,
+		requesterId: string,
+		jobTitle?: string,
+		skills?: string,
+		status?: string,
+	): Promise<ProjectMember> {
+		await this.requireOwner(projectId, requesterId);
+
+		// Find user by email
+		const user = await this.usersService.findByEmail(email);
+		if (!user) {
+			throw new NotFoundException(`User with email "${email}" not found`);
+		}
+
+		// Check for existing membership (409 conflict)
+		const existing = await this.projectMembersRepository.findOne({
+			where: { projectId, userId: user.id },
+		});
+		if (existing) {
+			throw new ConflictException("User is already a member of this project");
+		}
+
+		const member = this.projectMembersRepository.create({
+			projectId,
+			userId: user.id,
+			role,
+			jobTitle: jobTitle || null,
+			skills: skills || null,
+			status: status || 'available',
+		});
+		const savedMember = await this.projectMembersRepository.save(member);
+
+		// Log activity
+		await this.activityLogService.create(requesterId, {
+			project_id: projectId,
+			action: ActivityAction.UPDATED,
+			entity_type: EntityType.PROJECT,
+			entity_id: projectId,
+			description: `User ${user.email} added to project as ${jobTitle || role}`,
+		});
+
+		// Notify the added user (skip if fails to avoid blocking)
+		try {
+			await this.notificationService.create({
+				user_id: user.id,
+				type: NotificationType.UPDATE,
+				title: "You have been added to a project",
+				reference_type: ReferenceType.PROJECT,
+				reference_id: projectId,
+			});
+		} catch (error) {
+			console.error('Failed to create notification:', error);
+		}
+
+		return savedMember;
+	}
 
 	async addMember(
 		projectId: string,

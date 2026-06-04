@@ -1,13 +1,13 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getDatabaseConfig } from './config/database.config';
+import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { AiModule } from './modules/ai/ai.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
-import { AuthMiddleware } from './config/auth.middleware';
 
 @Module({
   imports: [
@@ -20,6 +20,7 @@ import { AuthMiddleware } from './config/auth.middleware';
       useFactory: getDatabaseConfig,
       inject: [ConfigService],
     }),
+    AuthModule,
     UsersModule,
     ProjectsModule,
     TasksModule,
@@ -27,10 +28,4 @@ import { AuthMiddleware } from './config/auth.middleware';
     AnalyticsModule,
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AuthMiddleware)
-      .forRoutes('*');
-  }
-}
+export class AppModule {}

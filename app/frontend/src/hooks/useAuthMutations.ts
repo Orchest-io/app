@@ -1,5 +1,4 @@
 import { useMutation } from '@tanstack/react-query'
-import type { CreateUserDto } from '@orchest/shared'
 import { loginUser, registerUser, googleAuthUser } from '../api/users.api'
 
 export const useLoginUser = () => {
@@ -11,7 +10,8 @@ export const useLoginUser = () => {
 
 export const useRegisterUser = () => {
   return useMutation({
-    mutationFn: (dto: CreateUserDto) => registerUser(dto),
+    mutationFn: (dto: { fullName: string; email: string; password: string }) =>
+      registerUser(dto),
   })
 }
 

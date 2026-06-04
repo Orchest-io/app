@@ -38,9 +38,9 @@ export const deleteProject = async (id: string): Promise<void> => {
 
 export const addMember = async (
   projectId: string,
-  dto: AddProjectMemberDto
+  dto: { email: string; role: string; jobTitle?: string; skills?: string; status?: string }
 ): Promise<void> => {
-  await apiClient.post(`/projects/${projectId}/members`, dto);
+  await apiClient.post(`/projects/${projectId}/members/by-email`, dto);
 };
 
 export const removeMember = async (

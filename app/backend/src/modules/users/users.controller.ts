@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto, UpdateUserSettingsDto, AddUserSkillDto } from '@orchest/shared';
-import { AuthProvider } from '@orchest/shared';
 
 @Controller('users')
 export class UsersController {
@@ -40,17 +39,5 @@ export class UsersController {
   @Post(':id/skills')
   addSkill(@Param('id') id: string, @Body() addSkillDto: AddUserSkillDto) {
     return this.usersService.addSkill(id, addSkillDto);
-  }
-
-  @Post('login')
-  async login(@Body() body: { email: string; password: string }) {
-    return this.usersService.login(body.email, body.password);
-  }
-
-  @Post('google')
-  async googleAuth(
-    @Body() body: { email: string; fullName: string; avatarUrl?: string; authProviderId: string },
-  ) {
-    return this.usersService.findOrCreateByGoogle(body);
   }
 }

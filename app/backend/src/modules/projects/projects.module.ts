@@ -5,11 +5,13 @@ import { ProjectsController } from './projects.controller';
 import { Project, ProjectMember, Milestone } from './entities';
 import { Task } from '../tasks/entities/task.entity';
 import { AnalyticsModule } from '../analytics/analytics.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Project, ProjectMember, Milestone, Task]),
     AnalyticsModule,
+    UsersModule,
   ],
   controllers: [ProjectsController],
   providers: [ProjectsService],
