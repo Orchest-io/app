@@ -438,9 +438,17 @@ export default function ProjectDetailsOverview() {
       {/* TASKS TAB */}
       {activeTab === 'tasks' && (
         <Card>
-          <div className="mb-6">
-            <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
-            <p className="text-xs text-on-surface-variant mt-0.5">Tasks scope for active milestones.</p>
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
+              <p className="text-xs text-on-surface-variant mt-0.5">Tasks scope for active milestones.</p>
+            </div>
+            <Button
+              icon="view_week"
+              onClick={() => navigate(`/projects/${projectId}/board`)}
+            >
+              Open Kanban Board
+            </Button>
           </div>
 
           {!(project as any).tasks || (project as any).tasks.length === 0 ? (

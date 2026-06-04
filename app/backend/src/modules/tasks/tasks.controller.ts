@@ -1,6 +1,14 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { CreateTaskDto, UpdateTaskDto } from '@orchest/shared';
+import {
+  CreateTaskDto,
+  UpdateTaskDto,
+  BulkUpdateTasksDto,
+  CreateSubtaskDto,
+  UpdateSubtaskDto,
+  AddTaskAssigneeDto,
+  CreateTaskDependencyDto,
+} from '@orchest/shared';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('tasks')
@@ -18,6 +26,17 @@ export class TasksController {
     return this.tasksService.findAll();
   }
 
+  // Board operations must come before parametric tasks endpoints to avoid route matching issues
+  @Get('board/:projectId')
+  findByProject(@Param('projectId') projectId: string) {
+    return this.tasksService.findByProject(projectId);
+  }
+
+  @Patch('board/bulk-update')
+  bulkUpdateStatus(@Body() bulkUpdateTasksDto: BulkUpdateTasksDto) {
+    return this.tasksService.bulkUpdateStatus(bulkUpdateTasksDto);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.tasksService.findOne(id);
@@ -32,4 +51,46 @@ export class TasksController {
   remove(@Param('id') id: string) {
     return this.tasksService.remove(id);
   }
+
+  // --- Subtask Routes ---
+
+  @Post(':taskId/subtasks')
+  createSubtask(@Param('taskId') taskId: string, @Body() createSubtaskDto: CreateSubtaskDto) {
+    return this.tasksService.createSubtask(taskId, createSubtaskDto);
+  }
+
+  @Patch('subtasks/:subtaskId')
+  updateSubtask(@Param('subtaskId') subtaskId: string, @Body() updateSubtaskDto: UpdateSubtaskDto) {
+    return this.tasksService.updateSubtask(subtaskId, updateSubtaskDto);
+  }
+
+  @Delete('subtasks/:subtaskId')
+  deleteSubtask(@Param('subtaskId') subtaskId: string) {
+    return this.tasksService.deleteSubtask(subtaskId);
+  }
+
+  // --- Assignee Routes ---
+
+  @Post(':taskId/assignees')
+  addAssignee(@Param('taskId') taskId: string, @Body() addTaskAssigneeDto: AddTaskAssigneeDto) {
+    return this.tasksService.addAssignee(taskId, addTaskAssigneeDto);
+  }
+
+  @Delete(':taskId/assignees/:userId')
+  removeAssignee(@Param('taskId') taskId: string, @Param('userId') userId: string) {
+    return this.tasksService.removeAssignee(taskId, userId);
+  }
+
+  // --- Dependency Routes ---
+
+  @Post(':taskId/dependencies')
+  addDependency(@Param('taskId') taskId: string, @Body() createTaskDependencyDto: CreateTaskDependencyDto) {
+    return this.tasksService.addDependency(taskId, createTaskDependencyDto);
+  }
+
+  @Delete('dependencies/:dependencyId')
+  removeDependency(@Param('dependencyId') dependencyId: string) {
+    return this.tasksService.removeDependency(dependencyId);
+  }
 }
+
