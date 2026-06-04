@@ -8,6 +8,7 @@ import TeamManagement from './pages/TeamManagement/TeamManagement'
 import ProjectsList from './pages/Projects/ProjectsList'
 import CreateProjectWizard from './pages/Projects/CreateProjectWizard'
 import ProjectDetailsOverview from './pages/Projects/ProjectDetails/ProjectDetails'
+import KanbanPage from './pages/Projects/KanbanPage'
 import Settings from './pages/Settings/Settings'
 
 // ── Auth helpers ────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ export default function App() {
                   <Route path="projects" element={<ProjectsList />} />
                   <Route path="projects/create" element={<CreateProjectWizard />} />
                   <Route path="projects/:projectId" element={<ProjectDetailsOverview />} />
+                  <Route path="projects/:projectId/board" element={<KanbanPage />} />
                   <Route path="team" element={<TeamManagement />} />
                   <Route path="settings" element={<Settings />} />
                   <Route
