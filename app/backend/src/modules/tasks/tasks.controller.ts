@@ -9,7 +9,7 @@ import {
   AddTaskAssigneeDto,
   CreateTaskDependencyDto,
 } from '@orchest/shared';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)

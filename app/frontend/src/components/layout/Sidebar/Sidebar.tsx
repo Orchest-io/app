@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
+import { logoutUser } from '../../../api/users.api'
 
 type NavItem = {
   key: string
@@ -24,8 +25,8 @@ type SidebarProps = {
 export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const navigate = useNavigate()
 
-  const handleLogout = () => {
-    localStorage.removeItem('orchest_user_id')
+  const handleLogout = async () => {
+    await logoutUser()
     navigate('/', { replace: true })
   }
 

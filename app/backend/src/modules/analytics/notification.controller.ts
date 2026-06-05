@@ -1,7 +1,8 @@
 import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { CreateNotificationDto, UpdateNotificationDto } from '@orchest/shared';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.decorator';
 
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
@@ -14,10 +15,8 @@ export class NotificationController {
   }
 
   @Get()
-  findAll() {
-    // Mock user for now
-    const mockUserId = '00000000-0000-0000-0000-000000000000';
-    return this.notificationService.findAll(mockUserId);
+  findAll(@CurrentUser() user: JwtPayload) {
+    return this.notificationService.findAll(user.id);
   }
 
   @Get(':id')
