@@ -44,7 +44,6 @@ export class ProjectsController {
     return this.projectsService.remove(id, userId);
   }
 
-  // Members
   @Post(':id/members')
   addMember(@Request() req: any, @Param('id') id: string, @Body() dto: AddProjectMemberDto) {
     const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
@@ -75,7 +74,6 @@ export class ProjectsController {
     return this.projectsService.removeMember(id, memberUserId, userId);
   }
 
-  // Milestones
   @Post(':id/milestones')
   createMilestone(@Request() req: any, @Param('id') id: string, @Body() dto: CreateMilestoneDto) {
     const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
