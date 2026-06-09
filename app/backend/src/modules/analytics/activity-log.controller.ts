@@ -1,15 +1,17 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ActivityLogService } from './activity-log.service';
 import { CreateActivityLogDto } from '@orchest/shared';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.decorator';
 
 @Controller('activity-logs')
+@UseGuards(JwtAuthGuard)
 export class ActivityLogController {
   constructor(private readonly activityLogService: ActivityLogService) {}
 
   @Post()
-  create(@Body() createDto: CreateActivityLogDto) {
-    const mockUserId = '00000000-0000-0000-0000-000000000000';
-    return this.activityLogService.create(mockUserId, createDto);
+  create(@CurrentUser() user: JwtPayload, @Body() createDto: CreateActivityLogDto) {
+    return this.activityLogService.create(user.id, createDto);
   }
 
   @Get()
