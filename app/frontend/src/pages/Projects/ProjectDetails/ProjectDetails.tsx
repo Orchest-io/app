@@ -479,69 +479,21 @@ export default function ProjectDetailsOverview() {
 
       {/* TASKS TAB */}
       {activeTab === 'tasks' && (
-<<<<<<< Updated upstream
         <Card>
           <div className="mb-6">
             <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
             <p className="text-xs text-on-surface-variant mt-0.5">Tasks scope for active milestones.</p>
-=======
-        <div className="flex flex-col gap-6">
-          {/* Tasks Statistics Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            <Card className="text-center">
-              <p className="text-[10px] text-on-surface-variant mb-1 font-medium uppercase tracking-wider">
-                Total
-              </p>
-              <p className="text-[24px] font-bold font-heading text-on-surface">
-                {loadingTasks ? '-' : taskStats.total}
-              </p>
-            </Card>
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
+              <p className="text-xs text-on-surface-variant mt-0.5">Tasks scope for active milestones.</p>
+            </div>
+            <Button
+              icon="view_week"
+              onClick={() => navigate(`/projects/${projectId}/board`)}
+            >
+              Open Kanban Board
 
-            <Card className="text-center">
-              <p className="text-[10px] text-on-surface-variant mb-1 font-medium uppercase tracking-wider">
-                Backlog
-              </p>
-              <p className="text-[24px] font-bold font-heading text-on-surface">
-                {loadingTasks ? '-' : taskStats.backlog}
-              </p>
-            </Card>
-
-            <Card className="text-center">
-              <p className="text-[10px] text-on-surface-variant mb-1 font-medium uppercase tracking-wider">
-                To Do
-              </p>
-              <p className="text-[24px] font-bold font-heading text-on-surface">
-                {loadingTasks ? '-' : taskStats.todo}
-              </p>
-            </Card>
-
-            <Card className="text-center">
-              <p className="text-[10px] text-on-surface-variant mb-1 font-medium uppercase tracking-wider">
-                In Progress
-              </p>
-              <p className="text-[24px] font-bold font-heading text-electric-blue">
-                {loadingTasks ? '-' : taskStats.inProgress}
-              </p>
-            </Card>
-
-            <Card className="text-center">
-              <p className="text-[10px] text-on-surface-variant mb-1 font-medium uppercase tracking-wider">
-                Review
-              </p>
-              <p className="text-[24px] font-bold font-heading text-amber-400">
-                {loadingTasks ? '-' : taskStats.review}
-              </p>
-            </Card>
-
-            <Card className="text-center">
-              <p className="text-[10px] text-on-surface-variant mb-1 font-medium uppercase tracking-wider">
-                Done
-              </p>
-              <p className="text-[24px] font-bold font-heading text-emerald-400">
-                {loadingTasks ? '-' : taskStats.done}
-              </p>
-            </Card>
->>>>>>> Stashed changes
           </div>
 
           {/* Main Tasks Card */}

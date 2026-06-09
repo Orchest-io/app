@@ -1,7 +1,15 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { CreateTaskDto, UpdateTaskDto } from '@orchest/shared';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import {
+  CreateTaskDto,
+  UpdateTaskDto,
+  BulkUpdateTasksDto,
+  CreateSubtaskDto,
+  UpdateSubtaskDto,
+  AddTaskAssigneeDto,
+  CreateTaskDependencyDto,
+} from '@orchest/shared';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
@@ -18,6 +26,17 @@ export class TasksController {
     return this.tasksService.findAll();
   }
 
+  // Board operations must come before parametric tasks endpoints to avoid route matching issues
+  @Get('board/:projectId')
+  findByProject(@Param('projectId') projectId: string) {
+    return this.tasksService.findByProject(projectId);
+  }
+
+  @Patch('board/bulk-update')
+  bulkUpdateStatus(@Body() bulkUpdateTasksDto: BulkUpdateTasksDto) {
+    return this.tasksService.bulkUpdateStatus(bulkUpdateTasksDto);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.tasksService.findOne(id);
@@ -32,8 +51,6 @@ export class TasksController {
   remove(@Param('id') id: string) {
     return this.tasksService.remove(id);
   }
-<<<<<<< Updated upstream
-=======
 
   @Post(':taskId/subtasks')
   createSubtask(@Param('taskId') taskId: string, @Body() createSubtaskDto: CreateSubtaskDto) {
@@ -69,5 +86,5 @@ export class TasksController {
   removeDependency(@Param('dependencyId') dependencyId: string) {
     return this.tasksService.removeDependency(dependencyId);
   }
->>>>>>> Stashed changes
-}
+
+

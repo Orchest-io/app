@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { logoutUser } from '../../../api/users.api'
 
 type HeaderProps = {
   collapsed?: boolean
@@ -12,8 +13,8 @@ export default function Header({ collapsed = false }: HeaderProps) {
 
   const userId = localStorage.getItem('orchest_user_id')
 
-  const handleLogout = () => {
-    localStorage.removeItem('orchest_user_id')
+  const handleLogout = async () => {
+    await logoutUser()
     navigate('/', { replace: true })
   }
 

@@ -1,4 +1,3 @@
-import type { CreateUserDto } from '@orchest/shared'
 import apiClient from './client'
 
 export interface AuthResponse {
@@ -49,4 +48,18 @@ export const googleAuthUser = async (data: {
   localStorage.setItem('orchest_refresh_token', response.data.refreshToken)
   localStorage.setItem('orchest_user_id', response.data.user.id)
   return response.data
+}
+
+export const logoutUser = async (): Promise<void> => {
+  const refreshToken = localStorage.getItem('orchest_refresh_token')
+  if (refreshToken) {
+    try {
+      await apiClient.post('/auth/logout', { refreshToken })
+    } catch (err) {
+      console.error('Logout request failed:', err)
+    }
+  }
+  localStorage.removeItem('orchest_token')
+  localStorage.removeItem('orchest_refresh_token')
+  localStorage.removeItem('orchest_user_id')
 }

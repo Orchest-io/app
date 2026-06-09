@@ -1,5 +1,6 @@
-import { IsString, IsOptional, IsEnum, IsInt, IsUUID, IsDateString, IsBoolean } from 'class-validator';
-import { TaskType, TaskStatus, TaskPriority } from '../index';
+import { IsString, IsOptional, IsEnum, IsInt, IsUUID, IsDateString, IsBoolean, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { TaskType, TaskStatus, TaskPriority, DependencyType } from '../index';
 
 export class CreateTaskDto {
   @IsUUID()
@@ -93,3 +94,55 @@ export class UpdateTaskDto {
   @IsOptional()
   milestoneId?: string;
 }
+
+export class BoardTaskUpdateDto {
+  @IsUUID()
+  taskId: string;
+
+  @IsEnum(TaskStatus)
+  status: TaskStatus;
+
+  @IsInt()
+  @IsOptional()
+  sortOrder?: number;
+}
+
+export class BulkUpdateTasksDto {
+  @ValidateNested({ each: true })
+  @Type(() => BoardTaskUpdateDto)
+  tasks: BoardTaskUpdateDto[];
+}
+
+export class CreateSubtaskDto {
+  @IsString()
+  title: string;
+}
+
+export class UpdateSubtaskDto {
+  @IsString()
+  @IsOptional()
+  title?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isCompleted?: boolean;
+}
+
+export class AddTaskAssigneeDto {
+  @IsUUID()
+  userId: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isPrimary?: boolean;
+}
+
+export class CreateTaskDependencyDto {
+  @IsUUID()
+  dependsOnTaskId: string;
+
+  @IsEnum(DependencyType)
+  @IsOptional()
+  type?: DependencyType;
+}
+
