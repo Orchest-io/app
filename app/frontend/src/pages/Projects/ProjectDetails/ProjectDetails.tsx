@@ -480,99 +480,80 @@ export default function ProjectDetailsOverview() {
       {/* TASKS TAB */}
       {activeTab === 'tasks' && (
         <Card>
-          <div className="mb-6">
-            <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
-            <p className="text-xs text-on-surface-variant mt-0.5">Tasks scope for active milestones.</p>
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
-              <p className="text-xs text-on-surface-variant mt-0.5">Tasks scope for active milestones.</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">Manage your tasks on the Kanban board.</p>
             </div>
             <Button
               icon="view_week"
               onClick={() => navigate(`/projects/${projectId}/board`)}
             >
               Open Kanban Board
-
+            </Button>
           </div>
 
-          {/* Main Tasks Card */}
-          <Card>
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
-                <p className="text-xs text-on-surface-variant mt-0.5">Manage your tasks on the Kanban board.</p>
-              </div>
+          {loadingTasks ? (
+            <div className="text-center py-12">
+              <div className="w-12 h-12 border-4 border-electric-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-sm text-on-surface-variant">Loading tasks...</p>
+            </div>
+          ) : taskStats.total === 0 ? (
+            <div className="text-center py-12">
+              <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-3">task_alt</span>
+              <p className="text-sm text-on-surface-variant font-medium">No tasks found for this project</p>
+              <p className="text-xs text-on-surface-variant/60 mt-1 mb-4">Create tasks on the Kanban board to get started.</p>
               <Button
+                size="sm"
                 icon="view_week"
                 onClick={() => navigate(`/projects/${projectId}/board`)}
               >
                 Open Kanban Board
               </Button>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Task Progress Card */}
+              <Card variant="solid">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-electric-blue/10 border border-electric-blue/30 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[20px] text-electric-blue">trending_up</span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-on-surface-variant">Progress</p>
+                    <p className="text-sm font-semibold text-on-surface">
+                      {taskStats.done} of {taskStats.total} completed
+                    </p>
+                  </div>
+                </div>
+                <ProgressBar value={(taskStats.done / taskStats.total) * 100} glow />
+              </Card>
 
-            {loadingTasks ? (
-              <div className="text-center py-12">
-                <div className="w-12 h-12 border-4 border-electric-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-sm text-on-surface-variant">Loading tasks...</p>
-              </div>
-            ) : taskStats.total === 0 ? (
-              <div className="text-center py-12">
-                <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-3">task_alt</span>
-                <p className="text-sm text-on-surface-variant font-medium">No tasks found for this project</p>
-                <p className="text-xs text-on-surface-variant/60 mt-1 mb-4">Create tasks on the Kanban board to get started.</p>
-                <Button
-                  size="sm"
-                  icon="view_week"
-                  onClick={() => navigate(`/projects/${projectId}/board`)}
-                >
-                  Open Kanban Board
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Task Progress Card */}
-                <Card variant="solid">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-electric-blue/10 border border-electric-blue/30 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[20px] text-electric-blue">trending_up</span>
-                    </div>
-                    <div>
-                      <p className="text-xs text-on-surface-variant">Progress</p>
-                      <p className="text-sm font-semibold text-on-surface">
-                        {taskStats.done} of {taskStats.total} completed
-                      </p>
-                    </div>
+              {/* Active Tasks Card */}
+              <Card variant="solid">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-amber-400/10 border border-amber-400/30 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[20px] text-amber-400">work</span>
                   </div>
-                  <ProgressBar value={(taskStats.done / taskStats.total) * 100} glow />
-                </Card>
-
-                {/* Active Tasks Card */}
-                <Card variant="solid">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-amber-400/10 border border-amber-400/30 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[20px] text-amber-400">work</span>
-                    </div>
-                    <div>
-                      <p className="text-xs text-on-surface-variant">Active Tasks</p>
-                      <p className="text-sm font-semibold text-on-surface">
-                        {taskStats.inProgress + taskStats.review} in progress
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-xs text-on-surface-variant">Active Tasks</p>
+                    <p className="text-sm font-semibold text-on-surface">
+                      {taskStats.inProgress + taskStats.review} in progress
+                    </p>
                   </div>
-                  <div className="flex gap-2 text-xs">
-                    <span className="px-2 py-1 rounded bg-electric-blue/10 text-electric-blue border border-electric-blue/20">
-                      {taskStats.inProgress} In Progress
-                    </span>
-                    <span className="px-2 py-1 rounded bg-amber-400/10 text-amber-400 border border-amber-400/20">
-                      {taskStats.review} Review
-                    </span>
-                  </div>
-                </Card>
-              </div>
-            )}
-          </Card>
-        </div>
+                </div>
+                <div className="flex gap-2 text-xs">
+                  <span className="px-2 py-1 rounded bg-electric-blue/10 text-electric-blue border border-electric-blue/20">
+                    {taskStats.inProgress} In Progress
+                  </span>
+                  <span className="px-2 py-1 rounded bg-amber-400/10 text-amber-400 border border-amber-400/20">
+                    {taskStats.review} Review
+                  </span>
+                </div>
+              </Card>
+            </div>
+          )}
+        </Card>
       )}
 
       {/* MILESTONES TAB */}
