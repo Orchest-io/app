@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import apiClient from '../../../api/client'
 import type { Task, TaskPriority, Subtask } from '../types/kanban.types'
 
 interface TaskDetailsProps {
   task: Task | null
   onClose: () => void
   onUpdateTask: (updatedTask: Task) => void
+  onDeleteTask: (taskId: string) => void
+  projectMembers?: any[]
 }
 
-export default function TaskDetails({ task, onClose, onUpdateTask }: TaskDetailsProps) {
+export default function TaskDetails({ task, onClose, onUpdateTask, onDeleteTask, projectMembers = [] }: TaskDetailsProps) {
   const [isEditing, setIsEditing] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isAddingAssignee, setIsAddingAssignee] = useState(false)
+  const [selectedMemberId, setSelectedMemberId] = useState('')
   const [editedTitle, setEditedTitle] = useState('')
   const [editedDescription, setEditedDescription] = useState('')
   const [editedPriority, setEditedPriority] = useState<TaskPriority>('medium')
@@ -22,10 +29,16 @@ export default function TaskDetails({ task, onClose, onUpdateTask }: TaskDetails
       setEditedPriority(task.priority)
       setEditedDueDate(task.dueDate || '')
       setIsEditing(false)
+      setIsDeleting(false)
     }
   }, [task])
 
   if (!task) return null
+
+  const handleDelete = () => {
+    onDeleteTask(task.id)
+    onClose()
+  }
 
   const handleToggleSubtask = (subtaskId: string) => {
     const updatedSubtasks = task.subtasks.map((sub) =>
@@ -73,6 +86,62 @@ export default function TaskDetails({ task, onClose, onUpdateTask }: TaskDetails
     setIsEditing(false)
   }
 
+  const handleAddAssignee = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedMemberId || !task) return
+
+    try {
+      await apiClient.post(`/tasks/${task.id}/assignees`, {
+        userId: selectedMemberId,
+      })
+
+      const member = projectMembers.find(m => m.userId === selectedMemberId)
+      if (member) {
+        const updatedTask = {
+          ...task,
+          assignees: [
+            ...task.assignees,
+            {
+              id: member.userId,
+              name: member.user?.name || 'Unknown',
+              avatarUrl: member.user?.avatarUrl || '',
+            },
+          ],
+        }
+        onUpdateTask(updatedTask)
+      }
+
+      setIsAddingAssignee(false)
+      setSelectedMemberId('')
+      toast.success('Assignee added successfully')
+    } catch (error: any) {
+      console.error('Failed to add assignee:', error)
+      if (error?.response?.status === 409) {
+        toast.error('User is already assigned to this task')
+      } else {
+        toast.error('Failed to add assignee')
+      }
+    }
+  }
+
+  const handleRemoveAssignee = async (userId: string) => {
+    if (!task) return
+
+    try {
+      await apiClient.delete(`/tasks/${task.id}/assignees/${userId}`)
+
+      const updatedTask = {
+        ...task,
+        assignees: task.assignees.filter(a => a.id !== userId),
+      }
+      onUpdateTask(updatedTask)
+      toast.success('Assignee removed')
+    } catch (error) {
+      console.error('Failed to remove assignee:', error)
+      toast.error('Failed to remove assignee')
+    }
+  }
+
   const getPriorityColor = (priority: TaskPriority) => {
     switch (priority) {
       case 'high':
@@ -101,12 +170,21 @@ export default function TaskDetails({ task, onClose, onUpdateTask }: TaskDetails
           <div className="flex items-center gap-2">
             <span className="text-xs text-on-surface-variant font-mono">TASK DETAILS</span>
           </div>
-          <button
-            onClick={onClose}
-            className="flex items-center justify-center p-1.5 hover:bg-white/10 rounded-full text-on-surface-variant hover:text-on-surface transition-all"
-          >
-            <span className="material-symbols-outlined text-[20px]">close</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsDeleting(true)}
+              className="flex items-center justify-center p-1.5 hover:bg-red-500/10 rounded-full text-red-400 hover:text-red-300 transition-all"
+              title="Delete Task"
+            >
+              <span className="material-symbols-outlined text-[20px]">delete</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="flex items-center justify-center p-1.5 hover:bg-white/10 rounded-full text-on-surface-variant hover:text-on-surface transition-all"
+            >
+              <span className="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
         </div>
 
         {/* Content Area */}
@@ -222,9 +300,19 @@ export default function TaskDetails({ task, onClose, onUpdateTask }: TaskDetails
 
               {/* Assignees */}
               <div>
-                <h4 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3">
-                  Assignees
-                </h4>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+                    Assignees
+                  </h4>
+                  <button
+                    onClick={() => setIsAddingAssignee(true)}
+                    className="flex items-center gap-1 px-2 py-1 bg-white/5 border border-white/10 text-xs font-semibold rounded text-on-surface-variant hover:text-on-surface hover:bg-white/10 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">add</span>
+                    Add
+                  </button>
+                </div>
+
                 {task.assignees.length === 0 ? (
                   <p className="text-xs text-on-surface-variant/60 italic">Unassigned</p>
                 ) : (
@@ -232,17 +320,73 @@ export default function TaskDetails({ task, onClose, onUpdateTask }: TaskDetails
                     {task.assignees.map((assignee) => (
                       <div
                         key={assignee.id}
-                        className="flex items-center gap-3 bg-surface-container-low p-2 rounded-xl border border-white/5"
+                        className="flex items-center justify-between gap-3 bg-surface-container-low p-2 rounded-xl border border-white/5 group/assignee"
                       >
-                        <img
-                          src={assignee.avatarUrl}
-                          alt={assignee.name}
-                          className="w-8 h-8 rounded-full border border-white/10 object-cover"
-                        />
-                        <span className="text-sm font-medium text-on-surface">{assignee.name}</span>
+                        <div className="flex items-center gap-3">
+                          {assignee.avatarUrl ? (
+                            <img
+                              src={assignee.avatarUrl}
+                              alt={assignee.name}
+                              className="w-8 h-8 rounded-full border border-white/10 object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full border border-white/10 bg-electric-blue/10 flex items-center justify-center text-electric-blue text-xs font-bold">
+                              {assignee.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-sm font-medium text-on-surface">{assignee.name}</span>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveAssignee(assignee.id)}
+                          className="text-on-surface-variant hover:text-error opacity-0 group-hover/assignee:opacity-100 transition-opacity p-1 rounded hover:bg-white/5"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">close</span>
+                        </button>
                       </div>
                     ))}
                   </div>
+                )}
+
+                {/* Add Assignee Form */}
+                {isAddingAssignee && (
+                  <form onSubmit={handleAddAssignee} className="mt-3 p-3 bg-surface-container-low rounded-xl border border-white/5">
+                    <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
+                      Select Team Member
+                    </label>
+                    <select
+                      value={selectedMemberId}
+                      onChange={(e) => setSelectedMemberId(e.target.value)}
+                      className="w-full bg-surface-container-lowest text-on-surface border border-white/10 rounded-lg p-2 text-sm focus:outline-none focus:border-electric-blue/50 mb-3"
+                      required
+                    >
+                      <option value="">Choose a member...</option>
+                      {projectMembers
+                        .filter(m => !task.assignees.some(a => a.id === m.userId))
+                        .map((member) => (
+                          <option key={member.userId} value={member.userId}>
+                            {member.user?.name || 'Unknown'} ({member.role})
+                          </option>
+                        ))}
+                    </select>
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="flex-1 bg-electric-blue text-white py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 active:scale-95 transition-all"
+                      >
+                        Add Assignee
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsAddingAssignee(false)
+                          setSelectedMemberId('')
+                        }}
+                        className="flex-1 bg-white/5 border border-white/10 text-on-surface py-1.5 rounded-lg text-xs font-semibold hover:bg-white/10 transition-all"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
                 )}
               </div>
 
@@ -313,6 +457,39 @@ export default function TaskDetails({ task, onClose, onUpdateTask }: TaskDetails
             </div>
           )}
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {isDeleting && (
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-20 flex items-center justify-center p-6">
+            <div className="bg-surface border border-white/10 rounded-xl p-6 max-w-sm w-full shadow-2xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-red-400">warning</span>
+                </div>
+                <h3 className="font-heading text-lg font-semibold text-on-surface">
+                  Delete Task?
+                </h3>
+              </div>
+              <p className="text-sm text-on-surface-variant mb-6">
+                Are you sure you want to delete "<strong>{task.title}</strong>"? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsDeleting(false)}
+                  className="flex-1 bg-white/5 border border-white/10 text-on-surface py-2 rounded-lg text-sm font-semibold hover:bg-white/10 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 bg-red-500 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition-all"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

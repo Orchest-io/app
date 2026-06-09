@@ -43,8 +43,6 @@ export class ProjectsService {
 		private readonly usersService: UsersService,
 	) {}
 
-	// ─── Helpers ───────────────────────────────────────────────────────
-
 	private async getMemberRole(
 		projectId: string,
 		userId: string,
@@ -73,8 +71,6 @@ export class ProjectsService {
 			);
 		}
 	}
-
-	// ─── CRUD ──────────────────────────────────────────────────────────
 
 	async create(
 		userId: string,
@@ -179,8 +175,6 @@ export class ProjectsService {
 
 		await this.projectsRepository.delete(id);
 	}
-
-	// ─── Members ───────────────────────────────────────────────────────
 
 	async addMemberByEmail(
 		projectId: string,
@@ -305,8 +299,6 @@ export class ProjectsService {
 		});
 	}
 
-	// ─── Milestones ────────────────────────────────────────────────────
-
 	async createMilestone(
 		projectId: string,
 		dto: CreateMilestoneDto,
@@ -380,8 +372,6 @@ export class ProjectsService {
 
 		await this.milestonesRepository.delete(milestoneId);
 	}
-
-	// ─── Progress Auto-Calculation ────────────────────────────────────
 
 	async recalculateProjectProgress(projectId: string): Promise<void> {
 		const totalTasks = await this.tasksRepository.count({

@@ -52,8 +52,6 @@ export class TasksController {
     return this.tasksService.remove(id);
   }
 
-  // --- Subtask Routes ---
-
   @Post(':taskId/subtasks')
   createSubtask(@Param('taskId') taskId: string, @Body() createSubtaskDto: CreateSubtaskDto) {
     return this.tasksService.createSubtask(taskId, createSubtaskDto);
@@ -69,8 +67,6 @@ export class TasksController {
     return this.tasksService.deleteSubtask(subtaskId);
   }
 
-  // --- Assignee Routes ---
-
   @Post(':taskId/assignees')
   addAssignee(@Param('taskId') taskId: string, @Body() addTaskAssigneeDto: AddTaskAssigneeDto) {
     return this.tasksService.addAssignee(taskId, addTaskAssigneeDto);
@@ -81,8 +77,6 @@ export class TasksController {
     return this.tasksService.removeAssignee(taskId, userId);
   }
 
-  // --- Dependency Routes ---
-
   @Post(':taskId/dependencies')
   addDependency(@Param('taskId') taskId: string, @Body() createTaskDependencyDto: CreateTaskDependencyDto) {
     return this.tasksService.addDependency(taskId, createTaskDependencyDto);
@@ -92,5 +86,5 @@ export class TasksController {
   removeDependency(@Param('dependencyId') dependencyId: string) {
     return this.tasksService.removeDependency(dependencyId);
   }
-}
+
 

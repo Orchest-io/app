@@ -11,8 +11,6 @@ type NavItem = {
 const navItems: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
   { key: 'projects', label: 'Projects', icon: 'tactic', path: '/projects' },
-  { key: 'tasks', label: 'Tasks', icon: 'task_alt', path: '/tasks' },
-  { key: 'team', label: 'Team', icon: 'group', path: '/team' },
   { key: 'analytics', label: 'Analytics', icon: 'insights', path: '/analytics' },
   { key: 'settings', label: 'Settings', icon: 'settings', path: '/settings' },
 ]

@@ -40,7 +40,6 @@ export class ProjectsController {
     return this.projectsService.remove(id, user.id);
   }
 
-  // Members
   @Post(':id/members')
   addMember(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: AddProjectMemberDto) {
     return this.projectsService.addMember(id, dto, user.id);
@@ -68,7 +67,6 @@ export class ProjectsController {
     return this.projectsService.removeMember(id, memberUserId, user.id);
   }
 
-  // Milestones
   @Post(':id/milestones')
   createMilestone(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: CreateMilestoneDto) {
     return this.projectsService.createMilestone(id, dto, user.id);

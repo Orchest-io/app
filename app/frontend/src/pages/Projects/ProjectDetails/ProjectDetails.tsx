@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Card, ProgressBar, Tabs, Button, Input, Select, TextArea } from '../../../components/ui'
@@ -12,6 +12,7 @@ import {
 } from '../../../hooks/useProjectMutations'
 import TeamManagementTab from './TeamManagementTab'
 import type { UpdateMilestoneDto } from '@orchest/shared'
+import client from '../../../api/client'
 
 export default function ProjectDetailsOverview() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -27,6 +28,47 @@ export default function ProjectDetailsOverview() {
     ) ?? false
 
   const [activeTab, setActiveTab] = useState('overview')
+
+  // Task statistics
+  const [taskStats, setTaskStats] = useState({
+    total: 0,
+    backlog: 0,
+    todo: 0,
+    inProgress: 0,
+    review: 0,
+    done: 0,
+  })
+  const [loadingTasks, setLoadingTasks] = useState(false)
+
+  // Fetch tasks immediately when component loads
+  useEffect(() => {
+    if (projectId) {
+      fetchTaskStats()
+    }
+  }, [projectId])
+
+  const fetchTaskStats = async () => {
+    if (!projectId) return
+    setLoadingTasks(true)
+    try {
+      const response = await client.get(`/tasks/board/${projectId}`)
+      const tasks = response.data || []
+      
+      const stats = {
+        total: tasks.length,
+        backlog: tasks.filter((t: any) => t.status === 'backlog').length,
+        todo: tasks.filter((t: any) => t.status === 'todo').length,
+        inProgress: tasks.filter((t: any) => t.status === 'in-progress').length,
+        review: tasks.filter((t: any) => t.status === 'review').length,
+        done: tasks.filter((t: any) => t.status === 'done').length,
+      }
+      setTaskStats(stats)
+    } catch (err) {
+      console.error('Failed to fetch task stats:', err)
+    } finally {
+      setLoadingTasks(false)
+    }
+  }
 
   // Mutations
   const updateProjectMutation = useUpdateProject()
@@ -303,7 +345,7 @@ export default function ProjectDetailsOverview() {
         tabs={[
           { key: 'overview', label: 'Overview', icon: 'dashboard' },
           { key: 'team', label: `Team (${project.members?.length || 0})`, icon: 'group' },
-          { key: 'tasks', label: `Tasks (${(project as any).tasks?.length || 0})`, icon: 'task_alt' },
+          { key: 'tasks', label: `Tasks (${taskStats.total})`, icon: 'task_alt' },
           { key: 'milestones', label: `Milestones (${project.milestones?.length || 0})`, icon: 'flag' },
           { key: 'activity', label: 'Activity Logs', icon: 'history' },
         ]}
@@ -438,6 +480,9 @@ export default function ProjectDetailsOverview() {
       {/* TASKS TAB */}
       {activeTab === 'tasks' && (
         <Card>
+          <div className="mb-6">
+            <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
+            <p className="text-xs text-on-surface-variant mt-0.5">Tasks scope for active milestones.</p>
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
@@ -448,42 +493,86 @@ export default function ProjectDetailsOverview() {
               onClick={() => navigate(`/projects/${projectId}/board`)}
             >
               Open Kanban Board
-            </Button>
+
           </div>
 
-          {!(project as any).tasks || (project as any).tasks.length === 0 ? (
-            <div className="text-center py-12">
-              <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-3">task_alt</span>
-              <p className="text-sm text-on-surface-variant font-medium">No tasks found for this project</p>
-              <p className="text-xs text-on-surface-variant/60 mt-1 mb-4">Tasks will appear here once created.</p>
+          {/* Main Tasks Card */}
+          <Card>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
+                <p className="text-xs text-on-surface-variant mt-0.5">Manage your tasks on the Kanban board.</p>
+              </div>
+              <Button
+                icon="view_week"
+                onClick={() => navigate(`/projects/${projectId}/board`)}
+              >
+                Open Kanban Board
+              </Button>
             </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {(project as any).tasks.map((task: any) => (
-                <div
-                  key={task.id}
-                  className="p-4 rounded-lg bg-surface-container-low border border-border-low flex flex-col md:flex-row justify-between md:items-center gap-3 hover:border-outline/35 transition-colors"
+
+            {loadingTasks ? (
+              <div className="text-center py-12">
+                <div className="w-12 h-12 border-4 border-electric-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-sm text-on-surface-variant">Loading tasks...</p>
+              </div>
+            ) : taskStats.total === 0 ? (
+              <div className="text-center py-12">
+                <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-3">task_alt</span>
+                <p className="text-sm text-on-surface-variant font-medium">No tasks found for this project</p>
+                <p className="text-xs text-on-surface-variant/60 mt-1 mb-4">Create tasks on the Kanban board to get started.</p>
+                <Button
+                  size="sm"
+                  icon="view_week"
+                  onClick={() => navigate(`/projects/${projectId}/board`)}
                 >
-                  <div>
-                    <h4 className="font-heading text-sm font-semibold text-on-surface mb-1">{task.title}</h4>
-                    <p className="text-xs text-on-surface-variant line-clamp-2">{task.description || 'No description.'}</p>
+                  Open Kanban Board
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Task Progress Card */}
+                <Card variant="solid">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-lg bg-electric-blue/10 border border-electric-blue/30 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[20px] text-electric-blue">trending_up</span>
+                    </div>
+                    <div>
+                      <p className="text-xs text-on-surface-variant">Progress</p>
+                      <p className="text-sm font-semibold text-on-surface">
+                        {taskStats.done} of {taskStats.total} completed
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${getPriorityColor(task.priority)}`}>
-                      {task.priority}
+                  <ProgressBar value={(taskStats.done / taskStats.total) * 100} glow />
+                </Card>
+
+                {/* Active Tasks Card */}
+                <Card variant="solid">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-lg bg-amber-400/10 border border-amber-400/30 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[20px] text-amber-400">work</span>
+                    </div>
+                    <div>
+                      <p className="text-xs text-on-surface-variant">Active Tasks</p>
+                      <p className="text-sm font-semibold text-on-surface">
+                        {taskStats.inProgress + taskStats.review} in progress
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 text-xs">
+                    <span className="px-2 py-1 rounded bg-electric-blue/10 text-electric-blue border border-electric-blue/20">
+                      {taskStats.inProgress} In Progress
                     </span>
-                    <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${getStatusColor(task.status)}`}>
-                      {task.status}
-                    </span>
-                    <span className="text-[10px] text-on-surface-variant bg-surface-glass border border-border-low px-2 py-0.5 rounded uppercase font-bold">
-                      {task.type}
+                    <span className="px-2 py-1 rounded bg-amber-400/10 text-amber-400 border border-amber-400/20">
+                      {taskStats.review} Review
                     </span>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
+                </Card>
+              </div>
+            )}
+          </Card>
+        </div>
       )}
 
       {/* MILESTONES TAB */}
