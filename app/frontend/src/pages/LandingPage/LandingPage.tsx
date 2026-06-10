@@ -418,7 +418,7 @@ export default function LandingPage() {
                       { title: 'Dynamic Resource Mapping', desc: 'Balance workloads instantly with drag-and-drop AI rebalancing and real-time skill alignment.' },
                       { title: 'Universal Connector', desc: 'Sync with Jira, GitHub, Notion, and Slack in a single unified enterprise workspace thread.' },
                       { title: 'Enterprise-Grade Security', desc: 'SOC2 Type II compliant with dedicated private cloud instances and end-to-end data encryption.' },
-                    ].map(({ title, desc }, i) => (
+                    ].map(({ title, desc }) => (
                       <li key={title} className="flex items-start gap-4 group">
                         <span className="material-symbols-outlined text-electric-blue mt-0.5 text-xl transition-transform group-hover:scale-110">check_circle</span>
                         <div>

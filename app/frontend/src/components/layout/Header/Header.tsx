@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logoutUser } from '../../../api/users.api'
+import NotificationPanel from '../../ui/NotificationPanel/NotificationPanel'
 
 type HeaderProps = {
   collapsed?: boolean
@@ -66,6 +67,9 @@ export default function Header({ collapsed = false }: HeaderProps) {
         <button className="text-on-surface-variant p-1.5 rounded-sm hover:text-primary transition-colors duration-150 cursor-pointer">
           <span className="material-symbols-outlined">dark_mode</span>
         </button>
+
+        {/* Notification Bell + Panel */}
+        <NotificationPanel />
 
         {/* Profile dropdown */}
         <div className="relative" ref={menuRef}>

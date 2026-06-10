@@ -1126,7 +1126,6 @@ export default function CreateProjectWizard() {
                 value={memberForm.skills}
                 onChange={(e) => setMemberForm({ ...memberForm, skills: e.target.value })}
                 rows={3}
-                helperText="Comma-separated list of skills"
               />
 
               <Select
