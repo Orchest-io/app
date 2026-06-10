@@ -112,7 +112,7 @@ export default function ProjectsList() {
                 </div>
 
                 <p className="text-sm text-on-surface-variant mb-6 line-clamp-3 leading-relaxed">
-                  {project.description || 'No description provided.'}
+                  No description provided.
                 </p>
               </div>
 

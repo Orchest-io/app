@@ -251,7 +251,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
     googleMutation.mutate(
       { email, fullName: name, avatarUrl: picture, authProviderId: sub },
       {
-        onSuccess: (data) => {
+        onSuccess: () => {
           toast.success('Signed in with Google.')
           navigate('/projects')
         },
@@ -339,7 +339,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
           password: form.password,
         },
         {
-          onSuccess: (data) => {
+          onSuccess: () => {
             toast.success('Account created successfully.')
             navigate('/projects')
           },
@@ -352,7 +352,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
     loginMutation.mutate(
       { email: form.email.trim().toLowerCase(), password: form.password },
       {
-        onSuccess: (data) => {
+        onSuccess: () => {
           toast.success('Signed in successfully.')
           navigate('/projects')
         },

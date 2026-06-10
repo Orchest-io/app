@@ -10,6 +10,7 @@ import {
   CreateTaskDependencyDto,
 } from '@orchest/shared';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.decorator';
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
@@ -43,8 +44,8 @@ export class TasksController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
-    return this.tasksService.update(id, updateTaskDto);
+  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @CurrentUser() user: JwtPayload) {
+    return this.tasksService.update(id, updateTaskDto, user?.id);
   }
 
   @Delete(':id')
@@ -68,8 +69,8 @@ export class TasksController {
   }
 
   @Post(':taskId/assignees')
-  addAssignee(@Param('taskId') taskId: string, @Body() addTaskAssigneeDto: AddTaskAssigneeDto) {
-    return this.tasksService.addAssignee(taskId, addTaskAssigneeDto);
+  addAssignee(@Param('taskId') taskId: string, @Body() addTaskAssigneeDto: AddTaskAssigneeDto, @CurrentUser() user: JwtPayload) {
+    return this.tasksService.addAssignee(taskId, addTaskAssigneeDto, user?.id);
   }
 
   @Delete(':taskId/assignees/:userId')
