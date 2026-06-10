@@ -26,6 +26,13 @@ import {
 import { ActivityLogService } from "../analytics/activity-log.service";
 import { NotificationService } from "../analytics/notification.service";
 import { UsersService } from "../users/users.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import {
+	MILESTONE_CREATED_EVENT,
+	MilestoneCreatedEvent,
+	MEMBER_ADDED_EVENT,
+	MemberAddedEvent,
+} from "../analytics/events/notification-events";
 
 @Injectable()
 export class ProjectsService {
@@ -41,6 +48,7 @@ export class ProjectsService {
 		private readonly activityLogService: ActivityLogService,
 		private readonly notificationService: NotificationService,
 		private readonly usersService: UsersService,
+		private readonly eventEmitter: EventEmitter2,
 	) {}
 
 	private async getMemberRole(
@@ -147,12 +155,12 @@ export class ProjectsService {
 			});
 			for (const member of members) {
 				await this.notificationService.create({
-					user_id: member.userId,
+					userId: member.userId,
 					type: NotificationType.UPDATE,
 					title: `Project status updated`,
 					message: `Status changed from "${oldStatus}" to "${updateProjectDto.status}"`,
-					reference_type: ReferenceType.PROJECT,
-					reference_id: id,
+					referenceType: ReferenceType.PROJECT,
+					referenceId: id,
 				});
 			}
 		}
@@ -207,7 +215,7 @@ export class ProjectsService {
 			role,
 			jobTitle: jobTitle || null,
 			skills: skills || null,
-			status: status || 'available',
+			status: status || "available",
 		});
 		const savedMember = await this.projectMembersRepository.save(member);
 
@@ -222,15 +230,21 @@ export class ProjectsService {
 
 		// Notify the added user (skip if fails to avoid blocking)
 		try {
-			await this.notificationService.create({
-				user_id: user.id,
-				type: NotificationType.UPDATE,
-				title: "You have been added to a project",
-				reference_type: ReferenceType.PROJECT,
-				reference_id: projectId,
+			const project = await this.projectsRepository.findOne({
+				where: { id: projectId },
 			});
+			const actor = await this.usersService
+				.findOne(requesterId)
+				.catch((): null => null);
+			this.eventEmitter.emit(MEMBER_ADDED_EVENT, {
+				projectId,
+				projectName: project?.name ?? "",
+				newMemberUserId: user.id,
+				actorUserId: requesterId,
+				actorDisplayName: actor?.fullName ?? "A team member",
+			} satisfies MemberAddedEvent);
 		} catch (error) {
-			console.error('Failed to create notification:', error);
+			console.error("Failed to emit member added event:", error);
 		}
 
 		return savedMember;
@@ -266,14 +280,24 @@ export class ProjectsService {
 			description: `User ${dto.userId} added to project`,
 		});
 
-		// Notify the added user
-		await this.notificationService.create({
-			user_id: dto.userId,
-			type: NotificationType.UPDATE,
-			title: "You have been added to a project",
-			reference_type: ReferenceType.PROJECT,
-			reference_id: projectId,
-		});
+		// Emit MEMBER_ADDED_EVENT (non-fatal)
+		try {
+			const project = await this.projectsRepository.findOne({
+				where: { id: projectId },
+			});
+			const actor = await this.usersService
+				.findOne(requesterId)
+				.catch((): null => null);
+			this.eventEmitter.emit(MEMBER_ADDED_EVENT, {
+				projectId,
+				projectName: project?.name ?? "",
+				newMemberUserId: dto.userId,
+				actorUserId: requesterId,
+				actorDisplayName: actor?.fullName ?? "A team member",
+			} satisfies MemberAddedEvent);
+		} catch (err) {
+			// Non-fatal
+		}
 
 		return savedMember;
 	}
@@ -310,7 +334,33 @@ export class ProjectsService {
 			projectId,
 			...dto,
 		});
-		return this.milestonesRepository.save(milestone);
+		const saved = await this.milestonesRepository.save(milestone);
+
+		// Emit MILESTONE_CREATED_EVENT (non-fatal)
+		try {
+			const project = await this.projectsRepository.findOne({
+				where: { id: projectId },
+			});
+			const allMembers = await this.projectMembersRepository.find({
+				where: { projectId },
+			});
+			const recipientUserIds = allMembers
+				.filter((m) => m.userId !== project?.createdBy)
+				.map((m) => m.userId);
+			if (recipientUserIds.length > 0) {
+				this.eventEmitter.emit(MILESTONE_CREATED_EVENT, {
+					milestoneId: saved.id,
+					milestoneTitle: saved.title,
+					projectId,
+					projectName: project?.name ?? "",
+					recipientUserIds,
+				} satisfies MilestoneCreatedEvent);
+			}
+		} catch (err) {
+			// Non-fatal: notification failure should not block the response
+		}
+
+		return saved;
 	}
 
 	async updateMilestone(
@@ -346,11 +396,11 @@ export class ProjectsService {
 			});
 			for (const member of members) {
 				await this.notificationService.create({
-					user_id: member.userId,
+					userId: member.userId,
 					type: NotificationType.UPDATE,
 					title: `Milestone completed: ${milestone.title}`,
-					reference_type: ReferenceType.MILESTONE,
-					reference_id: milestoneId,
+					referenceType: ReferenceType.MILESTONE,
+					referenceId: milestoneId,
 				});
 			}
 		}
@@ -429,11 +479,11 @@ export class ProjectsService {
 			});
 			for (const member of members) {
 				await this.notificationService.create({
-					user_id: member.userId,
+					userId: member.userId,
 					type: NotificationType.UPDATE,
 					title: `Milestone completed: ${milestone.title}`,
-					reference_type: ReferenceType.MILESTONE,
-					reference_id: milestoneId,
+					referenceType: ReferenceType.MILESTONE,
+					referenceId: milestoneId,
 				});
 			}
 		}
