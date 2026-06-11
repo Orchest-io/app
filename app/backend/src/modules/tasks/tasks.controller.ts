@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import {
   CreateTaskDto,
@@ -8,6 +8,7 @@ import {
   UpdateSubtaskDto,
   AddTaskAssigneeDto,
   CreateTaskDependencyDto,
+  CreateCommentDto,
 } from '@orchest/shared';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -91,6 +92,19 @@ export class TasksController {
   @Delete('dependencies/:dependencyId')
   removeDependency(@Param('dependencyId') dependencyId: string) {
     return this.tasksService.removeDependency(dependencyId);
+  }
+
+  // --- Comment Routes ---
+
+  @Post(':taskId/comments')
+  createComment(@Request() req: any, @Param('taskId') taskId: string, @Body() createCommentDto: CreateCommentDto) {
+    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
+    return this.tasksService.createComment(taskId, userId, createCommentDto);
+  }
+
+  @Get(':taskId/comments')
+  getCommentsByTask(@Param('taskId') taskId: string) {
+    return this.tasksService.getCommentsByTask(taskId);
   }
 }
 

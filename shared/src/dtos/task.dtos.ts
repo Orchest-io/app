@@ -146,3 +146,8 @@ export class CreateTaskDependencyDto {
   type?: DependencyType;
 }
 
+export class CreateCommentDto {
+  @IsString()
+  content: string;
+}
+
