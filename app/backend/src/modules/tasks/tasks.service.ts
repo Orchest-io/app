@@ -45,6 +45,8 @@ export class TasksService {
 		private readonly assigneeRepository: Repository<TaskAssignee>,
 		@InjectRepository(TaskDependency)
 		private readonly dependencyRepository: Repository<TaskDependency>,
+		@InjectRepository(Comment)
+		private readonly commentRepository: Repository<Comment>,
 		private readonly dataSource: DataSource,
 		@Inject(forwardRef(() => ProjectsService))
 		private readonly projectsService: ProjectsService,
@@ -335,5 +337,33 @@ export class TasksService {
 			);
 		}
 		await this.dependencyRepository.remove(dependency);
+	}
+
+	// --- Comment Operations ---
+
+	async createComment(
+		taskId: string,
+		userId: string,
+		dto: { content: string },
+	): Promise<Comment> {
+		await this.findOne(taskId);
+
+		const comment = this.commentRepository.create({
+			taskId,
+			userId,
+			content: dto.content,
+		});
+
+		return this.commentRepository.save(comment);
+	}
+
+	async getCommentsByTask(taskId: string): Promise<Comment[]> {
+		await this.findOne(taskId);
+
+		return this.commentRepository.find({
+			where: { taskId },
+			relations: ["user"],
+			order: { createdAt: "ASC" },
+		});
 	}
 }
