@@ -129,10 +129,11 @@ export class UpdateTimeEntryDto {
 
 export class CreateNotificationDto {
   @IsUUID()
-  user_id: string;
+  userId: string;
 
   @IsEnum(NotificationType)
-  type: NotificationType;
+  @IsOptional()
+  type?: NotificationType;
 
   @IsString()
   title: string;
@@ -143,21 +144,29 @@ export class CreateNotificationDto {
 
   @IsEnum(ReferenceType)
   @IsOptional()
-  reference_type?: ReferenceType;
+  referenceType?: ReferenceType | string;
 
   @IsUUID()
   @IsOptional()
-  reference_id?: string;
+  referenceId?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isRead?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isArchived?: boolean;
 }
 
 export class UpdateNotificationDto {
   @IsBoolean()
   @IsOptional()
-  is_read?: boolean;
+  isRead?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  is_archived?: boolean;
+  isArchived?: boolean;
 }
 
 export class CreateActivityLogDto {

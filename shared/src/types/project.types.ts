@@ -31,7 +31,14 @@ export interface ProjectMember {
 	projectId: string;
 	userId: string;
 	role?: ProjectMemberRole;
+	jobTitle?: string;
+	skills?: string;
+	status: string;
 	joinedAt: Date;
+	user?: {
+		fullName?: string;
+		email?: string;
+	};
 }
 
 export interface Milestone {

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import {
   CreateProjectDto,
@@ -7,7 +7,8 @@ import {
   CreateMilestoneDto,
   UpdateMilestoneDto,
 } from '@orchest/shared';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.decorator';
 
 @Controller('projects')
 @UseGuards(JwtAuthGuard)
@@ -15,54 +16,46 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  create(@Request() req: any, @Body() createProjectDto: CreateProjectDto) {
-    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
-    return this.projectsService.create(userId, createProjectDto);
+  create(@CurrentUser() user: JwtPayload, @Body() createProjectDto: CreateProjectDto) {
+    return this.projectsService.create(user.id, createProjectDto);
   }
 
   @Get()
-  findAll(@Request() req: any) {
-    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
-    return this.projectsService.findAll(userId);
+  findAll(@CurrentUser() user: JwtPayload) {
+    return this.projectsService.findAll(user.id);
   }
 
   @Get(':id')
-  findOne(@Request() req: any, @Param('id') id: string) {
-    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
-    return this.projectsService.findOne(id, userId);
+  findOne(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.projectsService.findOne(id, user.id);
   }
 
   @Patch(':id')
-  update(@Request() req: any, @Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
-    return this.projectsService.update(id, updateProjectDto, userId);
+  update(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
+    return this.projectsService.update(id, updateProjectDto, user.id);
   }
 
   @Delete(':id')
-  remove(@Request() req: any, @Param('id') id: string) {
-    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
-    return this.projectsService.remove(id, userId);
+  remove(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.projectsService.remove(id, user.id);
   }
 
-  // Members
   @Post(':id/members')
-  addMember(@Request() req: any, @Param('id') id: string, @Body() dto: AddProjectMemberDto) {
-    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
-    return this.projectsService.addMember(id, dto, userId);
+  addMember(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: AddProjectMemberDto) {
+    return this.projectsService.addMember(id, dto, user.id);
   }
 
   @Post(':id/members/by-email')
   async addMemberByEmail(
-    @Request() req: any,
+    @CurrentUser() user: JwtPayload,
     @Param('id') id: string,
     @Body() dto: { email: string; role: string; jobTitle?: string; skills?: string; status?: string },
   ) {
-    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
     return this.projectsService.addMemberByEmail(
       id,
       dto.email,
       dto.role as any,
-      userId,
+      user.id,
       dto.jobTitle,
       dto.skills,
       dto.status,
@@ -70,27 +63,22 @@ export class ProjectsController {
   }
 
   @Delete(':id/members/:memberUserId')
-  removeMember(@Request() req: any, @Param('id') id: string, @Param('memberUserId') memberUserId: string) {
-    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
-    return this.projectsService.removeMember(id, memberUserId, userId);
+  removeMember(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('memberUserId') memberUserId: string) {
+    return this.projectsService.removeMember(id, memberUserId, user.id);
   }
 
-  // Milestones
   @Post(':id/milestones')
-  createMilestone(@Request() req: any, @Param('id') id: string, @Body() dto: CreateMilestoneDto) {
-    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
-    return this.projectsService.createMilestone(id, dto, userId);
+  createMilestone(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: CreateMilestoneDto) {
+    return this.projectsService.createMilestone(id, dto, user.id);
   }
 
   @Patch('milestones/:milestoneId')
-  updateMilestone(@Request() req: any, @Param('milestoneId') milestoneId: string, @Body() dto: UpdateMilestoneDto) {
-    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
-    return this.projectsService.updateMilestone(milestoneId, dto, userId);
+  updateMilestone(@CurrentUser() user: JwtPayload, @Param('milestoneId') milestoneId: string, @Body() dto: UpdateMilestoneDto) {
+    return this.projectsService.updateMilestone(milestoneId, dto, user.id);
   }
 
   @Delete('milestones/:milestoneId')
-  removeMilestone(@Request() req: any, @Param('milestoneId') milestoneId: string) {
-    const userId = req.user?.userId || '00000000-0000-0000-0000-000000000000';
-    return this.projectsService.removeMilestone(milestoneId, userId);
+  removeMilestone(@CurrentUser() user: JwtPayload, @Param('milestoneId') milestoneId: string) {
+    return this.projectsService.removeMilestone(milestoneId, user.id);
   }
 }

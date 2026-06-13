@@ -1,12 +1,20 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "strictNullChecks": false
-  },
-  "include": ["src/**/*"]
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"outDir": "./dist",
+		"baseUrl": "./",
+		"paths": {
+			"@/*": ["src/*"]
+		},
+		"strictNullChecks": false,
+		"plugins": [
+			{
+				"name": "@nestjs/swagger/plugin",
+				"options": {
+					"classValidatorShim": false
+				}
+			}
+		]
+	},
+	"include": ["src/**/*"]
 }

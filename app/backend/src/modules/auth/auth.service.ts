@@ -69,14 +69,11 @@ export class AuthService {
       throw new ConflictException('Email already registered');
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
-
-    // Create user
+    // Create user (UsersService.create handles password hashing)
     const user = await this.usersService.create({
       fullName: dto.fullName,
       email: dto.email,
-      passwordHash: hashedPassword,
+      passwordHash: dto.password,
       isEmailVerified: true,
       isActive: true,
     });
@@ -214,5 +211,29 @@ export class AuthService {
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
+  }
+
+  async logout(refreshToken: string) {
+    try {
+      const payload = this.jwtService.verify(refreshToken);
+      if (payload.type !== 'refresh') {
+        throw new UnauthorizedException('Invalid token type');
+      }
+
+      const storedTokens = await this.refreshTokenRepository.find({
+        where: { userId: payload.sub, isActive: true },
+      });
+
+      for (const stored of storedTokens) {
+        const isMatch = await bcrypt.compare(refreshToken, stored.tokenHash);
+        if (isMatch) {
+          await this.refreshTokenRepository.update(stored.id, { isActive: false });
+          break;
+        }
+      }
+    } catch (error) {
+      // Silently handle invalid/expired tokens to prevent user enumeration
+    }
+    return { success: true };
   }
 }

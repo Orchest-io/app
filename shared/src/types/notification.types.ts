@@ -13,6 +13,13 @@ export interface Notification {
   createdAt: Date;
 }
 
+export interface PaginatedNotifications {
+  data: Notification[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface ActivityLog {
   id: string;
   projectId?: string;

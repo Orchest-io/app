@@ -14,7 +14,7 @@ import {
   CreateAiMessageDto,
   UpdateAiMessageDto,
 } from '@orchest/shared';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('ai')
 @UseGuards(JwtAuthGuard)
