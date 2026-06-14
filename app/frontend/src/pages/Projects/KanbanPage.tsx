@@ -10,11 +10,11 @@ import apiClient from '../../api/client'
 
 // Column definitions (fixed structure)
 const COLUMNS = {
-  'backlog': { id: 'backlog', title: 'Backlog' },
-  'todo': { id: 'todo', title: 'To Do' },
-  'in-progress': { id: 'in-progress', title: 'In Progress' },
-  'review': { id: 'review', title: 'Review' },
-  'done': { id: 'done', title: 'Done' },
+  'backlog': { id: 'backlog', title: 'Backlog', taskIds: [] },
+  'todo': { id: 'todo', title: 'To Do', taskIds: [] },
+  'in-progress': { id: 'in-progress', title: 'In Progress', taskIds: [] },
+  'review': { id: 'review', title: 'Review', taskIds: [] },
+  'done': { id: 'done', title: 'Done', taskIds: [] },
 }
 
 const COLUMN_ORDER = ['backlog', 'todo', 'in-progress', 'review', 'done']
@@ -66,10 +66,11 @@ export default function KanbanPage() {
         const columnsMap: Record<string, any> = {}
 
         // Initialize columns with taskIds arrays
-        COLUMN_ORDER.forEach(colId => {
+        COLUMN_ORDER.forEach((colId) => {
+          const typedColId = colId as keyof typeof COLUMNS
           columnsMap[colId] = { 
             id: colId, 
-            title: COLUMNS[colId].title,
+            title: COLUMNS[typedColId].title,
             taskIds: [] 
           }
         })

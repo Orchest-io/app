@@ -480,40 +480,22 @@ export default function ProjectDetailsOverview() {
       {/* TASKS TAB */}
       {activeTab === 'tasks' && (
         <Card>
-          <div className="mb-6">
-            <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
-            <p className="text-xs text-on-surface-variant mt-0.5">Tasks scope for active milestones.</p>
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
-              <p className="text-xs text-on-surface-variant mt-0.5">Tasks scope for active milestones.</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">Manage your tasks on the Kanban board.</p>
             </div>
             <Button
               icon="view_week"
               onClick={() => navigate(`/projects/${projectId}/board`)}
             >
               Open Kanban Board
-
+            </Button>
           </div>
 
-          {/* Main Tasks Card */}
-          <Card>
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
-                <p className="text-xs text-on-surface-variant mt-0.5">Manage your tasks on the Kanban board.</p>
-              </div>
-              <Button
-                icon="view_week"
-                onClick={() => navigate(`/projects/${projectId}/board`)}
-              >
-                Open Kanban Board
-              </Button>
-            </div>
-
-            {loadingTasks ? (
-              <div className="text-center py-12">
-                <div className="w-12 h-12 border-4 border-electric-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          {loadingTasks ? (
+            <div className="text-center py-12">
+              <div className="w-12 h-12 border-4 border-electric-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                 <p className="text-sm text-on-surface-variant">Loading tasks...</p>
               </div>
             ) : taskStats.total === 0 ? (
@@ -571,8 +553,7 @@ export default function ProjectDetailsOverview() {
                 </Card>
               </div>
             )}
-          </Card>
-        </div>
+        </Card>
       )}
 
       {/* MILESTONES TAB */}

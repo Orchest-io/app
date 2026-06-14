@@ -8,11 +8,12 @@ import { TaskAssignee } from './entities/task-assignee.entity';
 import { TaskDependency } from './entities/task-dependency.entity';
 import { Comment } from './entities/comment.entity';
 import { Attachment } from './entities/attachment.entity';
+import { KnowledgeBaseChunk } from './entities/knowledge-base-chunk.entity';
 import { ProjectsModule } from '../projects/projects.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Task, Subtask, TaskAssignee, TaskDependency, Comment, Attachment]),
+    TypeOrmModule.forFeature([Task, Subtask, TaskAssignee, TaskDependency, Comment, Attachment, KnowledgeBaseChunk]),
     forwardRef(() => ProjectsModule),
   ],
   controllers: [TasksController],

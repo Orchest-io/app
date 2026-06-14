@@ -181,6 +181,7 @@ export class UpdateMilestoneDto {
 export interface ProjectListItemDto {
 	id: string;
 	name: string;
+	description?: string;
 	status: ProjectStatus;
 	priority: ProjectPriority;
 	progress: number;
