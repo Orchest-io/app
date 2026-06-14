@@ -21,6 +21,21 @@ export default function TaskDetails({ task, onClose, onUpdateTask, onDeleteTask,
   const [editedPriority, setEditedPriority] = useState<TaskPriority>('medium')
   const [editedDueDate, setEditedDueDate] = useState('')
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
+  const [comments, setComments] = useState<any[]>([])
+  const [commentText, setCommentText] = useState('')
+  const [isLoadingComments, setIsLoadingComments] = useState(false)
+
+  const formatTimeAgo = (dateString: string) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (diffInSeconds < 60) return 'Just now'
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
+    return date.toLocaleDateString()
+  }
 
   useEffect(() => {
     if (task) {
@@ -30,8 +45,35 @@ export default function TaskDetails({ task, onClose, onUpdateTask, onDeleteTask,
       setEditedDueDate(task.dueDate || '')
       setIsEditing(false)
       setIsDeleting(false)
+      fetchComments(task.id)
     }
   }, [task])
+
+  const fetchComments = async (taskId: string) => {
+    try {
+      setIsLoadingComments(true)
+      const res = await apiClient.get(`/tasks/${taskId}/comments`)
+      setComments(res.data)
+    } catch (error) {
+      console.error('Failed to fetch comments:', error)
+    } finally {
+      setIsLoadingComments(false)
+    }
+  }
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!commentText.trim() || !task) return
+
+    try {
+      const res = await apiClient.post(`/tasks/${task.id}/comments`, { content: commentText.trim() })
+      setComments(prev => [...prev, { ...res.data, user: res.data.user || { name: 'You', avatarUrl: '' } }])
+      setCommentText('')
+    } catch (error) {
+      console.error('Failed to add comment:', error)
+      toast.error('Failed to add comment')
+    }
+  }
 
   if (!task) return null
 
@@ -454,9 +496,76 @@ export default function TaskDetails({ task, onClose, onUpdateTask, onDeleteTask,
                   </button>
                 </form>
               </div>
+
+              {/* Comments Section */}
+              <div className="pt-6 border-t border-white/5 flex flex-col h-[300px]">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2 text-on-surface">
+                    <span className="material-symbols-outlined text-[18px]">chat</span>
+                    <h3 className="font-heading text-lg font-bold">Comments</h3>
+                  </div>
+                </div>
+                
+                {/* Dedicated Scrollable Feed */}
+                <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+                  {isLoadingComments ? (
+                    <div className="flex justify-center py-4">
+                      <div className="w-5 h-5 border-2 border-electric-blue border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  ) : comments.length === 0 ? (
+                    <p className="text-xs text-on-surface-variant/60 italic text-center py-4">No comments yet. Start the conversation!</p>
+                  ) : (
+                    comments.map((comment) => (
+                      <div key={comment.id} className="flex flex-col gap-2 pb-4 border-b border-gray-200/10 last:border-0">
+                        {/* User Identity Row */}
+                        <div className="flex items-center gap-2">
+                          {comment.user?.avatarUrl ? (
+                            <img src={comment.user.avatarUrl} alt={comment.user?.name} className="w-6 h-6 rounded-full object-cover border border-white/10" />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-electric-blue/20 flex items-center justify-center text-[10px] font-bold text-electric-blue border border-white/10">
+                              {comment.user?.name?.charAt(0)?.toUpperCase() || '?'}
+                            </div>
+                          )}
+                          <span className="text-sm font-semibold text-on-surface">{comment.user?.name || 'Unknown User'}</span>
+                          <span className="text-xs text-on-surface-variant/60">{formatTimeAgo(comment.createdAt)}</span>
+                        </div>
+                        {/* Content Block */}
+                        <p className="text-sm text-on-surface-variant pl-8 break-words">
+                          {comment.content}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
+
+        {/* Input Area anchored at the bottom */}
+        {!isEditing && (
+          <div className="p-4 border-t border-white/5 bg-surface-container shrink-0">
+            <form onSubmit={handleAddComment} className="flex flex-col gap-3">
+              <textarea
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Write a comment..."
+                rows={2}
+                className="w-full bg-surface-container-low text-on-surface border border-dashed border-white/20 rounded-xl p-3 focus:outline-none focus:border-electric-blue/50 text-sm resize-none custom-scrollbar"
+              />
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={!commentText.trim()}
+                  className="flex items-center gap-2 bg-electric-blue text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <span className="material-symbols-outlined text-[16px]">send</span>
+                  Send
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* Delete Confirmation Modal */}
         {isDeleting && (

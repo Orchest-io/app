@@ -130,7 +130,7 @@ export class TasksController {
 		@Param("taskId") taskId: string,
 		@Body() createCommentDto: CreateCommentDto,
 	) {
-		const userId = req.user?.userId || "00000000-0000-0000-0000-000000000000";
+		const userId = req.user?.id || req.user?.userId || "00000000-0000-0000-0000-000000000000";
 		return this.tasksService.createComment(taskId, userId, createCommentDto);
 	}
 
