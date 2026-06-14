@@ -1,9 +1,20 @@
 import { useState } from 'react'
 import Sidebar from '../Sidebar/Sidebar'
 import Header from '../Header/Header'
+import { useNotificationStream } from '../../../hooks/useNotificationStream'
 
 type MainLayoutProps = {
   children: React.ReactNode
+}
+
+/**
+ * Mounts the SSE notification stream for the duration of the authenticated session.
+ * Renders nothing — exists solely to call useNotificationStream() within the
+ * ProtectedRoute subtree so the connection is never active on public routes.
+ */
+function SessionServices() {
+  useNotificationStream()
+  return null
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
@@ -11,6 +22,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="min-h-screen bg-bg-deep">
+      <SessionServices />
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}

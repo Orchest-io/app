@@ -6,7 +6,7 @@ import { useAddMember, useRemoveMember } from '../../../hooks/useProjectMutation
 interface TeamMember {
   id: string
   userId: string
-  role: string
+  role?: string
   jobTitle?: string
   skills?: string
   status: string
@@ -366,14 +366,16 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
                 required
               />
 
-              <TextArea
-                label="Skills"
-                placeholder="e.g. React, Node.js, TypeScript, UI/UX Design"
-                value={formData.skills}
-                onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-                rows={3}
-                helperText="Comma-separated list of skills"
-              />
+              <div>
+                <TextArea
+                  label="Skills"
+                  placeholder="e.g. React, Node.js, TypeScript, UI/UX Design"
+                  value={formData.skills}
+                  onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+                  rows={3}
+                />
+                <p className="text-xs text-on-surface-variant mt-1">Comma-separated list of skills</p>
+              </div>
 
               <Select
                 label="Role"

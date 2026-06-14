@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { DragDropContext, DropResult } from '@hello-pangea/dnd'
 import { toast } from 'sonner'
-import type { Task, BoardState, FilterState, TaskPriority } from './types/kanban.types'
+import type { Task, Column, BoardState, FilterState, TaskPriority } from './types/kanban.types'
 import TaskFilters from './components/TaskFilters'
 import KanbanColumn from './components/KanbanColumn'
 import TaskDetails from './components/TaskDetails'
 import apiClient from '../../api/client'
 
 // Column definitions (fixed structure)
-const COLUMNS = {
+const COLUMNS: Record<string, Column> = {
   'backlog': { id: 'backlog', title: 'Backlog', taskIds: [] },
   'todo': { id: 'todo', title: 'To Do', taskIds: [] },
   'in-progress': { id: 'in-progress', title: 'In Progress', taskIds: [] },
