@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Project, ProjectMember, Milestone } from "./entities";
 import { Task } from "../tasks/entities/task.entity";
 import {
@@ -106,6 +107,9 @@ export class ProjectsService {
 			entity_id: savedProject.id,
 			description: `Project "${savedProject.name}" created`,
 		});
+
+		// Emit event for RAG indexing (non-blocking)
+		this.eventEmitter.emit('project.created', { projectId: savedProject.id });
 
 		return savedProject;
 	}

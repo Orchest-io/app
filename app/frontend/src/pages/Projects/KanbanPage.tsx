@@ -66,10 +66,11 @@ export default function KanbanPage() {
         const columnsMap: Record<string, any> = {}
 
         // Initialize columns with taskIds arrays
-        COLUMN_ORDER.forEach(colId => {
+        COLUMN_ORDER.forEach((colId) => {
+          const typedColId = colId as keyof typeof COLUMNS
           columnsMap[colId] = { 
             id: colId, 
-            title: COLUMNS[colId].title,
+            title: COLUMNS[typedColId].title,
             taskIds: [] 
           }
         })
