@@ -46,6 +46,7 @@ export default function KanbanPage() {
     priority: 'medium' as TaskPriority,
     dueDate: '',
     assigneeId: '', // Add assignee field
+    storyPoints: '' as number | '',
   })
 
   // Fetch tasks from backend
@@ -91,6 +92,7 @@ export default function KanbanPage() {
             })) || [],
             dueDate: apiTask.dueDate,
             columnId: apiTask.status || 'backlog',
+            storyPoints: apiTask.storyPoints,
           }
 
           tasksMap[task.id] = task
@@ -222,6 +224,7 @@ export default function KanbanPage() {
         priority: newTaskData.priority,
         status: targetColumnId,
         dueDate: newTaskData.dueDate || null,
+        storyPoints: newTaskData.storyPoints ? Number(newTaskData.storyPoints) : undefined,
       })
 
       const createdTask = response.data
@@ -254,6 +257,7 @@ export default function KanbanPage() {
         subtasks: [],
         dueDate: createdTask.dueDate,
         columnId: targetColumnId,
+        storyPoints: createdTask.storyPoints,
       }
 
       setBoard({
@@ -270,9 +274,10 @@ export default function KanbanPage() {
 
       setIsAddModalOpen(false)
       toast.success('Task created successfully')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create task:', error)
-      toast.error('Failed to create task')
+      const msg = error.response?.data?.message || error.message
+      toast.error('Failed to create task: ' + (Array.isArray(msg) ? msg.join(', ') : msg))
     }
   }
 
@@ -404,6 +409,25 @@ export default function KanbanPage() {
                     onChange={(e) => setNewTaskData({ ...newTaskData, dueDate: e.target.value })}
                     className="w-full bg-surface-container-low text-on-surface border border-white/10 rounded-lg p-2.5 focus:outline-none focus:border-electric-blue/50 text-sm"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
+                    Story Points
+                  </label>
+                  <select
+                    value={newTaskData.storyPoints}
+                    onChange={(e) => setNewTaskData({ ...newTaskData, storyPoints: e.target.value ? Number(e.target.value) : '' })}
+                    className="w-full bg-surface-container-low text-on-surface border border-white/10 rounded-lg p-2.5 focus:outline-none focus:border-electric-blue/50 text-sm"
+                  >
+                    <option value="">None</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="5">5</option>
+                    <option value="8">8</option>
+                    <option value="13">13</option>
+                  </select>
                 </div>
               </div>
 

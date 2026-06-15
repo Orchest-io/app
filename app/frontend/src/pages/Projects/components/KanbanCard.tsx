@@ -95,13 +95,20 @@ export default function KanbanCard({ task, index, onClick }: KanbanCardProps) {
               )}
             </div>
 
-            {/* Right element: Due Date Tag */}
-            {task.dueDate && (
-              <span className="flex items-center gap-1 text-[10px] text-on-surface-variant font-medium shrink-0">
-                <span className="material-symbols-outlined text-[13px]">calendar_today</span>
-                <span>{new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-              </span>
-            )}
+            {/* Right element: Due Date Tag & Story Points */}
+            <div className="flex items-center gap-2 shrink-0">
+              {task.storyPoints && (
+                <span className="flex items-center justify-center bg-surface-variant text-on-surface-variant px-1.5 py-0.5 rounded text-[10px] font-bold border border-white/5 shadow-sm">
+                  {task.storyPoints} SP
+                </span>
+              )}
+              {task.dueDate && (
+                <span className="flex items-center gap-1 text-[10px] text-on-surface-variant font-medium">
+                  <span className="material-symbols-outlined text-[13px]">calendar_today</span>
+                  <span>{new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                </span>
+              )}
+            </div>
           </div>
         </div>
       )}

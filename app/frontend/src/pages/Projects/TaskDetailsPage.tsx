@@ -20,6 +20,7 @@ export default function TaskDetailsPage() {
   const [editedDescription, setEditedDescription] = useState('')
   const [editedPriority, setEditedPriority] = useState<TaskPriority>('medium')
   const [editedDueDate, setEditedDueDate] = useState('')
+  const [editedStoryPoints, setEditedStoryPoints] = useState<number | ''>('')
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [comments, setComments] = useState<any[]>([])
   const [commentText, setCommentText] = useState('')
@@ -79,6 +80,7 @@ export default function TaskDetailsPage() {
           })) || [],
           dueDate: apiTask.dueDate,
           columnId: apiTask.status || 'backlog',
+          storyPoints: apiTask.storyPoints,
         }
         
         setTask(taskObj)
@@ -86,6 +88,7 @@ export default function TaskDetailsPage() {
         setEditedDescription(taskObj.description)
         setEditedPriority(taskObj.priority)
         setEditedDueDate(taskObj.dueDate || '')
+        setEditedStoryPoints(taskObj.storyPoints || '')
         
         setProjectMembers(membersRes.data.members || [])
         
@@ -184,6 +187,7 @@ export default function TaskDetailsPage() {
         description: editedDescription,
         priority: editedPriority,
         dueDate: editedDueDate || null,
+        storyPoints: editedStoryPoints ? Number(editedStoryPoints) : null,
       })
       onUpdateTask({
         ...task,
@@ -191,11 +195,13 @@ export default function TaskDetailsPage() {
         description: editedDescription,
         priority: editedPriority,
         dueDate: editedDueDate || undefined,
+        storyPoints: editedStoryPoints ? Number(editedStoryPoints) : undefined,
       })
       setIsEditing(false)
       toast.success('Task updated')
-    } catch (error) {
-      toast.error('Failed to update task')
+    } catch (error: any) {
+      const msg = error.response?.data?.message || error.message
+      toast.error('Failed to update task: ' + (Array.isArray(msg) ? msg.join(', ') : msg))
     }
   }
 
@@ -349,6 +355,27 @@ export default function TaskDetailsPage() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
+                    Story Points
+                  </label>
+                  <select
+                    value={editedStoryPoints}
+                    onChange={(e) => setEditedStoryPoints(e.target.value ? Number(e.target.value) : '')}
+                    className="w-full bg-surface-container-lowest text-on-surface border border-white/10 rounded-xl p-3 focus:outline-none focus:border-electric-blue/50 text-sm transition-all"
+                  >
+                    <option value="">None</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="5">5</option>
+                    <option value="8">8</option>
+                    <option value="13">13</option>
+                  </select>
+                </div>
+              </div>
+
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={handleSave}
@@ -384,6 +411,11 @@ export default function TaskDetailsPage() {
                   <span className={`text-[11px] uppercase font-bold tracking-wider px-3 py-1 rounded-md border ${getPriorityColor(task.priority)}`}>
                     {task.priority} Priority
                   </span>
+                  {task.storyPoints && (
+                    <span className="text-[11px] bg-surface-variant text-on-surface-variant border border-white/10 px-3 py-1 rounded-md font-bold flex items-center justify-center shadow-sm">
+                      {task.storyPoints} SP
+                    </span>
+                  )}
                   {task.dueDate && (
                     <span className="text-[11px] bg-white/5 text-on-surface-variant border border-white/10 px-3 py-1 rounded-md font-medium flex items-center gap-1.5">
                       <span className="material-symbols-outlined text-[14px]">calendar_today</span>

@@ -22,6 +22,7 @@ export interface Task {
   subtasks: Subtask[];
   dueDate?: string; // Format: YYYY-MM-DD
   columnId: string;
+  storyPoints?: number;
 }
 
 export interface Column {
