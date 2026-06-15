@@ -76,22 +76,22 @@ function ProfileSection() {
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-      toast.error('File must be an image.')
+      toast.error(t('settings.mustBeImage'))
       return
     }
 
     const maxSizeBytes = 2 * 1024 * 1024;
     if (file.size > maxSizeBytes) {
-      toast.error('Avatar exceeds 2MB size limit.')
+      toast.error(t('settings.avatarSizeLimit'))
       return
     }
 
     uploadAvatar.mutate(file, {
       onSuccess: () => {
-        toast.success('Avatar updated successfully.')
+        toast.success(t('settings.avatarSuccess'))
       },
       onError: (err: any) => {
-        toast.error(err.response?.data?.message || 'Failed to upload avatar.')
+        toast.error(err.response?.data?.message || t('settings.avatarFailed'))
       },
     })
   }
@@ -133,9 +133,7 @@ function ProfileSection() {
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadAvatar.isPending}
             >
-              {uploadAvatar.isPending ? 'Uploading...' : 'Change Photo'}
-            <Button size="sm" variant="secondary" className="mt-3" onClick={() => toast.info(t('settings.avatarUploadSoon'))}>
-              {t('settings.changePhoto')}
+              {uploadAvatar.isPending ? t('settings.uploading') : t('settings.changePhoto')}
             </Button>
           </div>
         </div>

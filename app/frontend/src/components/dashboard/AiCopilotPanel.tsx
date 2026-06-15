@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import SmartSuggestionCard from './SmartSuggestionCard'
 import FocusInsightCard from './FocusInsightCard'
 import type { ProjectListItemDto } from '../../pages/Dashboard/dashboard.types'
@@ -7,6 +8,8 @@ interface AiCopilotPanelProps {
 }
 
 export default function AiCopilotPanel({ projects }: AiCopilotPanelProps) {
+  const { t } = useTranslation()
+
   return (
     <div className="flex flex-col h-full bg-surface-container-lowest border border-border-low rounded-xl overflow-hidden">
       {/* Panel header */}
@@ -20,10 +23,10 @@ export default function AiCopilotPanel({ projects }: AiCopilotPanelProps) {
               auto_awesome
             </span>
           </div>
-          <h3 className="font-heading text-sm font-bold text-on-surface">AI Copilot</h3>
+          <h3 className="font-heading text-sm font-bold text-on-surface">{t('dashboard.aiCopilot')}</h3>
         </div>
         <span className="px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[10px] font-heading font-bold uppercase tracking-wider border border-border-low">
-          Coming Soon
+          {t('dashboard.comingSoon')}
         </span>
       </div>
 
@@ -60,10 +63,10 @@ export default function AiCopilotPanel({ projects }: AiCopilotPanelProps) {
             </div>
             <div>
               <p className="text-sm font-heading font-semibold text-on-surface-variant">
-                AI Chat
+                {t('dashboard.aiChat')}
               </p>
               <p className="text-xs text-on-surface-variant/60 mt-1 leading-relaxed max-w-[180px]">
-                Live conversation will appear here once the chat module is connected.
+                {t('dashboard.aiChatDesc')}
               </p>
             </div>
           </div>
@@ -71,7 +74,7 @@ export default function AiCopilotPanel({ projects }: AiCopilotPanelProps) {
           {/* Placeholder input bar — visual only */}
           <div className="shrink-0 flex gap-2 items-center p-3 border-t border-border-low">
             <div className="flex-1 h-9 rounded-lg bg-surface-container border border-border-low flex items-center px-3">
-              <span className="text-xs text-on-surface-variant/40">Ask AI anything...</span>
+              <span className="text-xs text-on-surface-variant/40">{t('dashboard.askAI')}</span>
             </div>
             <div className="w-9 h-9 rounded-lg bg-surface-container border border-border-low flex items-center justify-center shrink-0 opacity-40">
               <span className="material-symbols-outlined text-on-surface-variant text-[18px]">send</span>

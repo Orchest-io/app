@@ -1,4 +1,5 @@
 import { Droppable } from '@hello-pangea/dnd'
+import { useTranslation } from 'react-i18next'
 import type { Task, Column } from '../types/kanban.types'
 import KanbanCard from './KanbanCard'
 
@@ -12,13 +13,26 @@ interface KanbanColumnProps {
 }
 
 export default function KanbanColumn({ column, tasks, onCardClick, onAddTask, milestones = [], milestoneColors = [] }: KanbanColumnProps) {
+  const { t } = useTranslation()
+
+  const getColumnTitle = (colId: string, defaultTitle: string) => {
+    switch (colId) {
+      case 'backlog': return t('wizard.statusBacklog')
+      case 'todo': return t('wizard.statusTodo')
+      case 'in-progress': return t('wizard.statusInProgress')
+      case 'review': return t('wizard.statusReview')
+      case 'done': return t('wizard.statusDone')
+      default: return defaultTitle
+    }
+  }
+
   return (
     <div className="w-80 flex flex-col gap-4 bg-surface-container/20 border border-white/5 rounded-2xl p-4 shrink-0 h-full">
       {/* Column Header */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           <h3 className="font-heading text-sm font-bold text-on-surface">
-            {column.title}
+            {getColumnTitle(column.id, column.title)}
           </h3>
           <span className="bg-surface-container-high text-on-surface-variant font-mono px-2 py-0.5 rounded text-[10px] font-bold">
             {tasks.length}
@@ -27,7 +41,7 @@ export default function KanbanColumn({ column, tasks, onCardClick, onAddTask, mi
         <button
           onClick={() => onAddTask(column.id)}
           className="text-on-surface-variant hover:text-electric-blue transition-colors p-1 hover:bg-white/5 rounded-lg"
-          title="Add task to column"
+          title={t('kanban.addTaskToCol') || "Add task to column"}
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
         </button>
@@ -60,12 +74,12 @@ export default function KanbanColumn({ column, tasks, onCardClick, onAddTask, mi
                 <span className="material-symbols-outlined text-on-surface-variant/30 text-[28px] mb-1">
                   inbox
                 </span>
-                <p className="text-[11px] text-on-surface-variant/40 font-medium">No tasks here</p>
+                <p className="text-[11px] text-on-surface-variant/40 font-medium">{t('kanban.noTasksHere')}</p>
                 <button
                   onClick={() => onAddTask(column.id)}
                   className="mt-2 text-[10px] text-electric-blue hover:underline font-semibold"
                 >
-                  Create one
+                  {t('kanban.createOne')}
                 </button>
               </div>
             )}
@@ -75,4 +89,3 @@ export default function KanbanColumn({ column, tasks, onCardClick, onAddTask, mi
     </div>
   )
 }
-

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Card, ProgressBar, Tabs, Button, Input, Select, TextArea } from '../../../components/ui'
 import { useProject } from '../../../hooks/useProject'
@@ -20,6 +21,7 @@ import MilestoneTasksModal from '../components/MilestoneTasksModal'
 export default function ProjectDetailsOverview() {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const { data: project, isLoading, isError } = useProject(projectId)
 
@@ -158,20 +160,20 @@ export default function ProjectDetailsOverview() {
   const handleAddMilestone = (e: React.FormEvent) => {
     e.preventDefault()
     if (!milestoneData.title.trim() || !projectId) {
-      toast.warning('Please enter a milestone title')
+      toast.warning(t('projectDetails.enterMilestoneTitle'))
       return
     }
     createMilestoneMutation.mutate(
       { projectId, dto: milestoneData },
       {
         onSuccess: () => {
-          toast.success('Milestone created successfully!')
+          toast.success(t('projectDetails.milestoneCreated'))
           setIsAddMilestoneOpen(false)
           setMilestoneData({ title: '', description: '', targetDate: '', color: '#6366f1' })
           fetchEnrichedMilestones()
         },
         onError: (err: any) => {
-          toast.error('Failed to create milestone: ' + (err?.response?.data?.message ?? err.message))
+          toast.error(t('projectDetails.milestoneCreateFailed') + ': ' + (err?.response?.data?.message ?? err.message))
         },
       }
     )
@@ -209,13 +211,13 @@ export default function ProjectDetailsOverview() {
       { milestoneId: editingMilestoneId, projectId, dto },
       {
         onSuccess: () => {
-          toast.success('Milestone updated')
+          toast.success(t('projectDetails.milestoneUpdated'))
           setIsEditMilestoneOpen(false)
           setEditingMilestoneId(null)
           fetchEnrichedMilestones()
         },
         onError: (err: any) => {
-          toast.error('Failed to update milestone: ' + (err?.response?.data?.message ?? err.message))
+          toast.error(t('projectDetails.milestoneUpdateFailed') + ': ' + (err?.response?.data?.message ?? err.message))
         },
       }
     )
@@ -227,11 +229,11 @@ export default function ProjectDetailsOverview() {
       { milestoneId, projectId },
       {
         onSuccess: () => {
-          toast.success('Milestone deleted')
+          toast.success(t('projectDetails.milestoneDeleteSuccess'))
           fetchEnrichedMilestones()
         },
         onError: (err: any) => {
-          toast.error('Failed to delete milestone: ' + (err?.response?.data?.message ?? err.message))
+          toast.error(t('projectDetails.milestoneDeleteFailed') + ': ' + (err?.response?.data?.message ?? err.message))
         },
       }
     )
@@ -261,18 +263,18 @@ export default function ProjectDetailsOverview() {
   const handleEditProject = (e: React.FormEvent) => {
     e.preventDefault()
     if (!projectEditData.name.trim() || !projectId) {
-      toast.warning('Please enter a project name')
+      toast.warning(t('projectDetails.enterProjectName'))
       return
     }
     updateProjectMutation.mutate(
       { id: projectId, dto: projectEditData as any },
       {
         onSuccess: () => {
-          toast.success('Project updated successfully!')
+          toast.success(t('projectDetails.projectUpdated'))
           setIsEditProjectOpen(false)
         },
         onError: (err: any) => {
-          toast.error('Failed to update project: ' + (err?.response?.data?.message ?? err.message))
+          toast.error(t('projectDetails.projectUpdateFailed') + ': ' + (err?.response?.data?.message ?? err.message))
         },
       }
     )
@@ -282,11 +284,11 @@ export default function ProjectDetailsOverview() {
     if (!projectId) return
     deleteProjectMutation.mutate(projectId, {
       onSuccess: () => {
-        toast.success('Project deleted')
+        toast.success(t('projectDetails.projectDeleted'))
         navigate('/projects')
       },
       onError: (err: any) => {
-        toast.error('Failed to delete project: ' + (err?.response?.data?.message ?? err.message))
+        toast.error(t('projectDetails.projectDeleteFailed') + ': ' + (err?.response?.data?.message ?? err.message))
       },
     })
   }
@@ -327,7 +329,7 @@ export default function ProjectDetailsOverview() {
     return (
       <div className="max-w-[1100px] mx-auto py-16 flex flex-col items-center justify-center">
         <div className="w-12 h-12 border-4 border-electric-blue border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-sm text-on-surface-variant">Loading project details...</p>
+        <p className="text-sm text-on-surface-variant">{t('projectDetails.loadingProject')}</p>
       </div>
     )
   }
@@ -338,12 +340,12 @@ export default function ProjectDetailsOverview() {
         <div className="w-16 h-16 rounded-full bg-error-container/10 flex items-center justify-center text-error mx-auto mb-4">
           <span className="material-symbols-outlined text-[32px]">error</span>
         </div>
-        <h2 className="font-heading text-2xl font-bold mb-2">Project Not Found</h2>
+        <h2 className="font-heading text-2xl font-bold mb-2">{t('projectDetails.projectNotFound')}</h2>
         <p className="text-sm text-on-surface-variant max-w-sm mx-auto mb-6 leading-relaxed">
-          The project details you are looking for do not exist or you do not have permission to view them.
+          {t('projectDetails.projectNotFoundDesc')}
         </p>
         <Button variant="secondary" onClick={() => navigate('/projects')}>
-          Back to Projects
+          {t('projectDetails.backToProjects')}
         </Button>
       </Card>
     )
@@ -361,20 +363,20 @@ export default function ProjectDetailsOverview() {
             className="flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-on-surface mb-2 transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[14px]">arrow_back</span>
-            Back to Projects
+            {t('projectDetails.backToProjects')}
           </button>
 
           <h2 className="font-heading text-[32px] font-semibold text-on-surface">
             {project.name}
           </h2>
           <p className="text-sm text-on-surface-variant mt-1 max-w-[700px]">
-            {project.description || 'No project description provided.'}
+            {project.description || t('projectDetails.noDescription')}
           </p>
         </div>
 
         <div className="flex gap-3">
           <Button variant="secondary" icon="edit" onClick={handleEditProjectOpen}>
-            Edit Project
+            {t('projectDetails.editProject')}
           </Button>
           {isOwner && (
             <Button
@@ -383,7 +385,7 @@ export default function ProjectDetailsOverview() {
               onClick={() => setIsDeleteConfirmOpen(true)}
               className="text-red-400 border-red-400/30 hover:bg-red-400/10"
             >
-              Delete Project
+              {t('projectDetails.deleteProject')}
             </Button>
           )}
         </div>
@@ -394,12 +396,12 @@ export default function ProjectDetailsOverview() {
         defaultTab="overview"
         onChange={setActiveTab}
         tabs={[
-          { key: 'overview', label: 'Overview', icon: 'dashboard' },
-          { key: 'team', label: `Team (${project.members?.length || 0})`, icon: 'group' },
-          { key: 'tasks', label: `Tasks (${taskStats.total})`, icon: 'task_alt' },
-          { key: 'milestones', label: `Milestones (${project.milestones?.length || 0})`, icon: 'flag' },
-          { key: 'activity', label: 'Activity Logs', icon: 'history' },
-          { key: 'attachments', label: 'Attachments', icon: 'attach_file' },
+          { key: 'overview', label: t('projectDetails.overview'), icon: 'dashboard' },
+          { key: 'team', label: `${t('projectDetails.team')} (${project.members?.length || 0})`, icon: 'group' },
+          { key: 'tasks', label: `${t('projectDetails.tasks')} (${taskStats.total})`, icon: 'task_alt' },
+          { key: 'milestones', label: `${t('projectDetails.milestones')} (${project.milestones?.length || 0})`, icon: 'flag' },
+          { key: 'activity', label: t('projectDetails.activityLogs'), icon: 'history' },
+          { key: 'attachments', label: t('projectDetails.attachments'), icon: 'attach_file' },
         ]}
         className="mb-8"
       />
@@ -411,7 +413,7 @@ export default function ProjectDetailsOverview() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <p className="text-[12px] text-on-surface-variant mb-2 font-medium uppercase tracking-wider">
-                Project Progress
+                {t('projectDetails.projectProgress')}
               </p>
               <p className="text-[28px] font-bold font-heading text-on-surface mb-3">
                 {project.progress ?? 0}%
@@ -421,7 +423,7 @@ export default function ProjectDetailsOverview() {
 
             <Card>
               <p className="text-[12px] text-on-surface-variant mb-2 font-medium uppercase tracking-wider">
-                Status
+                {t('projectDetails.status')}
               </p>
               <div className="flex items-center gap-2 mt-1">
                 <span className={`text-xs uppercase font-bold tracking-wider px-3 py-1 rounded border ${getStatusColor(project.status ?? '')}`}>
@@ -429,13 +431,13 @@ export default function ProjectDetailsOverview() {
                 </span>
               </div>
               <p className="text-[11px] text-on-surface-variant mt-3">
-                Current execution status
+                {t('projectDetails.currentExecutionStatus')}
               </p>
             </Card>
 
             <Card>
               <p className="text-[12px] text-on-surface-variant mb-2 font-medium uppercase tracking-wider">
-                Priority
+                {t('projectDetails.priority')}
               </p>
               <div className="flex items-center gap-2 mt-1">
                 <span className={`text-xs uppercase font-bold tracking-wider px-3 py-1 rounded border ${getPriorityColor(project.priority ?? '')}`}>
@@ -443,7 +445,7 @@ export default function ProjectDetailsOverview() {
                 </span>
               </div>
               <p className="text-[11px] text-on-surface-variant mt-3">
-                Workspace urgency ranking
+                {t('projectDetails.workspaceUrgencyRanking')}
               </p>
             </Card>
           </div>
@@ -452,11 +454,11 @@ export default function ProjectDetailsOverview() {
             {/* Quick Summary Activity */}
             <Card>
               <h3 className="font-heading text-lg font-semibold text-on-surface mb-5">
-                Recent Activity
+                {t('projectDetails.recentActivity')}
               </h3>
               <div className="flex flex-col gap-3">
                 {!(project as any).activityLogs || (project as any).activityLogs.length === 0 ? (
-                  <p className="text-sm text-on-surface-variant italic">No activities logged yet.</p>
+                  <p className="text-sm text-on-surface-variant italic">{t('projectDetails.noActivitiesYet')}</p>
                 ) : (
                   (project as any).activityLogs.slice(0, 5).map((log: any) => (
                     <div
@@ -476,7 +478,7 @@ export default function ProjectDetailsOverview() {
             {/* Project Timeline */}
             <Card>
               <h3 className="font-heading text-lg font-semibold text-on-surface mb-5">
-                Project Timeline
+                {t('projectDetails.projectTimeline')}
               </h3>
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-3">
@@ -484,9 +486,9 @@ export default function ProjectDetailsOverview() {
                     <span className="material-symbols-outlined text-[18px] text-electric-blue">event</span>
                   </div>
                   <div>
-                    <p className="text-xs text-on-surface-variant">Start Date</p>
+                    <p className="text-xs text-on-surface-variant">{t('projectDetails.startDate')}</p>
                     <p className="text-sm font-semibold text-on-surface">
-                      {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'Not set'}
+                      {project.startDate ? new Date(project.startDate).toLocaleDateString() : t('projectDetails.notSet')}
                     </p>
                   </div>
                 </div>
@@ -496,9 +498,9 @@ export default function ProjectDetailsOverview() {
                     <span className="material-symbols-outlined text-[18px] text-purple-400">flag</span>
                   </div>
                   <div>
-                    <p className="text-xs text-on-surface-variant">Target End Date</p>
+                    <p className="text-xs text-on-surface-variant">{t('projectDetails.targetEndDate')}</p>
                     <p className="text-sm font-semibold text-on-surface">
-                      {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'Not set'}
+                      {project.endDate ? new Date(project.endDate).toLocaleDateString() : t('projectDetails.notSet')}
                     </p>
                   </div>
                 </div>
@@ -508,9 +510,9 @@ export default function ProjectDetailsOverview() {
                     <span className="material-symbols-outlined text-[18px] text-emerald-400">group</span>
                   </div>
                   <div>
-                    <p className="text-xs text-on-surface-variant">Team Size</p>
+                    <p className="text-xs text-on-surface-variant">{t('projectDetails.teamSize')}</p>
                     <p className="text-sm font-semibold text-on-surface">
-                      {project.members?.length || 0} members
+                      {project.members?.length || 0} {t('projectDetails.members')}
                     </p>
                   </div>
                 </div>
@@ -534,33 +536,33 @@ export default function ProjectDetailsOverview() {
         <Card>
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="font-heading text-lg font-semibold text-on-surface">Project Tasks</h3>
-              <p className="text-xs text-on-surface-variant mt-0.5">Manage your tasks on the Kanban board.</p>
+              <h3 className="font-heading text-lg font-semibold text-on-surface">{t('projectDetails.projectTasks')}</h3>
+              <p className="text-xs text-on-surface-variant mt-0.5">{t('projectDetails.manageTasks')}</p>
             </div>
             <Button
               icon="view_week"
               onClick={() => navigate(`/projects/${projectId}/board`)}
             >
-              Open Kanban Board
+              {t('projectDetails.openKanbanBoard')}
             </Button>
           </div>
 
           {loadingTasks ? (
             <div className="text-center py-12">
               <div className="w-12 h-12 border-4 border-electric-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-sm text-on-surface-variant">Loading tasks...</p>
+              <p className="text-sm text-on-surface-variant">{t('projectDetails.loadingTasks')}</p>
             </div>
           ) : taskStats.total === 0 ? (
             <div className="text-center py-12">
               <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-3">task_alt</span>
-              <p className="text-sm text-on-surface-variant font-medium">No tasks found for this project</p>
-              <p className="text-xs text-on-surface-variant/60 mt-1 mb-4">Create tasks on the Kanban board to get started.</p>
+              <p className="text-sm text-on-surface-variant font-medium">{t('projectDetails.noTasksFound')}</p>
+              <p className="text-xs text-on-surface-variant/60 mt-1 mb-4">{t('projectDetails.createTasksOnBoard')}</p>
               <Button
                 size="sm"
                 icon="view_week"
                 onClick={() => navigate(`/projects/${projectId}/board`)}
               >
-                Open Kanban Board
+                {t('projectDetails.openKanbanBoard')}
               </Button>
             </div>
           ) : (
@@ -572,9 +574,9 @@ export default function ProjectDetailsOverview() {
                     <span className="material-symbols-outlined text-[20px] text-electric-blue">trending_up</span>
                   </div>
                   <div>
-                    <p className="text-xs text-on-surface-variant">Progress</p>
+                    <p className="text-xs text-on-surface-variant">{t('projectDetails.taskProgress')}</p>
                     <p className="text-sm font-semibold text-on-surface">
-                      {taskStats.done} of {taskStats.total} completed
+                      {taskStats.done} / {taskStats.total} {t('projectDetails.completed')}
                     </p>
                   </div>
                 </div>
@@ -588,18 +590,18 @@ export default function ProjectDetailsOverview() {
                     <span className="material-symbols-outlined text-[20px] text-amber-400">work</span>
                   </div>
                   <div>
-                    <p className="text-xs text-on-surface-variant">Active Tasks</p>
+                    <p className="text-xs text-on-surface-variant">{t('projectDetails.activeTasks')}</p>
                     <p className="text-sm font-semibold text-on-surface">
-                      {taskStats.inProgress + taskStats.review} in progress
+                      {taskStats.inProgress + taskStats.review} {t('projectDetails.inProgress')}
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-2 text-xs">
                   <span className="px-2 py-1 rounded bg-electric-blue/10 text-electric-blue border border-electric-blue/20">
-                    {taskStats.inProgress} In Progress
+                    {taskStats.inProgress} {t('projectDetails.inProgressLabel')}
                   </span>
                   <span className="px-2 py-1 rounded bg-amber-400/10 text-amber-400 border border-amber-400/20">
-                    {taskStats.review} Review
+                    {taskStats.review} {t('projectDetails.reviewLabel')}
                   </span>
                 </div>
               </Card>
@@ -613,23 +615,23 @@ export default function ProjectDetailsOverview() {
         <Card>
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="font-heading text-lg font-semibold text-on-surface">Milestones</h3>
-              <p className="text-xs text-on-surface-variant mt-0.5">Project phases and target markers. Tasks can be assigned to milestones.</p>
+              <h3 className="font-heading text-lg font-semibold text-on-surface">{t('projectDetails.milestonesTitle')}</h3>
+              <p className="text-xs text-on-surface-variant mt-0.5">{t('projectDetails.milestonesDesc')}</p>
             </div>
-            <Button icon="add" onClick={() => setIsAddMilestoneOpen(true)}>Create Milestone</Button>
+            <Button icon="add" onClick={() => setIsAddMilestoneOpen(true)}>{t('projectDetails.createMilestone')}</Button>
           </div>
 
           {loadingMilestones ? (
             <div className="text-center py-12">
               <div className="w-10 h-10 border-4 border-electric-blue border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-              <p className="text-sm text-on-surface-variant">Loading milestones...</p>
+              <p className="text-sm text-on-surface-variant">{t('projectDetails.loadingMilestones')}</p>
             </div>
           ) : enrichedMilestones.length === 0 ? (
             <div className="text-center py-12">
               <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-3">flag</span>
-              <p className="text-sm text-on-surface-variant font-medium">No milestones found</p>
-              <p className="text-xs text-on-surface-variant/60 mt-1 mb-4">Structure your project timeline by mapping milestones.</p>
-              <Button size="sm" icon="add" onClick={() => setIsAddMilestoneOpen(true)}>Add Milestone</Button>
+              <p className="text-sm text-on-surface-variant font-medium">{t('projectDetails.noMilestonesFound')}</p>
+              <p className="text-xs text-on-surface-variant/60 mt-1 mb-4">{t('projectDetails.structureTimeline')}</p>
+              <Button size="sm" icon="add" onClick={() => setIsAddMilestoneOpen(true)}>{t('projectDetails.addMilestone')}</Button>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
@@ -698,7 +700,7 @@ export default function ProjectDetailsOverview() {
                       <div className="flex items-center gap-4">
                         <div className="flex-1">
                           <div className="flex justify-between text-[11px] mb-1">
-                            <span className="text-on-surface-variant">Progress</span>
+                            <span className="text-on-surface-variant">{t('projectDetails.progressLabel')}</span>
                             <span className="font-semibold text-on-surface">{milestone.progress ?? 0}%</span>
                           </div>
                           <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
@@ -712,7 +714,7 @@ export default function ProjectDetailsOverview() {
                           className="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full"
                           style={{ backgroundColor: `${color}20`, color }}
                         >
-                          {milestone.doneCount ?? 0}/{milestone.taskCount ?? 0} tasks
+                          {milestone.doneCount ?? 0}/{milestone.taskCount ?? 0} {t('projectDetails.tasksSuffix')}
                         </div>
                       </div>
                     </div>
@@ -727,10 +729,10 @@ export default function ProjectDetailsOverview() {
       {/* ACTIVITY LOG TAB */}
       {activeTab === 'activity' && (
         <Card>
-          <h3 className="font-heading text-lg font-semibold text-on-surface mb-6">Activity Audit Logs</h3>
+          <h3 className="font-heading text-lg font-semibold text-on-surface mb-6">{t('projectDetails.activityAuditLogs')}</h3>
           <div className="flex flex-col gap-3">
             {!(project as any).activityLogs || (project as any).activityLogs.length === 0 ? (
-              <p className="text-sm text-on-surface-variant italic">No activity logs recorded yet.</p>
+              <p className="text-sm text-on-surface-variant italic">{t('projectDetails.noActivityLogs')}</p>
             ) : (
               (project as any).activityLogs.map((log: any) => (
                 <div
@@ -771,10 +773,8 @@ export default function ProjectDetailsOverview() {
                 <span className="material-symbols-outlined text-[32px]">delete_forever</span>
               </div>
               <div>
-                <h3 className="font-heading text-lg font-semibold text-on-surface">Delete Project?</h3>
-                <p className="text-sm text-on-surface-variant mt-1">
-                  This will permanently delete <span className="font-semibold text-on-surface">{project.name}</span> and all its members and milestones. This action cannot be undone.
-                </p>
+                <h3 className="font-heading text-lg font-semibold text-on-surface">{t('projectDetails.deleteProjectTitle')}</h3>
+                <p className="text-sm text-on-surface-variant mt-1" dangerouslySetInnerHTML={{ __html: t('projectDetails.deleteProjectMsg', { name: project.name }) }} />
               </div>
               <div className="flex gap-3 w-full mt-2">
                 <Button
@@ -783,7 +783,7 @@ export default function ProjectDetailsOverview() {
                   className="flex-1"
                   onClick={() => setIsDeleteConfirmOpen(false)}
                 >
-                  Cancel
+                  {t('projectDetails.cancel')}
                 </Button>
                 <Button
                   type="button"
@@ -793,7 +793,7 @@ export default function ProjectDetailsOverview() {
                     handleDeleteProject()
                   }}
                 >
-                  Delete
+                  {t('projectDetails.delete')}
                 </Button>
               </div>
             </div>
@@ -806,7 +806,7 @@ export default function ProjectDetailsOverview() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-md w-full" padding="lg">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-heading text-xl font-semibold text-on-surface">Create Project Milestone</h3>
+              <h3 className="font-heading text-xl font-semibold text-on-surface">{t('projectDetails.createMilestoneModal')}</h3>
               <button
                 className="text-on-surface-variant hover:text-on-surface cursor-pointer"
                 onClick={() => setIsAddMilestoneOpen(false)}
@@ -817,29 +817,29 @@ export default function ProjectDetailsOverview() {
 
             <form onSubmit={handleAddMilestone} className="flex flex-col gap-4">
               <Input
-                label="Milestone Title"
-                placeholder="e.g. Phase 1: MVP Release"
+                label={t('projectDetails.milestoneTitle')}
+                placeholder={t('projectDetails.milestonePlaceholder')}
                 value={milestoneData.title}
                 onChange={(e) => setMilestoneData({ ...milestoneData, title: e.target.value })}
                 required
               />
 
               <TextArea
-                label="Description"
-                placeholder="Enter details of milestones outcomes..."
+                label={t('projectDetails.milestoneDesc')}
+                placeholder={t('projectDetails.milestoneDescPlaceholder')}
                 value={milestoneData.description}
                 onChange={(e) => setMilestoneData({ ...milestoneData, description: e.target.value })}
               />
 
               <Input
-                label="Target Date"
+                label={t('projectDetails.milestoneTargetDate')}
                 type="date"
                 value={milestoneData.targetDate}
                 onChange={(e) => setMilestoneData({ ...milestoneData, targetDate: e.target.value })}
               />
 
               <div>
-                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Color</label>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">{t('projectDetails.colorLabel')}</label>
                 <div className="flex gap-2 flex-wrap">
                   {['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6'].map((c) => (
                     <button
@@ -859,10 +859,10 @@ export default function ProjectDetailsOverview() {
 
               <div className="flex gap-3 justify-end mt-4">
                 <Button type="button" variant="secondary" onClick={() => setIsAddMilestoneOpen(false)}>
-                  Cancel
+                  {t('projectDetails.cancel')}
                 </Button>
                 <Button type="submit" disabled={createMilestoneMutation.isPending}>
-                  {createMilestoneMutation.isPending ? 'Creating...' : 'Create Milestone'}
+                  {createMilestoneMutation.isPending ? t('projectDetails.creatingBtn') : t('projectDetails.createMilestone')}
                 </Button>
               </div>
             </form>
@@ -875,7 +875,7 @@ export default function ProjectDetailsOverview() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-md w-full" padding="lg">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-heading text-xl font-semibold text-on-surface">Edit Milestone</h3>
+              <h3 className="font-heading text-xl font-semibold text-on-surface">{t('projectDetails.editMilestoneTitle')}</h3>
               <button
                 className="text-on-surface-variant hover:text-on-surface cursor-pointer"
                 onClick={() => setIsEditMilestoneOpen(false)}
@@ -886,32 +886,32 @@ export default function ProjectDetailsOverview() {
 
             <form onSubmit={handleEditMilestoneSubmit} className="flex flex-col gap-4">
               <Input
-                label="Milestone Title"
+                label={t('projectDetails.milestoneTitle')}
                 value={editMilestoneData.title}
                 onChange={(e) => setEditMilestoneData({ ...editMilestoneData, title: e.target.value })}
                 required
               />
 
               <TextArea
-                label="Description"
+                label={t('projectDetails.milestoneDesc')}
                 value={editMilestoneData.description}
                 onChange={(e) => setEditMilestoneData({ ...editMilestoneData, description: e.target.value })}
               />
 
               <div className="grid grid-cols-2 gap-4">
                 <Select
-                  label="Status"
+                  label={t('projectDetails.milestoneStatus')}
                   value={editMilestoneData.status}
                   onChange={(e) => setEditMilestoneData({ ...editMilestoneData, status: e.target.value })}
                   options={[
-                    { value: 'upcoming', label: 'Upcoming' },
-                    { value: 'in-progress', label: 'In Progress' },
-                    { value: 'completed', label: 'Completed' },
-                    { value: 'delayed', label: 'Delayed' },
+                    { value: 'upcoming', label: t('projectDetails.statusUpcoming') },
+                    { value: 'in-progress', label: t('projectDetails.statusInProgress') },
+                    { value: 'completed', label: t('projectDetails.statusCompleted') },
+                    { value: 'delayed', label: t('projectDetails.statusDelayed') },
                   ]}
                 />
                 <Input
-                  label="Target Date"
+                  label={t('projectDetails.milestoneTargetDate')}
                   type="date"
                   value={editMilestoneData.targetDate}
                   onChange={(e) => setEditMilestoneData({ ...editMilestoneData, targetDate: e.target.value })}
@@ -919,7 +919,7 @@ export default function ProjectDetailsOverview() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Color</label>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">{t('projectDetails.colorLabel')}</label>
                 <div className="flex gap-2 flex-wrap">
                   {['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6'].map((c) => (
                     <button
@@ -939,10 +939,10 @@ export default function ProjectDetailsOverview() {
 
               <div className="flex gap-3 justify-end mt-4">
                 <Button type="button" variant="secondary" onClick={() => setIsEditMilestoneOpen(false)}>
-                  Cancel
+                  {t('projectDetails.cancel')}
                 </Button>
                 <Button type="submit" disabled={updateMilestoneMutation.isPending}>
-                  {updateMilestoneMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  {updateMilestoneMutation.isPending ? t('projectDetails.savingBtn') : t('projectDetails.saveChanges')}
                 </Button>
               </div>
             </form>
@@ -955,7 +955,7 @@ export default function ProjectDetailsOverview() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-lg w-full" padding="lg">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-heading text-xl font-semibold text-on-surface">Edit Project Details</h3>
+              <h3 className="font-heading text-xl font-semibold text-on-surface">{t('projectDetails.editProjectDetailsTitle')}</h3>
               <button
                 className="text-on-surface-variant hover:text-on-surface cursor-pointer"
                 onClick={() => setIsEditProjectOpen(false)}
@@ -966,53 +966,53 @@ export default function ProjectDetailsOverview() {
 
             <form onSubmit={handleEditProject} className="flex flex-col gap-4">
               <Input
-                label="Project Name"
+                label={t('projectDetails.projectName')}
                 value={projectEditData.name}
                 onChange={(e) => setProjectEditData({ ...projectEditData, name: e.target.value })}
                 required
               />
 
               <TextArea
-                label="Description"
+                label={t('projectDetails.description')}
                 value={projectEditData.description}
                 onChange={(e) => setProjectEditData({ ...projectEditData, description: e.target.value })}
               />
 
               <div className="grid grid-cols-2 gap-4">
                 <Select
-                  label="Status"
+                  label={t('projectDetails.statusLabel')}
                   value={projectEditData.status}
                   onChange={(e) => setProjectEditData({ ...projectEditData, status: e.target.value })}
                   options={[
-                    { value: 'planning', label: 'Planning' },
-                    { value: 'active', label: 'Active' },
-                    { value: 'completed', label: 'Completed' },
-                    { value: 'archived', label: 'Archived' },
+                    { value: 'planning', label: t('projects.statusPlanning') },
+                    { value: 'active', label: t('projects.statusActive') },
+                    { value: 'completed', label: t('projects.statusCompleted') },
+                    { value: 'archived', label: t('projects.statusArchived') },
                   ]}
                 />
 
                 <Select
-                  label="Priority"
+                  label={t('projectDetails.priorityLabel')}
                   value={projectEditData.priority}
                   onChange={(e) => setProjectEditData({ ...projectEditData, priority: e.target.value })}
                   options={[
-                    { value: 'low', label: 'Low' },
-                    { value: 'medium', label: 'Medium' },
-                    { value: 'high', label: 'High' },
+                    { value: 'low', label: t('projects.priorityLow') },
+                    { value: 'medium', label: t('projects.priorityMedium') },
+                    { value: 'high', label: t('projects.priorityHigh') },
                   ]}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="Start Date"
+                  label={t('projectDetails.startDateLabel')}
                   type="date"
                   value={projectEditData.startDate}
                   onChange={(e) => setProjectEditData({ ...projectEditData, startDate: e.target.value })}
                 />
 
                 <Input
-                  label="End Date"
+                  label={t('projectDetails.endDateLabel')}
                   type="date"
                   value={projectEditData.endDate}
                   onChange={(e) => setProjectEditData({ ...projectEditData, endDate: e.target.value })}
@@ -1021,10 +1021,10 @@ export default function ProjectDetailsOverview() {
 
               <div className="flex gap-3 justify-end mt-4">
                 <Button type="button" variant="secondary" onClick={() => setIsEditProjectOpen(false)}>
-                  Cancel
+                  {t('projectDetails.cancel')}
                 </Button>
                 <Button type="submit" disabled={updateProjectMutation.isPending}>
-                  {updateProjectMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  {updateProjectMutation.isPending ? t('projectDetails.savingBtn') : t('projectDetails.saveChanges')}
                 </Button>
               </div>
             </form>
