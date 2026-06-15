@@ -19,8 +19,8 @@ export class ProjectEmbedding {
 
   // Vector embedding (stored as jsonb — pgvector not available in this environment)
   @Column({ 
-    type: 'jsonb',
-    nullable: true,
+    type: 'vector',
+    length: 1536, 
   })
   embedding: number[];
 
