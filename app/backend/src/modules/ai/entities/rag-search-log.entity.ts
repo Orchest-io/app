@@ -21,7 +21,8 @@ export class RagSearchLog {
 
   @Column({ 
     name: 'query_embedding',
-    type: 'jsonb',
+    type: 'vector',
+    length: 1536,
     nullable: true,
   })
   queryEmbedding: number[];
