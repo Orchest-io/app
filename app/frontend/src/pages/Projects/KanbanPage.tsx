@@ -5,7 +5,6 @@ import { toast } from 'sonner'
 import type { Task, Column, BoardState, FilterState, TaskPriority } from './types/kanban.types'
 import TaskFilters from './components/TaskFilters'
 import KanbanColumn from './components/KanbanColumn'
-import TaskDetails from './components/TaskDetails'
 import apiClient from '../../api/client'
 import { getMilestones } from '../../api/projects.api'
 
@@ -58,8 +57,6 @@ export default function KanbanPage() {
     priority: 'all',
   })
 
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-
   // Add Task Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [targetColumnId, setTargetColumnId] = useState('')
@@ -69,6 +66,7 @@ export default function KanbanPage() {
     priority: 'medium' as TaskPriority,
     dueDate: '',
     assigneeId: '',
+    storyPoints: '' as number | '',
     milestoneId: '',
   })
 
@@ -109,6 +107,7 @@ export default function KanbanPage() {
         columnId: apiTask.status || 'backlog',
         milestoneId: apiTask.milestoneId || null,
         milestone: apiTask.milestone || null,
+        storyPoints: apiTask.storyPoints,
       }
 
       tasksMap[task.id] = task
@@ -186,9 +185,6 @@ export default function KanbanPage() {
     buildBoardFromTasks(filtered)
   }, [selectedMilestoneId, rawTasks, buildBoardFromTasks])
 
-  // Get active selected task with fresh data
-  const activeTask = selectedTask ? board.tasks[selectedTask.id] || null : null
-
   // Handle Drag & Drop Callback
   const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result
@@ -237,73 +233,6 @@ export default function KanbanPage() {
     }
   }
 
-  // Update Task Info (Called from TaskDetails)
-  const handleUpdateTask = async (updatedTask: Task) => {
-    setRawTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === updatedTask.id) {
-          return {
-            ...t,
-            title: updatedTask.title,
-            description: updatedTask.description,
-            priority: updatedTask.priority,
-            dueDate: updatedTask.dueDate || null,
-            milestoneId: updatedTask.milestoneId || null,
-            milestone: updatedTask.milestone || null,
-          }
-        }
-        return t
-      })
-    )
-
-    setBoard((prev) => ({
-      ...prev,
-      tasks: { ...prev.tasks, [updatedTask.id]: updatedTask },
-    }))
-
-    try {
-      await apiClient.patch(`/tasks/${updatedTask.id}`, {
-        title: updatedTask.title,
-        description: updatedTask.description,
-        priority: updatedTask.priority,
-        dueDate: updatedTask.dueDate || null,
-        milestoneId: updatedTask.milestoneId || null,
-      })
-      toast.success('Task updated')
-      fetchMilestones()
-    } catch (error) {
-      console.error('Failed to update task:', error)
-      toast.error('Failed to update task')
-    }
-  }
-
-  // Delete Task (Called from TaskDetails)
-  const handleDeleteTask = async (taskId: string) => {
-    try {
-      await apiClient.delete(`/tasks/${taskId}`)
-
-      const task = board.tasks[taskId]
-      if (task) {
-        const newTasks = { ...board.tasks }
-        delete newTasks[taskId]
-
-        const newColumns = { ...board.columns }
-        const column = newColumns[task.columnId]
-        if (column) {
-          column.taskIds = column.taskIds.filter((id) => id !== taskId)
-        }
-
-        setBoard({ ...board, tasks: newTasks, columns: newColumns })
-        setRawTasks((prev) => prev.filter((t) => t.id !== taskId))
-      }
-
-      toast.success('Task deleted')
-      fetchMilestones()
-    } catch (error) {
-      console.error('Failed to delete task:', error)
-      toast.error('Failed to delete task')
-    }
-  }
 
   // Trigger Add Task Dialog
   const handleOpenAddTask = (columnId: string) => {
@@ -314,6 +243,7 @@ export default function KanbanPage() {
       priority: 'medium',
       dueDate: '',
       assigneeId: '',
+      storyPoints: '',
       milestoneId: selectedMilestoneId && selectedMilestoneId !== '__none__' ? selectedMilestoneId : '',
     })
     setIsAddModalOpen(true)
@@ -339,6 +269,7 @@ export default function KanbanPage() {
         priority: newTaskData.priority,
         status: targetColumnId,
         dueDate: newTaskData.dueDate || null,
+        storyPoints: newTaskData.storyPoints ? Number(newTaskData.storyPoints) : undefined,
         milestoneId: newTaskData.milestoneId || null,
       })
 
@@ -372,6 +303,7 @@ export default function KanbanPage() {
         subtasks: [],
         dueDate: createdTask.dueDate,
         columnId: targetColumnId,
+        storyPoints: createdTask.storyPoints,
         milestoneId: createdTask.milestoneId || null,
         milestone: assignedMilestone || null,
       }
@@ -402,9 +334,10 @@ export default function KanbanPage() {
       setIsAddModalOpen(false)
       toast.success('Task created successfully')
       fetchMilestones()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create task:', error)
-      toast.error('Failed to create task')
+      const msg = error.response?.data?.message || error.message
+      toast.error('Failed to create task: ' + (Array.isArray(msg) ? msg.join(', ') : msg))
     }
   }
 
@@ -562,11 +495,11 @@ export default function KanbanPage() {
               const column = board.columns[colId]
               const tasksInCol = filteredTasksByColumn[colId] || []
               return (
-                <KanbanColumn
+                  <KanbanColumn
                   key={column.id}
                   column={column}
                   tasks={tasksInCol}
-                  onCardClick={setSelectedTask}
+                  onCardClick={(task) => navigate(`/projects/${projectId}/tasks/${task.id}`)}
                   onAddTask={handleOpenAddTask}
                   milestones={milestones}
                   milestoneColors={MILESTONE_COLORS}
@@ -577,15 +510,6 @@ export default function KanbanPage() {
         </DragDropContext>
       </div>
 
-      {/* Task Details Side Drawer */}
-      <TaskDetails
-        task={activeTask}
-        onClose={() => setSelectedTask(null)}
-        onUpdateTask={handleUpdateTask}
-        onDeleteTask={handleDeleteTask}
-        projectMembers={projectMembers}
-        milestones={milestones}
-      />
 
       {/* Add Task Modal */}
       {isAddModalOpen && (
@@ -646,6 +570,25 @@ export default function KanbanPage() {
                     onChange={(e) => setNewTaskData({ ...newTaskData, dueDate: e.target.value })}
                     className="w-full bg-surface-container-low text-on-surface border border-white/10 rounded-lg p-2.5 focus:outline-none focus:border-electric-blue/50 text-sm"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
+                    Story Points
+                  </label>
+                  <select
+                    value={newTaskData.storyPoints}
+                    onChange={(e) => setNewTaskData({ ...newTaskData, storyPoints: e.target.value ? Number(e.target.value) : '' })}
+                    className="w-full bg-surface-container-low text-on-surface border border-white/10 rounded-lg p-2.5 focus:outline-none focus:border-electric-blue/50 text-sm"
+                  >
+                    <option value="">None</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="5">5</option>
+                    <option value="8">8</option>
+                    <option value="13">13</option>
+                  </select>
                 </div>
               </div>
 

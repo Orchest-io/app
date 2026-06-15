@@ -13,4 +13,7 @@ export const getDatabaseConfig = (
 	entities: [__dirname + "/../../modules/**/*.entity{.ts,.js}"],
 	synchronize: true, // Auto-create tables for development. In production, use migrations!
 	logging: true,
+	ssl: configService.get<string>("DB_HOST", "localhost").includes("supabase.com") 
+		? { rejectUnauthorized: false } 
+		: undefined,
 });

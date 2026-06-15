@@ -46,6 +46,9 @@ export class Task {
   @Column({ type: 'varchar', nullable: true })
   label: string;
 
+  @Column({ name: 'story_points', type: 'int', nullable: true })
+  storyPoints: number;
+
   @Column({ name: 'is_ai_suggested', type: 'boolean', default: false })
   isAiSuggested: boolean;
 
