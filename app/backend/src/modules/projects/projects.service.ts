@@ -6,7 +6,8 @@ import {
 	UnprocessableEntityException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, In } from "typeorm";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Project, ProjectMember, Milestone } from "./entities";
 import { Task } from "../tasks/entities/task.entity";
 import {
@@ -15,6 +16,7 @@ import {
 	AddProjectMemberDto,
 	CreateMilestoneDto,
 	UpdateMilestoneDto,
+	AssignTasksToMilestoneDto,
 	ProjectMemberRole,
 	MilestoneStatus,
 	TaskStatus,
@@ -26,7 +28,6 @@ import {
 import { ActivityLogService } from "../analytics/activity-log.service";
 import { NotificationService } from "../analytics/notification.service";
 import { UsersService } from "../users/users.service";
-import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
 	MILESTONE_CREATED_EVENT,
 	MilestoneCreatedEvent,
@@ -106,6 +107,9 @@ export class ProjectsService {
 			entity_id: savedProject.id,
 			description: `Project "${savedProject.name}" created`,
 		});
+
+		// Emit event for RAG indexing (non-blocking)
+		this.eventEmitter.emit('project.created', { projectId: savedProject.id });
 
 		return savedProject;
 	}
@@ -487,5 +491,105 @@ export class ProjectsService {
 				});
 			}
 		}
+	}
+
+	// --- Milestone-Task relationship methods ---
+
+	async getMilestones(
+		projectId: string,
+		userId: string,
+	): Promise<(Milestone & { taskCount: number; doneCount: number })[]> {
+		await this.requireMember(projectId, userId);
+
+		const milestones = await this.milestonesRepository.find({
+			where: { projectId },
+			order: { createdAt: 'ASC' },
+		});
+
+		// Attach task counts per milestone
+		const result = await Promise.all(
+			milestones.map(async (ms) => {
+				const taskCount = await this.tasksRepository.count({
+					where: { milestoneId: ms.id },
+				});
+				const doneCount = await this.tasksRepository.count({
+					where: { milestoneId: ms.id, status: TaskStatus.DONE },
+				});
+				return { ...ms, taskCount, doneCount };
+			}),
+		);
+
+		return result;
+	}
+
+	async getMilestoneTasks(milestoneId: string, userId: string): Promise<Task[]> {
+		const milestone = await this.milestonesRepository.findOne({
+			where: { id: milestoneId },
+		});
+		if (!milestone) throw new NotFoundException('Milestone not found');
+		await this.requireMember(milestone.projectId, userId);
+
+		return this.tasksRepository.find({
+			where: { milestoneId },
+			relations: ['subtasks', 'assignees', 'assignees.user'],
+			order: { createdAt: 'ASC' },
+		});
+	}
+
+	async assignTasksToMilestone(
+		milestoneId: string,
+		dto: AssignTasksToMilestoneDto,
+		userId: string,
+	): Promise<void> {
+		const milestone = await this.milestonesRepository.findOne({
+			where: { id: milestoneId },
+		});
+		if (!milestone) throw new NotFoundException('Milestone not found');
+		await this.requireMember(milestone.projectId, userId);
+
+		if (dto.taskIds.length === 0) return;
+
+		// Validate all tasks belong to the same project
+		const tasks = await this.tasksRepository.find({
+			where: { id: In(dto.taskIds) },
+		});
+
+		const wrongProject = tasks.find((t) => t.projectId !== milestone.projectId);
+		if (wrongProject) {
+			throw new UnprocessableEntityException(
+				`Task ${wrongProject.id} does not belong to this project`,
+			);
+		}
+
+		await this.tasksRepository.update(
+			{ id: In(dto.taskIds) },
+			{ milestoneId },
+		);
+
+		await this.recalculateMilestoneProgress(milestoneId, userId);
+	}
+
+	async unassignTaskFromMilestone(
+		milestoneId: string,
+		taskId: string,
+		userId: string,
+	): Promise<void> {
+		const milestone = await this.milestonesRepository.findOne({
+			where: { id: milestoneId },
+		});
+		if (!milestone) throw new NotFoundException('Milestone not found');
+		await this.requireMember(milestone.projectId, userId);
+
+		const task = await this.tasksRepository.findOne({ where: { id: taskId } });
+		if (!task) throw new NotFoundException('Task not found');
+
+		if (task.milestoneId !== milestoneId) {
+			throw new UnprocessableEntityException(
+				'Task is not assigned to this milestone',
+			);
+		}
+
+		await this.tasksRepository.update({ id: taskId }, { milestoneId: null });
+		await this.recalculateMilestoneProgress(milestoneId, userId);
 	}
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import apiClient from '../../api/client'
+import { getMilestones } from '../../api/projects.api'
 import type { Task, TaskPriority, Subtask } from './types/kanban.types'
 
 export default function TaskDetailsPage() {
@@ -21,8 +22,10 @@ export default function TaskDetailsPage() {
   const [editedPriority, setEditedPriority] = useState<TaskPriority>('medium')
   const [editedDueDate, setEditedDueDate] = useState('')
   const [editedStoryPoints, setEditedStoryPoints] = useState<number | ''>('')
+  const [editedMilestoneId, setEditedMilestoneId] = useState<string>('')
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [comments, setComments] = useState<any[]>([])
+  const [milestones, setMilestones] = useState<any[]>([])
   const [commentText, setCommentText] = useState('')
   const [isLoadingComments, setIsLoadingComments] = useState(false)
 
@@ -56,9 +59,10 @@ export default function TaskDetailsPage() {
     const fetchTaskData = async () => {
       try {
         setIsLoading(true)
-        const [taskRes, membersRes] = await Promise.all([
+        const [taskRes, membersRes, milestonesRes] = await Promise.all([
           apiClient.get(`/tasks/${taskId}`),
-          apiClient.get(`/projects/${projectId}`)
+          apiClient.get(`/projects/${projectId}`),
+          getMilestones(projectId)
         ])
         
         const apiTask = taskRes.data
@@ -81,6 +85,8 @@ export default function TaskDetailsPage() {
           dueDate: apiTask.dueDate,
           columnId: apiTask.status || 'backlog',
           storyPoints: apiTask.storyPoints,
+          milestoneId: apiTask.milestoneId || null,
+          milestone: apiTask.milestone || null,
         }
         
         setTask(taskObj)
@@ -89,8 +95,10 @@ export default function TaskDetailsPage() {
         setEditedPriority(taskObj.priority)
         setEditedDueDate(taskObj.dueDate || '')
         setEditedStoryPoints(taskObj.storyPoints || '')
+        setEditedMilestoneId(taskObj.milestoneId || '')
         
         setProjectMembers(membersRes.data.members || [])
+        setMilestones(milestonesRes || [])
         
         fetchComments(taskId)
       } catch (error) {
@@ -181,13 +189,16 @@ export default function TaskDetailsPage() {
 
   const handleSave = async () => {
     if (!task) return
+    const selectedMilestone = milestones.find((m) => m.id === editedMilestoneId)
+
     try {
       await apiClient.patch(`/tasks/${task.id}`, {
         title: editedTitle,
         description: editedDescription,
         priority: editedPriority,
         dueDate: editedDueDate || null,
-        storyPoints: editedStoryPoints ? Number(editedStoryPoints) : null,
+        storyPoints: editedStoryPoints ? Number(editedStoryPoints) : undefined,
+        milestoneId: editedMilestoneId || null,
       })
       onUpdateTask({
         ...task,
@@ -196,6 +207,13 @@ export default function TaskDetailsPage() {
         priority: editedPriority,
         dueDate: editedDueDate || undefined,
         storyPoints: editedStoryPoints ? Number(editedStoryPoints) : undefined,
+        milestoneId: editedMilestoneId || null,
+        milestone: selectedMilestone ? {
+          id: selectedMilestone.id,
+          title: selectedMilestone.title,
+          color: selectedMilestone.color,
+          status: selectedMilestone.status,
+        } : null,
       })
       setIsEditing(false)
       toast.success('Task updated')
@@ -374,6 +392,23 @@ export default function TaskDetailsPage() {
                     <option value="13">13</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
+                    Milestone
+                  </label>
+                  <select
+                    value={editedMilestoneId}
+                    onChange={(e) => setEditedMilestoneId(e.target.value)}
+                    className="w-full bg-surface-container-lowest text-on-surface border border-white/10 rounded-xl p-3 focus:outline-none focus:border-electric-blue/50 text-sm transition-all"
+                  >
+                    <option value="">No Milestone</option>
+                    {milestones.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="flex gap-3 pt-4">
@@ -420,6 +455,19 @@ export default function TaskDetailsPage() {
                     <span className="text-[11px] bg-white/5 text-on-surface-variant border border-white/10 px-3 py-1 rounded-md font-medium flex items-center gap-1.5">
                       <span className="material-symbols-outlined text-[14px]">calendar_today</span>
                       Due: {new Date(task.dueDate).toLocaleDateString()}
+                    </span>
+                  )}
+                  {task.milestone && (
+                    <span
+                      className="text-[11px] border px-3 py-1 rounded-md font-medium flex items-center gap-1.5"
+                      style={{
+                        backgroundColor: `${task.milestone.color || '#6366f1'}20`,
+                        borderColor: `${task.milestone.color || '#6366f1'}40`,
+                        color: task.milestone.color || '#6366f1',
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-[14px]">flag</span>
+                      Milestone: {task.milestone.title}
                     </span>
                   )}
                 </div>

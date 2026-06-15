@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { toast } from 'sonner'
 import { Button, Card, Input, Toggle, Select } from '../../components/ui'
 import { useMe, useUpdateMe, useUpdateMySettings, useChangePassword } from '../../hooks/useSettings'
+import { useAiUsage } from '../../hooks/useAiUsage'
 
 // ─── Section IDs ──────────────────────────────────────────────────
 type SectionId =
@@ -245,6 +246,7 @@ function NotificationsSection() {
 function AiSection() {
   const { data: user } = useMe()
   const updateSettings = useUpdateMySettings()
+  const { data: aiUsage, isLoading: usageLoading } = useAiUsage()
   const settings = (user as any)?.settings
 
   const rows = [
@@ -253,10 +255,69 @@ function AiSection() {
     { key: 'aiCopilot',     label: 'Copilot Briefings',      desc: 'Receive daily AI-generated summaries of workspace activity.', icon: 'smart_toy'    },
   ]
 
+  // Calculate usage percentage
+  const usagePercent = aiUsage ? Math.round((aiUsage.used / aiUsage.limit) * 100) : 0
+  const usageColor = usagePercent >= 100 ? 'text-error' : usagePercent >= 80 ? 'text-amber-400' : 'text-emerald-400'
+  const barColor = usagePercent >= 100 ? 'bg-error' : usagePercent >= 80 ? 'bg-amber-400' : 'bg-emerald-400'
+
   return (
     <div>
       <SectionHeader title="AI Preferences" desc="Control how the AI copilot interacts with your workspace." />
 
+      {/* AI Usage Counter Card */}
+      <Card className="mb-6 bg-peri-purple/5 border-peri-purple/20">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-peri-purple/15 flex items-center justify-center text-peri-purple shrink-0">
+              <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                psychology
+              </span>
+            </div>
+            <div>
+              <p className="font-heading text-sm font-semibold text-on-surface">AI Project Planning</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">Monthly usage limit</p>
+            </div>
+          </div>
+          {aiUsage && (
+            <span className={`px-2.5 py-1 rounded-full ${usagePercent >= 100 ? 'bg-error/10 text-error' : 'bg-emerald-500/10 text-emerald-400'} text-[10px] font-heading font-bold uppercase tracking-wider shrink-0`}>
+              {aiUsage.canUse ? 'Available' : 'Limit Reached'}
+            </span>
+          )}
+        </div>
+
+        {usageLoading ? (
+          <div className="h-16 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-peri-purple"></div>
+          </div>
+        ) : aiUsage ? (
+          <>
+            <div className="flex items-end justify-between mb-2">
+              <p className="text-2xl font-heading font-bold text-on-surface">
+                {aiUsage.used} <span className="text-sm text-on-surface-variant font-normal">/ {aiUsage.limit}</span>
+              </p>
+              <p className={`text-xs font-semibold ${usageColor}`}>
+                {usagePercent}% used
+              </p>
+            </div>
+            <div className="w-full h-2 bg-surface-container-low rounded-full overflow-hidden">
+              <div
+                className={`h-full ${barColor} transition-all duration-300 rounded-full`}
+                style={{ width: `${Math.min(usagePercent, 100)}%` }}
+              />
+            </div>
+            <p className="text-xs text-on-surface-variant mt-3">
+              {aiUsage.canUse 
+                ? `${aiUsage.limit - aiUsage.used} AI plans remaining this month` 
+                : `Resets on ${new Date(aiUsage.resetsAt).toLocaleDateString()}`
+              }
+            </p>
+          </>
+        ) : (
+          <p className="text-xs text-on-surface-variant">Failed to load usage data</p>
+        )}
+      </Card>
+
+      {/* AI Toggles */}
       <Card className="flex flex-col divide-y divide-border-low mb-6">
         {rows.map(({ key, label, desc, icon }) => (
           <div key={key} className="flex items-center justify-between py-5 first:pt-0 last:pb-0">
@@ -288,17 +349,17 @@ function AiSection() {
       </Card>
 
       {/* AI model info */}
-      <Card className="flex items-center gap-4 bg-peri-purple/5 border-peri-purple/20">
-        <div className="w-10 h-10 rounded-full bg-peri-purple/15 flex items-center justify-center text-peri-purple shrink-0">
+      <Card className="flex items-center gap-4 bg-electric-blue/5 border-electric-blue/20">
+        <div className="w-10 h-10 rounded-full bg-electric-blue/15 flex items-center justify-center text-electric-blue shrink-0">
           <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>
             hub
           </span>
         </div>
         <div>
-          <p className="font-heading text-sm font-semibold text-on-surface">Powered by GPT-4o</p>
-          <p className="text-xs text-on-surface-variant mt-0.5">All AI features run on OpenAI GPT-4o with enterprise-grade data isolation.</p>
+          <p className="font-heading text-sm font-semibold text-on-surface">Powered by OpenAI</p>
+          <p className="text-xs text-on-surface-variant mt-0.5">Using GPT-5-mini and GPT-4o-mini models for intelligent project planning.</p>
         </div>
-        <span className="ml-auto px-2.5 py-1 rounded-full bg-peri-purple/20 text-peri-purple text-[10px] font-heading font-bold uppercase tracking-wider shrink-0">
+        <span className="ml-auto px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-heading font-bold uppercase tracking-wider shrink-0">
           Active
         </span>
       </Card>

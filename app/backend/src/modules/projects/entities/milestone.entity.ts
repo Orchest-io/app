@@ -38,6 +38,9 @@ export class Milestone {
   @Column({ name: 'is_ai_generated', type: 'boolean', default: false })
   isAiGenerated: boolean;
 
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  color: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

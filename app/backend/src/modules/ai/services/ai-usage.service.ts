@@ -1,0 +1,173 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, Between } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import { AiUsageLog } from '../entities/ai-usage-log.entity';
+import { UsersService } from '../../users/users.service';
+
+@Injectable()
+export class AiUsageService {
+  constructor(
+    @InjectRepository(AiUsageLog)
+    private aiUsageLogRepository: Repository<AiUsageLog>,
+    private configService: ConfigService,
+    private usersService: UsersService,
+  ) {}
+
+  /**
+   * Log AI usage
+   */
+  async logUsage(
+    userId: string,
+    feature: string,
+    tokensUsed: number,
+    modelUsed: string,
+    aiJobId?: string,
+  ): Promise<void> {
+    const estimatedCost = this.calculateCost(tokensUsed, modelUsed);
+
+    const log = this.aiUsageLogRepository.create({
+      userId,
+      feature,
+      aiJobId,
+      tokensUsed,
+      estimatedCost,
+      modelUsed,
+    });
+
+    await this.aiUsageLogRepository.save(log);
+  }
+
+  /**
+   * Check monthly usage limit
+   */
+  async checkMonthlyLimit(
+    userId: string,
+    feature: string,
+  ): Promise<{
+    used: number;
+    limit: number;
+    canUse: boolean;
+    resetsAt: Date;
+  }> {
+    // Check if user has bypass permission
+    const hasBypass = await this.checkBypass(userId);
+    if (hasBypass) {
+      return {
+        used: 0,
+        limit: 999999,
+        canUse: true,
+        resetsAt: new Date('2099-12-31'),
+      };
+    }
+
+    // Get limit from env (default 10)
+    const limit = this.configService.get<number>('AI_USAGE_LIMIT', 10);
+
+    // Get current month's usage
+    const startOfMonth = this.getStartOfMonth();
+    const endOfMonth = this.getEndOfMonth();
+
+    const used = await this.aiUsageLogRepository.count({
+      where: {
+        userId,
+        feature,
+        createdAt: Between(startOfMonth, endOfMonth),
+      },
+    });
+
+    const resetsAt = this.getNextMonthStart();
+
+    return {
+      used,
+      limit,
+      canUse: used < limit,
+      resetsAt,
+    };
+  }
+
+  /**
+   * Check if user has bypass permission
+   */
+  private async checkBypass(userId: string): Promise<boolean> {
+    // Get user
+    const user = await this.usersService.findOne(userId);
+
+    // Admin bypass - check roles array
+    if (user.roles && Array.isArray(user.roles) && user.roles.includes('admin')) {
+      return true;
+    }
+
+    // Email bypass
+    const bypassEmails = this.configService
+      .get<string>('AI_BYPASS_EMAILS', '')
+      .split(',')
+      .map((e) => e.trim())
+      .filter((e) => e);
+
+    if (bypassEmails.includes(user.email)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Calculate estimated cost based on tokens and model
+   */
+  private calculateCost(tokens: number, model: string): number {
+    // Pricing per 1M tokens (approximate)
+    const pricing: Record<string, number> = {
+      'gpt-4o': 2.50,
+      'gpt-4o-mini': 0.15,
+      'gpt-3.5-turbo': 0.002,
+      'text-embedding-3-small': 0.02,
+    };
+
+    const pricePerMillion = pricing[model] || 0.10;
+    return (tokens / 1000000) * pricePerMillion;
+  }
+
+  /**
+   * Get start of current month
+   */
+  private getStartOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+  }
+
+  /**
+   * Get end of current month
+   */
+  private getEndOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  }
+
+  /**
+   * Get start of next month (for reset date)
+   */
+  private getNextMonthStart(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
+  }
+
+  /**
+   * Get user's usage history
+   */
+  async getUserUsageHistory(
+    userId: string,
+    months: number = 3,
+  ): Promise<AiUsageLog[]> {
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - months);
+
+    return await this.aiUsageLogRepository.find({
+      where: {
+        userId,
+        createdAt: Between(startDate, new Date()),
+      },
+      order: { createdAt: 'DESC' },
+    });
+  }
+}

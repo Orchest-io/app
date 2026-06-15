@@ -8,6 +8,8 @@ import {
 	IsDateString,
 	IsObject,
 	IsUUID,
+	IsArray,
+	IsHexColor,
 } from "class-validator";
 import {
 	ProjectStatus,
@@ -148,6 +150,10 @@ export class CreateMilestoneDto {
 	@IsOptional()
 	@IsInt()
 	sortOrder?: number;
+
+	@IsOptional()
+	@IsString()
+	color?: string;
 }
 
 export class UpdateMilestoneDto {
@@ -176,11 +182,22 @@ export class UpdateMilestoneDto {
 	@IsOptional()
 	@IsInt()
 	sortOrder?: number;
+
+	@IsOptional()
+	@IsString()
+	color?: string;
+}
+
+export class AssignTasksToMilestoneDto {
+	@IsArray()
+	@IsUUID('4', { each: true })
+	taskIds: string[];
 }
 
 export interface ProjectListItemDto {
 	id: string;
 	name: string;
+	description?: string;
 	status: ProjectStatus;
 	priority: ProjectPriority;
 	progress: number;

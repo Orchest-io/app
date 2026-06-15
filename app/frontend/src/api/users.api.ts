@@ -63,3 +63,9 @@ export const logoutUser = async (): Promise<void> => {
   localStorage.removeItem('orchest_refresh_token')
   localStorage.removeItem('orchest_user_id')
 }
+
+// Get all users (for team selection)
+export const getAllUsers = async (): Promise<any[]> => {
+  const response = await apiClient.get('/users')
+  return response.data
+}

@@ -44,9 +44,11 @@ export default function ProjectsList() {
           </p>
         </div>
 
-        <Button icon="add" onClick={() => navigate('/projects/create')}>
-          New Project
-        </Button>
+        <div className="flex gap-3">
+          <Button icon="add" onClick={() => navigate('/projects/create')}>
+            Create Project
+          </Button>
+        </div>
       </div>
 
       {/* Grid List */}
@@ -81,7 +83,7 @@ export default function ProjectsList() {
           </div>
           <h3 className="font-heading text-xl font-bold mb-2">No Projects Found</h3>
           <p className="text-sm text-on-surface-variant max-w-sm mb-6 leading-relaxed">
-            Create your first project to start tracking tasks and milestones.
+            Create your first project to get started with task tracking and team collaboration.
           </p>
           <Button icon="add" onClick={() => navigate('/projects/create')}>
             Create Project

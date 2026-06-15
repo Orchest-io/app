@@ -6,6 +6,7 @@ import {
   AddProjectMemberDto,
   CreateMilestoneDto,
   UpdateMilestoneDto,
+  AssignTasksToMilestoneDto,
 } from '@orchest/shared';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.decorator';
@@ -72,6 +73,11 @@ export class ProjectsController {
     return this.projectsService.createMilestone(id, dto, user.id);
   }
 
+  @Get(':id/milestones')
+  getMilestones(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.projectsService.getMilestones(id, user.id);
+  }
+
   @Patch('milestones/:milestoneId')
   updateMilestone(@CurrentUser() user: JwtPayload, @Param('milestoneId') milestoneId: string, @Body() dto: UpdateMilestoneDto) {
     return this.projectsService.updateMilestone(milestoneId, dto, user.id);
@@ -80,5 +86,28 @@ export class ProjectsController {
   @Delete('milestones/:milestoneId')
   removeMilestone(@CurrentUser() user: JwtPayload, @Param('milestoneId') milestoneId: string) {
     return this.projectsService.removeMilestone(milestoneId, user.id);
+  }
+
+  @Get('milestones/:milestoneId/tasks')
+  getMilestoneTasks(@CurrentUser() user: JwtPayload, @Param('milestoneId') milestoneId: string) {
+    return this.projectsService.getMilestoneTasks(milestoneId, user.id);
+  }
+
+  @Post('milestones/:milestoneId/tasks')
+  assignTasksToMilestone(
+    @CurrentUser() user: JwtPayload,
+    @Param('milestoneId') milestoneId: string,
+    @Body() dto: AssignTasksToMilestoneDto,
+  ) {
+    return this.projectsService.assignTasksToMilestone(milestoneId, dto, user.id);
+  }
+
+  @Delete('milestones/:milestoneId/tasks/:taskId')
+  unassignTaskFromMilestone(
+    @CurrentUser() user: JwtPayload,
+    @Param('milestoneId') milestoneId: string,
+    @Param('taskId') taskId: string,
+  ) {
+    return this.projectsService.unassignTaskFromMilestone(milestoneId, taskId, user.id);
   }
 }
