@@ -24,7 +24,7 @@ export class AiInsightsLog {
   @Column({ type: 'text', nullable: true })
   message: string;
 
-  @Column({ name: 'insight_embedding', type: 'jsonb', nullable: true })
+  @Column({ name: 'insight_embedding', type: 'vector' as any, length: 1536, nullable: true })
   insightEmbedding: number[];
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
