@@ -53,6 +53,16 @@ export default function CreateProjectWizard() {
     endDate: '',
   })
 
+  // Story Point Configs state
+  const [storyPointConfigs, setStoryPointConfigs] = useState([
+    { storyPointValue: 1, hoursEquivalent: 4 },
+    { storyPointValue: 2, hoursEquivalent: 8 },
+    { storyPointValue: 3, hoursEquivalent: 16 },
+    { storyPointValue: 5, hoursEquivalent: 40 },
+    { storyPointValue: 8, hoursEquivalent: 80 },
+    { storyPointValue: 13, hoursEquivalent: 120 },
+  ])
+
   // AI Input Form state
   const [aiFormData, setAiFormData] = useState({
     description: '',
@@ -551,6 +561,7 @@ export default function CreateProjectWizard() {
         ...formData,
         projectType: projectMode, // 'ai' or 'manual'
         projectMode: projectType, // 'team' or 'individual'
+        storyPointConfigs,
       }
 
       createProjectMutation.mutate(projectData as any, {
@@ -661,6 +672,40 @@ export default function CreateProjectWizard() {
               </div>
             </div>
 
+            {/* Agile Estimation Setup Section */}
+            <div className="mb-8 border-t border-white/5 pt-8">
+              <h3 className="font-heading text-sm font-semibold text-on-surface mb-2 uppercase tracking-wider flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">straighten</span>
+                Agile Estimation Setup <span className="text-on-surface-variant font-normal normal-case">(Optional)</span>
+              </h3>
+              <p className="text-xs text-on-surface-variant mb-6">
+                Configure how many hours each Story Point equates to for this specific project. This helps track velocity accurately.
+              </p>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                {storyPointConfigs.map((config, index) => (
+                  <div key={config.storyPointValue} className="bg-white/5 p-3 rounded-lg border border-white/10 flex flex-col items-center">
+                    <span className="text-xs font-bold text-electric-blue mb-2">{config.storyPointValue} SP</span>
+                    <div className="flex items-center gap-1.5 w-full">
+                      <input
+                        type="number"
+                        className="w-full bg-surface border border-white/10 rounded px-2 py-1 text-sm text-center text-white focus:outline-none focus:border-electric-blue transition-colors"
+                        value={config.hoursEquivalent}
+                        onChange={(e) => {
+                          const newConfigs = [...storyPointConfigs]
+                          newConfigs[index].hoursEquivalent = Number(e.target.value) || 0
+                          setStoryPointConfigs(newConfigs)
+                        }}
+                        min="0"
+                        step="0.5"
+                      />
+                      <span className="text-[10px] text-on-surface-variant font-medium">hrs</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Action Buttons */}
             <div className="flex gap-3 justify-end pt-6 border-t border-border-low">
               <Button
@@ -698,6 +743,7 @@ export default function CreateProjectWizard() {
           ...formData,
           projectType: projectMode, // 'ai' or 'manual'
           projectMode: projectType, // 'team' or 'individual'
+          storyPointConfigs,
         }
 
         toast.info('Creating project...')

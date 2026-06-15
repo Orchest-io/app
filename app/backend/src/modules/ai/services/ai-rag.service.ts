@@ -8,6 +8,7 @@ import { RagSearchLog } from '../entities/rag-search-log.entity';
 import { Task } from '../../tasks/entities/task.entity';
 import { Milestone } from '../../projects/entities/milestone.entity';
 import { Project } from '../../projects/entities/project.entity';
+import { ProjectStoryPointConfig } from '../../projects/entities/project-story-point-config.entity';
 
 @Injectable()
 export class AiRagService {
@@ -49,6 +50,11 @@ export class AiRagService {
     const project = await projectRepo.findOne({ where: { id: projectId } });
     const tasks = await taskRepo.find({ where: { projectId } });
     const milestones = await milestoneRepo.find({ where: { projectId } });
+    const spConfigRepo = this.dataSource.getRepository(ProjectStoryPointConfig);
+    const spConfigs = await spConfigRepo.find({
+      where: { projectId },
+      order: { storyPointValue: 'ASC' },
+    });
 
     if (!project) {
       this.logger.warn(`Project ${projectId} not found, skipping indexing`);
@@ -61,10 +67,18 @@ export class AiRagService {
     const embeddingsToCreate: Partial<ProjectEmbedding>[] = [];
 
     // 1. Index Project Summary
+    let storyPointMatrix = '';
+    if (spConfigs.length > 0) {
+      storyPointMatrix = `\nStory Point Calibration Matrix:\n` + spConfigs.map(c => `- ${c.storyPointValue} SP = ${c.hoursEquivalent} hours`).join('\n');
+    } else {
+      storyPointMatrix = `\nStory Point Calibration Matrix (Default):\n- 1 SP = 4 hours\n- 2 SP = 8 hours\n- 3 SP = 16 hours\n- 5 SP = 40 hours\n- 8 SP = 80 hours`;
+    }
+
     const projectSummary = [
       `Project: ${project.name}`,
       project.description ? `Description: ${project.description}` : '',
       `Status: ${project.status || 'active'}`,
+      storyPointMatrix
     ]
       .filter(Boolean)
       .join('\n');

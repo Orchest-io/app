@@ -21,7 +21,7 @@ export class Attachment {
   @Column({ name: 'project_id', type: 'uuid', nullable: true })
   projectId: string | null;
 
-  @Column({ name: 'uploaded_by', type: 'uuid' })
+  @Column({ name: 'uploaded_by', type: 'uuid', nullable: true })
   uploadedBy: string;
 
   @Column({ name: 'file_name', type: 'varchar' })
