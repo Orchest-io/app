@@ -14,10 +14,10 @@ export class Attachment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'task_id', type: 'uuid' })
+  @Column({ name: 'task_id', type: 'uuid', nullable: true })
   taskId: string;
 
-  @Column({ name: 'uploaded_by', type: 'uuid' })
+  @Column({ name: 'uploaded_by', type: 'uuid', nullable: true })
   uploadedBy: string;
 
   @Column({ name: 'file_name', type: 'varchar' })
