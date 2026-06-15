@@ -1,4 +1,4 @@
-import { NavLink, useNavigate, useLocation, matchPath } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { logoutUser } from '../../../api/users.api'
 
 type NavItem = {
@@ -8,10 +8,10 @@ type NavItem = {
   path: string
 }
 
-const getNavItems = (projectId?: string): NavItem[] => [
+const getNavItems = (): NavItem[] => [
   { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
   { key: 'projects', label: 'Projects', icon: 'tactic', path: '/projects' },
-  { key: 'analytics', label: 'Analytics', icon: 'insights', path: projectId ? `/projects/${projectId}/analytics` : '/projects' },
+  { key: 'analytics', label: 'Analytics', icon: 'insights', path: '/analytics' },
   { key: 'settings', label: 'Settings', icon: 'settings', path: '/settings' },
 ]
 
@@ -22,12 +22,8 @@ type SidebarProps = {
 
 export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const navigate = useNavigate()
-  const location = useLocation()
-  
-  const match = matchPath({ path: '/projects/:projectId/*' }, location.pathname)
-  const projectId = match?.params.projectId
 
-  const navItems = getNavItems(projectId)
+  const navItems = getNavItems()
 
   const handleLogout = async () => {
     await logoutUser()

@@ -27,6 +27,11 @@ export class ProjectsController {
     return this.projectsService.findAll(user.id);
   }
 
+  @Get('analytics-hub')
+  getAnalyticsHub(@CurrentUser() user: JwtPayload) {
+    return this.projectsService.getAnalyticsHub(user.id);
+  }
+
   @Get(':id')
   findOne(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
     return this.projectsService.findOne(id, user.id);
