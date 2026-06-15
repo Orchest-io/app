@@ -24,6 +24,7 @@ import { AiJobService } from './services/ai-job.service';
 import { AiUsageService } from './services/ai-usage.service';
 import { AiPipelineService } from './services/ai-pipeline.service';
 import { AiRagService } from './services/ai-rag.service';
+import { AiAssistantService } from './services/ai-assistant.service';
 import { ProjectsService } from '../projects/projects.service';
 import { TasksService } from '../tasks/tasks.service';
 import { UsersService } from '../users/users.service';
@@ -39,6 +40,7 @@ export class AiService {
     private aiUsageService: AiUsageService,
     private aiPipelineService: AiPipelineService,
     private aiRagService: AiRagService,
+    private aiAssistantService: AiAssistantService,
     private projectsService: ProjectsService,
     private tasksService: TasksService,
     private usersService: UsersService,
@@ -294,5 +296,21 @@ export class AiService {
         tasksCreated,
       };
     });
+  }
+
+  // ========================================
+  // AI ASSISTANT CHAT
+  // ========================================
+
+  /**
+   * Chat with the built-in AI assistant.
+   * Delegates to AiAssistantService which handles RAG + system prompt + history.
+   */
+  async chatWithAssistant(
+    userId: string,
+    message: string,
+    conversationId?: string,
+  ): Promise<{ answer: string; conversationId: string }> {
+    return this.aiAssistantService.chat(userId, message, conversationId);
   }
 }
