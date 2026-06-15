@@ -8,3 +8,4 @@ export * from './dtos/project-analytics.dto';
 export * from './dtos/ai.dtos';
 export * from './dtos/ai-job.dto';
 export * from './dtos/analytics.dtos';
+export * from './dtos/attachment.dtos';

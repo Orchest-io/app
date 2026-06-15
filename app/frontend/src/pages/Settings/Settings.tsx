@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import type { FormEvent } from 'react'
 import { toast } from 'sonner'
 import { Button, Card, Input, Toggle, Select } from '../../components/ui'
 import { useMe, useUpdateMe, useUpdateMySettings, useChangePassword } from '../../hooks/useSettings'
 import { useAiUsage } from '../../hooks/useAiUsage'
+import { useUploadAvatar } from '../../hooks/useAttachments'
 
 // ─── Section IDs ──────────────────────────────────────────────────
 type SectionId =
@@ -21,11 +22,14 @@ const NAV_ITEMS: { id: SectionId; label: string; icon: string }[] = [
   { id: 'workspace',     label: 'Workspace',          icon: 'table_chart'       },
   { id: 'notifications', label: 'Notifications',      icon: 'notifications'     },
   { id: 'ai',            label: 'AI Preferences',     icon: 'auto_awesome'      },
-  { id: 'security',      label: 'Security & Sessions',icon: 'shield'            },
+  { id: 'security',      label: 'Security & Sessions',icon: 'theme_key_source'  }, // changed to match standard icons or keep original
   { id: 'billing',       label: 'Billing',            icon: 'credit_card'       },
   { id: 'api',           label: 'API Integrations',   icon: 'data_object'       },
   { id: 'activity',      label: 'Activity Logs',      icon: 'history'           },
 ]
+
+// Note: keep original icons for consistency
+NAV_ITEMS[4].icon = 'shield'
 
 // ─── Shared section header ─────────────────────────────────────────
 function SectionHeader({ title, desc }: { title: string; desc: string }) {
@@ -41,6 +45,8 @@ function SectionHeader({ title, desc }: { title: string; desc: string }) {
 function ProfileSection() {
   const { data: user, isLoading } = useMe()
   const updateMe = useUpdateMe()
+  const uploadAvatar = useUploadAvatar()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [fullName, setFullName] = useState('')
   const [roleTitle, setRoleTitle] = useState('')
@@ -64,6 +70,31 @@ function ProfileSection() {
     )
   }
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('File must be an image.')
+      return
+    }
+
+    const maxSizeBytes = 2 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      toast.error('Avatar exceeds 2MB size limit.')
+      return
+    }
+
+    uploadAvatar.mutate(file, {
+      onSuccess: () => {
+        toast.success('Avatar updated successfully.')
+      },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.message || 'Failed to upload avatar.')
+      },
+    })
+  }
+
   return (
     <div>
       <SectionHeader title="Profile" desc="Manage your personal information and public identity." />
@@ -71,16 +102,37 @@ function ProfileSection() {
       {/* Avatar */}
       <Card className="mb-6">
         <div className="flex items-center gap-6">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-electric-blue to-peri-purple flex items-center justify-center text-white font-heading font-bold text-2xl shrink-0">
-            {user?.fullName?.split(' ').map((n) => n[0]).join('').slice(0, 2) ?? '?'}
-          </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={handleAvatarChange}
+          />
+          {user?.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              alt={user.fullName}
+              className="w-20 h-20 rounded-full object-cover shrink-0 border border-border-low"
+            />
+          ) : (
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-electric-blue to-peri-purple flex items-center justify-center text-white font-heading font-bold text-2xl shrink-0">
+              {user?.fullName?.split(' ').map((n) => n[0]).join('').slice(0, 2) ?? '?'}
+            </div>
+          )}
           <div>
             <p className="font-heading text-base font-semibold text-on-surface">
               {isLoading ? 'Loading...' : (user?.fullName ?? '—')}
             </p>
             <p className="text-xs text-on-surface-variant mt-0.5">{user?.email ?? ''}</p>
-            <Button size="sm" variant="secondary" className="mt-3" onClick={() => toast.info('Avatar upload coming soon.')}>
-              Change Photo
+            <Button
+              size="sm"
+              variant="secondary"
+              className="mt-3"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadAvatar.isPending}
+            >
+              {uploadAvatar.isPending ? 'Uploading...' : 'Change Photo'}
             </Button>
           </div>
         </div>

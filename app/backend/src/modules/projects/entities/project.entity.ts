@@ -12,6 +12,7 @@ import { Milestone } from './milestone.entity';
 import { ProjectScopedRole } from './project-scoped-role.entity';
 import { ProjectPermissionsDef } from './project-permissions-def.entity';
 import { ProjectBudget } from './project-budget.entity';
+import { Attachment } from '../../tasks/entities/attachment.entity';
 
 @Entity('projects')
 export class Project {
@@ -66,6 +67,9 @@ export class Project {
 
   @OneToOne(() => ProjectBudget, (budget) => budget.project)
   budget: ProjectBudget;
+
+  @OneToMany(() => Attachment, (attachment) => attachment.project)
+  attachments: Attachment[];
 
   @OneToMany('Task', 'project')
   tasks: any[];
