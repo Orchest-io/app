@@ -6,6 +6,7 @@ import type {
   UpdateProjectDto,
   CreateMilestoneDto,
   UpdateMilestoneDto,
+  AssignTasksToMilestoneDto,
 } from '@orchest/shared';
 
 export const getProjects = async (): Promise<ProjectListItemDto[]> => {
@@ -56,6 +57,11 @@ export const createMilestone = async (
   await apiClient.post(`/projects/${projectId}/milestones`, dto);
 };
 
+export const getMilestones = async (projectId: string) => {
+  const response = await apiClient.get<any[]>(`/projects/${projectId}/milestones`);
+  return response.data;
+};
+
 export const updateMilestone = async (
   milestoneId: string,
   dto: UpdateMilestoneDto
@@ -65,4 +71,23 @@ export const updateMilestone = async (
 
 export const removeMilestone = async (milestoneId: string): Promise<void> => {
   await apiClient.delete(`/projects/milestones/${milestoneId}`);
+};
+
+export const getMilestoneTasks = async (milestoneId: string) => {
+  const response = await apiClient.get<any[]>(`/projects/milestones/${milestoneId}/tasks`);
+  return response.data;
+};
+
+export const assignTasksToMilestone = async (
+  milestoneId: string,
+  dto: AssignTasksToMilestoneDto
+): Promise<void> => {
+  await apiClient.post(`/projects/milestones/${milestoneId}/tasks`, dto);
+};
+
+export const removeTaskFromMilestone = async (
+  milestoneId: string,
+  taskId: string
+): Promise<void> => {
+  await apiClient.delete(`/projects/milestones/${milestoneId}/tasks/${taskId}`);
 };

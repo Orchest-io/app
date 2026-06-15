@@ -1,13 +1,20 @@
 import { Draggable } from '@hello-pangea/dnd'
 import type { Task, TaskPriority } from '../types/kanban.types'
 
+const MILESTONE_COLORS = [
+  '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b',
+  '#10b981', '#3b82f6', '#ef4444', '#14b8a6',
+]
+
 interface KanbanCardProps {
   task: Task
   index: number
   onClick: (task: Task) => void
+  milestones?: any[]
+  milestoneColors?: string[]
 }
 
-export default function KanbanCard({ task, index, onClick }: KanbanCardProps) {
+export default function KanbanCard({ task, index, onClick, milestones = [], milestoneColors = MILESTONE_COLORS }: KanbanCardProps) {
   const getPriorityColor = (priority: TaskPriority) => {
     switch (priority) {
       case 'high':
@@ -22,6 +29,16 @@ export default function KanbanCard({ task, index, onClick }: KanbanCardProps) {
   const completedSubtasks = task.subtasks.filter((s) => s.completed).length
   const totalSubtasks = task.subtasks.length
 
+  // Resolve milestone color
+  const getMilestoneColor = () => {
+    if (!task.milestone) return null
+    if (task.milestone.color) return task.milestone.color
+    const idx = milestones.findIndex((ms) => ms.id === task.milestoneId)
+    return milestoneColors[idx >= 0 ? idx % milestoneColors.length : 0]
+  }
+
+  const milestoneColor = getMilestoneColor()
+
   return (
     <Draggable draggableId={task.id} index={index}>
       {(provided, snapshot) => (
@@ -30,22 +47,45 @@ export default function KanbanCard({ task, index, onClick }: KanbanCardProps) {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={() => onClick(task)}
-          className={`bg-surface-container-low border hover:border-white/20 rounded-xl p-4 transition-all duration-200 cursor-pointer group relative flex flex-col gap-3 shadow-md ${
+          className={`bg-surface-container-low border hover:border-white/20 rounded-xl p-4 transition-all duration-200 cursor-pointer group relative flex flex-col gap-3 shadow-md overflow-hidden ${
             snapshot.isDragging
               ? 'border-electric-blue/40 shadow-xl bg-surface-container-high scale-[1.02]'
               : 'border-white/5'
           }`}
         >
+          {/* Milestone accent bar */}
+          {milestoneColor && (
+            <div
+              className="absolute top-0 left-0 w-1 h-full"
+              style={{ backgroundColor: milestoneColor }}
+            />
+          )}
+
           {/* Drag Handle Overlay Indicator */}
           <div className="absolute top-2 right-2 p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-on-surface-variant/40">
             <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
           </div>
 
-          {/* Card Badges */}
-          <div className="flex gap-2">
+          {/* Card Badges row */}
+          <div className="flex flex-wrap gap-2 items-center">
             <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${getPriorityColor(task.priority)}`}>
               {task.priority}
             </span>
+
+            {/* Milestone badge */}
+            {task.milestone && milestoneColor && (
+              <span
+                className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                style={{
+                  backgroundColor: `${milestoneColor}20`,
+                  color: milestoneColor,
+                  border: `1px solid ${milestoneColor}40`,
+                }}
+              >
+                <span className="material-symbols-outlined text-[11px]">flag</span>
+                {task.milestone.title}
+              </span>
+            )}
           </div>
 
           {/* Title and Short Description */}
@@ -62,7 +102,7 @@ export default function KanbanCard({ task, index, onClick }: KanbanCardProps) {
 
           {/* Card Footer: Assignees, Subtasks & Due Date */}
           <div className="flex items-center justify-between mt-1 pt-3 border-t border-white/5 gap-2">
-            {/* Left elements: Assignees Stack & Subtasks progress */}
+            {/* Left elements */}
             <div className="flex items-center gap-3">
               {/* Assignees */}
               {task.assignees.length > 0 && (
@@ -88,14 +128,12 @@ export default function KanbanCard({ task, index, onClick }: KanbanCardProps) {
               {totalSubtasks > 0 && (
                 <span className="flex items-center gap-1 text-[10px] text-on-surface-variant font-medium">
                   <span className="material-symbols-outlined text-[14px]">checklist</span>
-                  <span>
-                    {completedSubtasks}/{totalSubtasks}
-                  </span>
+                  <span>{completedSubtasks}/{totalSubtasks}</span>
                 </span>
               )}
             </div>
 
-            {/* Right element: Due Date Tag */}
+            {/* Right: Due Date */}
             {task.dueDate && (
               <span className="flex items-center gap-1 text-[10px] text-on-surface-variant font-medium shrink-0">
                 <span className="material-symbols-outlined text-[13px]">calendar_today</span>

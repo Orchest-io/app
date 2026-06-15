@@ -13,6 +13,8 @@ import {
 import TeamManagementTab from './TeamManagementTab'
 import type { UpdateMilestoneDto } from '@orchest/shared'
 import client from '../../../api/client'
+import { getMilestones } from '../../../api/projects.api'
+import MilestoneTasksModal from '../components/MilestoneTasksModal'
 
 export default function ProjectDetailsOverview() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -28,6 +30,14 @@ export default function ProjectDetailsOverview() {
     ) ?? false
 
   const [activeTab, setActiveTab] = useState('overview')
+
+  // Enriched milestones with task counts
+  const [enrichedMilestones, setEnrichedMilestones] = useState<any[]>([])
+  const [loadingMilestones, setLoadingMilestones] = useState(false)
+
+  // Assign-tasks modal
+  const [assignModalMilestone, setAssignModalMilestone] = useState<any | null>(null)
+  const [allProjectTasks, setAllProjectTasks] = useState<any[]>([])
 
   // Task statistics
   const [taskStats, setTaskStats] = useState({
@@ -46,6 +56,14 @@ export default function ProjectDetailsOverview() {
       fetchTaskStats()
     }
   }, [projectId])
+
+  // Fetch enriched milestones when milestone tab is active
+  useEffect(() => {
+    if (projectId && activeTab === 'milestones') {
+      fetchEnrichedMilestones()
+      fetchAllProjectTasks()
+    }
+  }, [projectId, activeTab])
 
   const fetchTaskStats = async () => {
     if (!projectId) return
@@ -70,6 +88,29 @@ export default function ProjectDetailsOverview() {
     }
   }
 
+  const fetchEnrichedMilestones = async () => {
+    if (!projectId) return
+    setLoadingMilestones(true)
+    try {
+      const data = await getMilestones(projectId)
+      setEnrichedMilestones(data)
+    } catch (err) {
+      console.error('Failed to fetch enriched milestones:', err)
+    } finally {
+      setLoadingMilestones(false)
+    }
+  }
+
+  const fetchAllProjectTasks = async () => {
+    if (!projectId) return
+    try {
+      const response = await client.get(`/tasks/board/${projectId}`)
+      setAllProjectTasks(response.data || [])
+    } catch (err) {
+      console.error('Failed to fetch project tasks:', err)
+    }
+  }
+
   // Mutations
   const updateProjectMutation = useUpdateProject()
   const deleteProjectMutation = useDeleteProject()
@@ -86,6 +127,7 @@ export default function ProjectDetailsOverview() {
     title: '',
     description: '',
     targetDate: '',
+    color: '#6366f1',
   })
 
   // Edit Milestone modal
@@ -96,7 +138,8 @@ export default function ProjectDetailsOverview() {
     description: string
     targetDate: string
     status: string
-  }>({ title: '', description: '', targetDate: '', status: 'upcoming' })
+    color: string
+  }>({ title: '', description: '', targetDate: '', status: 'upcoming', color: '#6366f1' })
 
   // Edit Project modal
   const [isEditProjectOpen, setIsEditProjectOpen] = useState(false)
@@ -123,7 +166,8 @@ export default function ProjectDetailsOverview() {
         onSuccess: () => {
           toast.success('Milestone created successfully!')
           setIsAddMilestoneOpen(false)
-          setMilestoneData({ title: '', description: '', targetDate: '' })
+          setMilestoneData({ title: '', description: '', targetDate: '', color: '#6366f1' })
+          fetchEnrichedMilestones()
         },
         onError: (err: any) => {
           toast.error('Failed to create milestone: ' + (err?.response?.data?.message ?? err.message))
@@ -133,7 +177,7 @@ export default function ProjectDetailsOverview() {
   }
 
   const handleEditMilestoneOpen = (milestone: {
-    id: string; title: string; description?: string; targetDate?: Date | string; status?: string
+    id: string; title: string; description?: string; targetDate?: Date | string; status?: string; color?: string
   }) => {
     setEditingMilestoneId(milestone.id)
     setEditMilestoneData({
@@ -145,6 +189,7 @@ export default function ProjectDetailsOverview() {
           : (milestone.targetDate as Date).toISOString().split('T')[0])
         : '',
       status: milestone.status ?? 'upcoming',
+      color: milestone.color ?? '#6366f1',
     })
     setIsEditMilestoneOpen(true)
   }
@@ -157,6 +202,7 @@ export default function ProjectDetailsOverview() {
       description: editMilestoneData.description || undefined,
       targetDate: editMilestoneData.targetDate || undefined,
       status: editMilestoneData.status as any,
+      color: editMilestoneData.color || undefined,
     }
     updateMilestoneMutation.mutate(
       { milestoneId: editingMilestoneId, projectId, dto },
@@ -165,6 +211,7 @@ export default function ProjectDetailsOverview() {
           toast.success('Milestone updated')
           setIsEditMilestoneOpen(false)
           setEditingMilestoneId(null)
+          fetchEnrichedMilestones()
         },
         onError: (err: any) => {
           toast.error('Failed to update milestone: ' + (err?.response?.data?.message ?? err.message))
@@ -178,7 +225,10 @@ export default function ProjectDetailsOverview() {
     removeMilestoneMutation.mutate(
       { milestoneId, projectId },
       {
-        onSuccess: () => toast.success('Milestone deleted'),
+        onSuccess: () => {
+          toast.success('Milestone deleted')
+          fetchEnrichedMilestones()
+        },
         onError: (err: any) => {
           toast.error('Failed to delete milestone: ' + (err?.response?.data?.message ?? err.message))
         },
@@ -562,12 +612,17 @@ export default function ProjectDetailsOverview() {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="font-heading text-lg font-semibold text-on-surface">Milestones</h3>
-              <p className="text-xs text-on-surface-variant mt-0.5">Project phases and target markers.</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">Project phases and target markers. Tasks can be assigned to milestones.</p>
             </div>
             <Button icon="add" onClick={() => setIsAddMilestoneOpen(true)}>Create Milestone</Button>
           </div>
 
-          {!project.milestones || project.milestones.length === 0 ? (
+          {loadingMilestones ? (
+            <div className="text-center py-12">
+              <div className="w-10 h-10 border-4 border-electric-blue border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+              <p className="text-sm text-on-surface-variant">Loading milestones...</p>
+            </div>
+          ) : enrichedMilestones.length === 0 ? (
             <div className="text-center py-12">
               <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-3">flag</span>
               <p className="text-sm text-on-surface-variant font-medium">No milestones found</p>
@@ -575,49 +630,93 @@ export default function ProjectDetailsOverview() {
               <Button size="sm" icon="add" onClick={() => setIsAddMilestoneOpen(true)}>Add Milestone</Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {project.milestones.map((milestone) => (
-                <Card key={milestone.id} variant="solid" className="flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-heading text-sm font-semibold text-on-surface">{milestone.title}</h4>
-                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                        {milestone.targetDate && (
-                          <span className="text-[10px] text-on-surface-variant flex items-center gap-0.5">
-                            <span className="material-symbols-outlined text-[12px]">calendar_today</span>
-                            {new Date(milestone.targetDate).toLocaleDateString()}
+            <div className="flex flex-col gap-4">
+              {enrichedMilestones.map((milestone) => {
+                const color = milestone.color || '#6366f1'
+                const statusColors: Record<string, string> = {
+                  'completed': 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+                  'in-progress': 'text-electric-blue bg-electric-blue/10 border-electric-blue/20',
+                  'delayed': 'text-red-400 bg-red-400/10 border-red-400/20',
+                  'upcoming': 'text-purple-400 bg-purple-400/10 border-purple-400/20',
+                }
+                const statusClass = statusColors[milestone.status] || statusColors['upcoming']
+                return (
+                  <Card key={milestone.id} variant="solid" className="relative overflow-hidden">
+                    {/* Color accent bar */}
+                    <div
+                      className="absolute top-0 left-0 w-1 h-full"
+                      style={{ backgroundColor: color }}
+                    />
+                    <div className="pl-3">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                          <h4 className="font-heading text-sm font-semibold text-on-surface truncate">{milestone.title}</h4>
+                          <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border shrink-0 ${statusClass}`}>
+                            {milestone.status ?? 'upcoming'}
                           </span>
-                        )}
-                        <button
-                          onClick={() => handleEditMilestoneOpen(milestone as any)}
-                          className="text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
-                          title="Edit milestone"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">edit</span>
-                        </button>
-                        {isOwner && (
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                          {milestone.targetDate && (
+                            <span className="text-[10px] text-on-surface-variant flex items-center gap-0.5">
+                              <span className="material-symbols-outlined text-[12px]">calendar_today</span>
+                              {new Date(milestone.targetDate).toLocaleDateString()}
+                            </span>
+                          )}
                           <button
-                            onClick={() => handleRemoveMilestone(milestone.id)}
-                            className="text-red-400 hover:text-red-300 transition-colors cursor-pointer"
-                            title="Delete milestone"
+                            onClick={() => setAssignModalMilestone(milestone)}
+                            className="text-on-surface-variant hover:text-electric-blue transition-colors cursor-pointer p-0.5 rounded"
+                            title="Assign tasks to milestone"
                           >
-                            <span className="material-symbols-outlined text-[16px]">delete</span>
+                            <span className="material-symbols-outlined text-[16px]">playlist_add</span>
                           </button>
-                        )}
+                          <button
+                            onClick={() => handleEditMilestoneOpen(milestone as any)}
+                            className="text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer p-0.5 rounded"
+                            title="Edit milestone"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">edit</span>
+                          </button>
+                          {isOwner && (
+                            <button
+                              onClick={() => handleRemoveMilestone(milestone.id)}
+                              className="text-red-400 hover:text-red-300 transition-colors cursor-pointer p-0.5 rounded"
+                              title="Delete milestone"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">delete</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {milestone.description && (
+                        <p className="text-xs text-on-surface-variant mb-3 line-clamp-2">{milestone.description}</p>
+                      )}
+
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <div className="flex justify-between text-[11px] mb-1">
+                            <span className="text-on-surface-variant">Progress</span>
+                            <span className="font-semibold text-on-surface">{milestone.progress ?? 0}%</span>
+                          </div>
+                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{ width: `${milestone.progress ?? 0}%`, backgroundColor: color }}
+                            />
+                          </div>
+                        </div>
+                        <div
+                          className="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: `${color}20`, color }}
+                        >
+                          {milestone.doneCount ?? 0}/{milestone.taskCount ?? 0} tasks
+                        </div>
                       </div>
                     </div>
-                    <p className="text-xs text-on-surface-variant mb-4">{milestone.description || 'No description provided.'}</p>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-[11px] mb-1">
-                      <span className="text-on-surface-variant">Progress</span>
-                      <span className="font-semibold text-on-surface">{milestone.progress ?? 0}%</span>
-                    </div>
-                    <ProgressBar value={milestone.progress ?? 0} />
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                )
+              })}
             </div>
           )}
         </Card>
@@ -728,6 +827,25 @@ export default function ProjectDetailsOverview() {
                 onChange={(e) => setMilestoneData({ ...milestoneData, targetDate: e.target.value })}
               />
 
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Color</label>
+                <div className="flex gap-2 flex-wrap">
+                  {['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6'].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setMilestoneData({ ...milestoneData, color: c })}
+                      className="w-7 h-7 rounded-full border-2 transition-all"
+                      style={{
+                        backgroundColor: c,
+                        borderColor: milestoneData.color === c ? 'white' : 'transparent',
+                        transform: milestoneData.color === c ? 'scale(1.2)' : 'scale(1)',
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
               <div className="flex gap-3 justify-end mt-4">
                 <Button type="button" variant="secondary" onClick={() => setIsAddMilestoneOpen(false)}>
                   Cancel
@@ -778,6 +896,7 @@ export default function ProjectDetailsOverview() {
                     { value: 'upcoming', label: 'Upcoming' },
                     { value: 'in-progress', label: 'In Progress' },
                     { value: 'completed', label: 'Completed' },
+                    { value: 'delayed', label: 'Delayed' },
                   ]}
                 />
                 <Input
@@ -786,6 +905,25 @@ export default function ProjectDetailsOverview() {
                   value={editMilestoneData.targetDate}
                   onChange={(e) => setEditMilestoneData({ ...editMilestoneData, targetDate: e.target.value })}
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Color</label>
+                <div className="flex gap-2 flex-wrap">
+                  {['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6'].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setEditMilestoneData({ ...editMilestoneData, color: c })}
+                      className="w-7 h-7 rounded-full border-2 transition-all"
+                      style={{
+                        backgroundColor: c,
+                        borderColor: editMilestoneData.color === c ? 'white' : 'transparent',
+                        transform: editMilestoneData.color === c ? 'scale(1.2)' : 'scale(1)',
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
 
               <div className="flex gap-3 justify-end mt-4">
@@ -881,6 +1019,20 @@ export default function ProjectDetailsOverview() {
             </form>
           </Card>
         </div>
+      )}
+
+      {/* ── Assign Tasks to Milestone Modal ─────────────────────────────────────── */}
+      {assignModalMilestone && projectId && (
+        <MilestoneTasksModal
+          milestone={assignModalMilestone}
+          projectId={projectId}
+          allProjectTasks={allProjectTasks}
+          onClose={() => setAssignModalMilestone(null)}
+          onAssigned={() => {
+            fetchEnrichedMilestones()
+            fetchAllProjectTasks()
+          }}
+        />
       )}
     </div>
   )
