@@ -9,9 +9,8 @@ export class OpenAIService {
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('OPENAI_API_KEY');
-    if (!apiKey || apiKey === 'your_openai_api_key_here') {
-      this.logger.warn('OPENAI_API_KEY not configured — AI features will be disabled');
-      return;
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY is required but not found in environment variables');
     }
     this.logger.log('OpenAI service initialized successfully');
     this.openai = new OpenAI({ apiKey });
