@@ -7,9 +7,11 @@ interface KanbanColumnProps {
   tasks: Task[]
   onCardClick: (task: Task) => void
   onAddTask: (columnId: string) => void
+  milestones?: any[]
+  milestoneColors?: string[]
 }
 
-export default function KanbanColumn({ column, tasks, onCardClick, onAddTask }: KanbanColumnProps) {
+export default function KanbanColumn({ column, tasks, onCardClick, onAddTask, milestones = [], milestoneColors = [] }: KanbanColumnProps) {
   return (
     <div className="w-80 flex flex-col gap-4 bg-surface-container/20 border border-white/5 rounded-2xl p-4 shrink-0 h-full">
       {/* Column Header */}
@@ -47,6 +49,8 @@ export default function KanbanColumn({ column, tasks, onCardClick, onAddTask }: 
                 task={task}
                 index={index}
                 onClick={onCardClick}
+                milestones={milestones}
+                milestoneColors={milestoneColors}
               />
             ))}
             {provided.placeholder}
@@ -71,3 +75,4 @@ export default function KanbanColumn({ column, tasks, onCardClick, onAddTask }: 
     </div>
   )
 }
+

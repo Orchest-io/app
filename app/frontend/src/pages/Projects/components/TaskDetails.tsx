@@ -3,15 +3,30 @@ import { toast } from 'sonner'
 import apiClient from '../../../api/client'
 import type { Task, TaskPriority, Subtask } from '../types/kanban.types'
 
+interface Milestone {
+  id: string
+  title: string
+  status: string
+  color: string | null
+}
+
 interface TaskDetailsProps {
   task: Task | null
   onClose: () => void
   onUpdateTask: (updatedTask: Task) => void
   onDeleteTask: (taskId: string) => void
   projectMembers?: any[]
+  milestones?: Milestone[]
 }
 
-export default function TaskDetails({ task, onClose, onUpdateTask, onDeleteTask, projectMembers = [] }: TaskDetailsProps) {
+export default function TaskDetails({
+  task,
+  onClose,
+  onUpdateTask,
+  onDeleteTask,
+  projectMembers = [],
+  milestones = [],
+}: TaskDetailsProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isAddingAssignee, setIsAddingAssignee] = useState(false)
@@ -20,6 +35,7 @@ export default function TaskDetails({ task, onClose, onUpdateTask, onDeleteTask,
   const [editedDescription, setEditedDescription] = useState('')
   const [editedPriority, setEditedPriority] = useState<TaskPriority>('medium')
   const [editedDueDate, setEditedDueDate] = useState('')
+  const [editedMilestoneId, setEditedMilestoneId] = useState('')
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
 
   useEffect(() => {
@@ -28,6 +44,7 @@ export default function TaskDetails({ task, onClose, onUpdateTask, onDeleteTask,
       setEditedDescription(task.description)
       setEditedPriority(task.priority)
       setEditedDueDate(task.dueDate || '')
+      setEditedMilestoneId(task.milestoneId || '')
       setIsEditing(false)
       setIsDeleting(false)
     }
@@ -76,12 +93,22 @@ export default function TaskDetails({ task, onClose, onUpdateTask, onDeleteTask,
   }
 
   const handleSave = () => {
+    const selectedMilestone = milestones.find((m) => m.id === editedMilestoneId)
     onUpdateTask({
       ...task,
       title: editedTitle,
       description: editedDescription,
       priority: editedPriority,
       dueDate: editedDueDate || undefined,
+      milestoneId: editedMilestoneId || null,
+      milestone: selectedMilestone
+        ? {
+            id: selectedMilestone.id,
+            title: selectedMilestone.title,
+            color: selectedMilestone.color,
+            status: selectedMilestone.status,
+          }
+        : null,
     })
     setIsEditing(false)
   }
@@ -245,6 +272,24 @@ export default function TaskDetails({ task, onClose, onUpdateTask, onDeleteTask,
                 </div>
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
+                  Milestone
+                </label>
+                <select
+                  value={editedMilestoneId}
+                  onChange={(e) => setEditedMilestoneId(e.target.value)}
+                  className="w-full bg-surface-container-lowest text-on-surface border border-white/10 rounded-lg p-2.5 focus:outline-none focus:border-electric-blue/50 text-sm"
+                >
+                  <option value="">No Milestone</option>
+                  {milestones.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="flex gap-2 pt-2">
                 <button
                   onClick={handleSave}
@@ -284,6 +329,19 @@ export default function TaskDetails({ task, onClose, onUpdateTask, onDeleteTask,
                     <span className="text-[10px] bg-white/5 text-on-surface-variant border border-white/10 px-2 py-0.5 rounded font-medium flex items-center gap-1">
                       <span className="material-symbols-outlined text-[12px]">calendar_today</span>
                       Due: {new Date(task.dueDate).toLocaleDateString()}
+                    </span>
+                  )}
+                  {task.milestone && (
+                    <span
+                      className="text-[10px] border px-2 py-0.5 rounded font-medium flex items-center gap-1"
+                      style={{
+                        backgroundColor: `${task.milestone.color || '#6366f1'}20`,
+                        borderColor: `${task.milestone.color || '#6366f1'}40`,
+                        color: task.milestone.color || '#6366f1',
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-[12px]">flag</span>
+                      Milestone: {task.milestone.title}
                     </span>
                   )}
                 </div>

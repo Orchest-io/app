@@ -22,6 +22,13 @@ export interface Task {
   subtasks: Subtask[];
   dueDate?: string; // Format: YYYY-MM-DD
   columnId: string;
+  milestoneId?: string | null;
+  milestone?: {
+    id: string;
+    title: string;
+    color: string | null;
+    status: string;
+  } | null;
 }
 
 export interface Column {
