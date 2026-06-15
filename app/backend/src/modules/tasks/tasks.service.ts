@@ -65,7 +65,10 @@ export class TasksService {
 	}
 
 	async findOne(id: string): Promise<Task> {
-		const task = await this.taskRepository.findOne({ where: { id } });
+		const task = await this.taskRepository.findOne({ 
+			where: { id },
+			relations: ["subtasks", "assignees", "assignees.user", "dependencies", "milestone"]
+		});
 		if (!task) {
 			throw new NotFoundException(`Task with ID ${id} not found`);
 		}
@@ -80,16 +83,36 @@ export class TasksService {
 		const task = await this.findOne(id);
 		const oldStatus = task.status;
 		const oldDueDate = task.dueDate;
+		const oldMilestoneId = task.milestoneId;
 
 		this.taskRepository.merge(task, updateTaskDto);
 		const savedTask = await this.taskRepository.save(task);
+
+		let milestoneRecalculated = false;
+
+		// If milestone changed, recalculate progress for both old and new milestones
+		if (updateTaskDto.milestoneId !== undefined && updateTaskDto.milestoneId !== oldMilestoneId) {
+			milestoneRecalculated = true;
+			if (oldMilestoneId) {
+				await this.projectsService.recalculateMilestoneProgress(
+					oldMilestoneId,
+					savedTask.createdBy,
+				);
+			}
+			if (savedTask.milestoneId) {
+				await this.projectsService.recalculateMilestoneProgress(
+					savedTask.milestoneId,
+					savedTask.createdBy,
+				);
+			}
+		}
 
 		// If task status changed to done, recalculate project and milestone progress
 		if (updateTaskDto.status && updateTaskDto.status !== oldStatus) {
 			await this.projectsService.recalculateProjectProgress(
 				savedTask.projectId,
 			);
-			if (savedTask.milestoneId) {
+			if (savedTask.milestoneId && !milestoneRecalculated) {
 				// userId is not available at this level, pass empty to avoid null
 				await this.projectsService.recalculateMilestoneProgress(
 					savedTask.milestoneId,
@@ -147,7 +170,7 @@ export class TasksService {
 	async findByProject(projectId: string): Promise<Task[]> {
 		return this.taskRepository.find({
 			where: { projectId },
-			relations: ["subtasks", "assignees", "assignees.user", "dependencies"],
+			relations: ["subtasks", "assignees", "assignees.user", "dependencies", "milestone"],
 		});
 	}
 

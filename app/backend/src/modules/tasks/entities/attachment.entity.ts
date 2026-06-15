@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Task } from './task.entity';
 import { User } from '../../users/entities/user.entity';
+import { Project } from '../../projects/entities/project.entity';
 
 @Entity('attachments')
 export class Attachment {
@@ -15,9 +16,12 @@ export class Attachment {
   id: string;
 
   @Column({ name: 'task_id', type: 'uuid', nullable: true })
-  taskId: string;
+  taskId: string | null;
 
-  @Column({ name: 'uploaded_by', type: 'uuid' })
+  @Column({ name: 'project_id', type: 'uuid', nullable: true })
+  projectId: string | null;
+
+  @Column({ name: 'uploaded_by', type: 'uuid', nullable: true })
   uploadedBy: string;
 
   @Column({ name: 'file_name', type: 'varchar' })
@@ -25,6 +29,9 @@ export class Attachment {
 
   @Column({ name: 'file_url', type: 'varchar' })
   fileUrl: string;
+
+  @Column({ name: 'storage_path', type: 'varchar', nullable: true })
+  storagePath: string | null;
 
   @Column({ name: 'file_type', type: 'varchar', nullable: true })
   fileType: string;
@@ -35,9 +42,13 @@ export class Attachment {
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  @ManyToOne(() => Task, (task) => task.attachments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Task, (task) => task.attachments, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'task_id' })
-  task: Task;
+  task: Task | null;
+
+  @ManyToOne(() => Project, (project) => project.attachments, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'project_id' })
+  project: Project | null;
 
   @ManyToOne(() => User, (user) => user.attachments, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'uploaded_by' })

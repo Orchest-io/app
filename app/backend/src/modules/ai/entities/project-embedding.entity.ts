@@ -17,10 +17,10 @@ export class ProjectEmbedding {
   @Column({ name: 'project_id' })
   projectId: string;
 
-  // Vector embedding (stored as array in JSON, converted to pgvector in DB)
+
   @Column({ 
     type: 'vector',
-    length: 1536, // OpenAI text-embedding-3-small dimension
+    length: 1536, 
   })
   embedding: number[];
 

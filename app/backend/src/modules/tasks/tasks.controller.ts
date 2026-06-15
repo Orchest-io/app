@@ -102,5 +102,18 @@ export class TasksController {
     return this.tasksService.removeDependency(dependencyId);
   }
 
+  @Post(":taskId/comments")
+  createComment(
+    @Request() req: any,
+    @Param("taskId") taskId: string,
+    @Body() createCommentDto: CreateCommentDto,
+  ) {
+    const userId = req.user?.id || req.user?.userId || "00000000-0000-0000-0000-000000000000";
+    return this.tasksService.createComment(taskId, userId, createCommentDto);
+  }
 
+  @Get(":taskId/comments")
+  getCommentsByTask(@Param("taskId") taskId: string) {
+    return this.tasksService.getCommentsByTask(taskId);
+  }
 }

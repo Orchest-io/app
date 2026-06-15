@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Put, Req } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import {
   CreateProjectDto,
@@ -6,6 +6,8 @@ import {
   AddProjectMemberDto,
   CreateMilestoneDto,
   UpdateMilestoneDto,
+  AssignTasksToMilestoneDto,
+  UpdateStoryPointConfigDto,
 } from '@orchest/shared';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.decorator';
@@ -67,9 +69,36 @@ export class ProjectsController {
     return this.projectsService.removeMember(id, memberUserId, user.id);
   }
 
+  @Get(':id/analytics')
+  getProjectAnalytics(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.projectsService.getProjectAnalytics(id, user.id);
+  }
+
+  @Get(':id/story-points/config')
+  async getStoryPointConfig(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.projectsService.getStoryPointConfig(id, user.id);
+  }
+
+  @Put(':id/story-points/config')
+  async updateStoryPointConfig(
+    @Param('id') id: string,
+    @Body() dto: UpdateStoryPointConfigDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.projectsService.updateStoryPointConfig(id, dto, user.id);
+  }
+
   @Post(':id/milestones')
   createMilestone(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: CreateMilestoneDto) {
     return this.projectsService.createMilestone(id, dto, user.id);
+  }
+
+  @Get(':id/milestones')
+  getMilestones(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.projectsService.getMilestones(id, user.id);
   }
 
   @Patch('milestones/:milestoneId')
@@ -80,5 +109,28 @@ export class ProjectsController {
   @Delete('milestones/:milestoneId')
   removeMilestone(@CurrentUser() user: JwtPayload, @Param('milestoneId') milestoneId: string) {
     return this.projectsService.removeMilestone(milestoneId, user.id);
+  }
+
+  @Get('milestones/:milestoneId/tasks')
+  getMilestoneTasks(@CurrentUser() user: JwtPayload, @Param('milestoneId') milestoneId: string) {
+    return this.projectsService.getMilestoneTasks(milestoneId, user.id);
+  }
+
+  @Post('milestones/:milestoneId/tasks')
+  assignTasksToMilestone(
+    @CurrentUser() user: JwtPayload,
+    @Param('milestoneId') milestoneId: string,
+    @Body() dto: AssignTasksToMilestoneDto,
+  ) {
+    return this.projectsService.assignTasksToMilestone(milestoneId, dto, user.id);
+  }
+
+  @Delete('milestones/:milestoneId/tasks/:taskId')
+  unassignTaskFromMilestone(
+    @CurrentUser() user: JwtPayload,
+    @Param('milestoneId') milestoneId: string,
+    @Param('taskId') taskId: string,
+  ) {
+    return this.projectsService.unassignTaskFromMilestone(milestoneId, taskId, user.id);
   }
 }

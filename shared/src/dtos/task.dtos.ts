@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsInt, IsUUID, IsDateString, IsBoolean, ValidateNested } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsInt, IsUUID, IsDateString, IsBoolean, ValidateNested, ValidateIf } from 'class-validator';
 import { Type } from 'class-transformer';
 import { TaskType, TaskStatus, TaskPriority, DependencyType } from '../index';
 
@@ -35,6 +35,10 @@ export class CreateTaskDto {
   @IsInt()
   @IsOptional()
   complexity?: number;
+
+  @ValidateIf((object, value) => value !== null && value !== undefined)
+  @IsInt()
+  storyPoints?: number | null;
 
   @IsInt()
   @IsOptional()
@@ -73,6 +77,10 @@ export class UpdateTaskDto {
   @IsInt()
   @IsOptional()
   complexity?: number;
+
+  @ValidateIf((object, value) => value !== null && value !== undefined)
+  @IsInt()
+  storyPoints?: number | null;
 
   @IsInt()
   @IsOptional()

@@ -8,7 +8,12 @@ import {
 	IsDateString,
 	IsObject,
 	IsUUID,
+	IsArray,
+	IsHexColor,
+	ValidateNested,
+	IsNumber,
 } from "class-validator";
+import { Type } from "class-transformer";
 import {
 	ProjectStatus,
 	ProjectPriority,
@@ -18,6 +23,14 @@ import {
 	MilestoneStatus,
 } from "../enums";
 import { ProjectMember, Milestone } from "../types";
+
+export class CreateStoryPointConfigDto {
+	@IsInt()
+	storyPointValue: number;
+
+	@IsNumber()
+	hoursEquivalent: number;
+}
 
 export class CreateProjectDto {
 	@IsString()
@@ -66,6 +79,12 @@ export class CreateProjectDto {
 	@IsOptional()
 	@IsEnum(ProjectStatus)
 	status?: ProjectStatus;
+
+	@IsOptional()
+	@IsArray()
+	@ValidateNested({ each: true })
+	@Type(() => CreateStoryPointConfigDto)
+	storyPointConfigs?: CreateStoryPointConfigDto[];
 }
 
 export class UpdateProjectDto {
@@ -148,6 +167,10 @@ export class CreateMilestoneDto {
 	@IsOptional()
 	@IsInt()
 	sortOrder?: number;
+
+	@IsOptional()
+	@IsString()
+	color?: string;
 }
 
 export class UpdateMilestoneDto {
@@ -176,6 +199,25 @@ export class UpdateMilestoneDto {
 	@IsOptional()
 	@IsInt()
 	sortOrder?: number;
+
+	@IsOptional()
+	@IsString()
+	color?: string;
+}
+
+export class AssignTasksToMilestoneDto {
+	@IsArray()
+	@IsUUID('4', { each: true })
+	taskIds: string[];
+}
+
+export class StoryPointConfigItemDto {
+	storyPointValue: number;
+	hoursEquivalent: number;
+}
+
+export class UpdateStoryPointConfigDto {
+	configs: StoryPointConfigItemDto[];
 }
 
 export interface ProjectListItemDto {

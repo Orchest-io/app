@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProjectsService } from './projects.service';
 import { ProjectsController } from './projects.controller';
-import { Project, ProjectMember, Milestone } from './entities';
+import { Project, ProjectMember, Milestone, ProjectRolePermission, ProjectScopedRole, ProjectStoryPointConfig } from './entities';
 import { Task } from '../tasks/entities/task.entity';
 import { AnalyticsModule } from '../analytics/analytics.module';
 import { UsersModule } from '../users/users.module';
@@ -10,7 +10,7 @@ import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Project, ProjectMember, Milestone, Task]),
+    TypeOrmModule.forFeature([Project, ProjectMember, Milestone, Task, ProjectRolePermission, ProjectScopedRole, ProjectStoryPointConfig]),
     AnalyticsModule,
     UsersModule,
     AuthModule,

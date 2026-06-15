@@ -88,11 +88,19 @@ export default function Header({ collapsed = false }: HeaderProps) {
         {/* Profile dropdown */}
         <div className="relative" ref={menuRef}>
           <button
-            className="w-8 h-8 rounded-full bg-electric-blue/20 border border-electric-blue/40 flex items-center justify-center text-electric-blue font-heading font-bold text-xs hover:bg-electric-blue/30 transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-electric-blue/20 border border-electric-blue/40 flex items-center justify-center text-electric-blue font-heading font-bold text-xs hover:bg-electric-blue/30 transition-colors cursor-pointer overflow-hidden"
             onClick={() => setMenuOpen((v) => !v)}
             title="Account menu"
           >
-            <span className="material-symbols-outlined text-[18px]">person</span>
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.fullName} className="w-full h-full object-cover" />
+            ) : (
+              user?.fullName ? (
+                <span>{user.fullName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}</span>
+              ) : (
+                <span className="material-symbols-outlined text-[18px]">person</span>
+              )
+            )}
           </button>
 
           {menuOpen && (

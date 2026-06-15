@@ -1,52 +1,90 @@
-import { Card, ProgressBar } from '../../components/ui'
-import { useTranslation } from 'react-i18next'
 
+import { useDashboard } from '../../hooks/useDashboard'
+import { useMe } from '../../hooks/useSettings'
+import DashboardHero from '../../components/dashboard/DashboardHero'
+import ActiveProjectsCard from '../../components/dashboard/ActiveProjectsCard'
+import TeamVelocityCard from '../../components/dashboard/TeamVelocityCard'
+import RecentActivityCard from '../../components/dashboard/RecentActivityCard'
+import AiCopilotPanel from '../../components/dashboard/AiCopilotPanel'
+
+/**
+ * Main Dashboard page.
+ *
+ * Layout:
+ * ┌─────────────────────────────────┬──────────────────┐
+ * │         Hero (full width)       │                  │
+ * ├──────────────────┬──────────────┤   AI Copilot     │
+ * │  Active Projects │ Team Velocity│   Panel          │
+ * ├──────────────────┴──────────────┤                  │
+ * │         Recent Activity         │                  │
+ * └─────────────────────────────────┴──────────────────┘
+ *
+ * Stats source priority:
+ *   - apiStats (GET /dashboard/stats) — server-aggregated, most accurate
+ *   - stats    (client useMemo)       — instant fallback from projects cache
+ */
 export default function Dashboard() {
-  const { t } = useTranslation()
+  const {
+    projects,
+    projectsLoading,
+    projectsError,
+    activityLogs,
+    activityLoading,
+    activityError,
+    stats,
+    apiStats,
+  } = useDashboard()
+
+  const { data: me } = useMe()
+  const userName = me?.fullName?.split(' ')[0] ?? 'there'
 
   return (
-    <div className="max-w-[900px] mx-auto py-8">
-      <div className="mb-8">
-        <h2 className="font-heading text-[32px] font-semibold text-on-surface mb-2">
-          {t('dashboard.title')}
-        </h2>
-        <p className="text-sm text-on-surface-variant leading-relaxed">
-          {t('dashboard.subtitle')}
-        </p>
+    <div className="max-w-[1400px] mx-auto">
+      <div className="flex gap-6 items-start">
+        {/* ── Main content column ───────────────────────────────────────── */}
+        <div className="flex-1 min-w-0 flex flex-col gap-6">
+          <DashboardHero
+            userName={userName}
+            stats={stats}
+            apiStats={apiStats}
+            isLoading={projectsLoading}
+          />
+
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-3">
+              <ActiveProjectsCard
+                projects={projects}
+                isLoading={projectsLoading}
+                isError={projectsError}
+              />
+            </div>
+            <div className="lg:col-span-2">
+              <TeamVelocityCard
+                projects={projects}
+                isLoading={projectsLoading}
+              />
+            </div>
+          </div>
+
+          <RecentActivityCard
+            logs={activityLogs}
+            isLoading={activityLoading}
+            isError={activityError}
+          />
+        </div>
+
+        {/* ── AI Copilot panel — sticky sidebar (xl+) ───────────────────── */}
+        <div className="hidden xl:flex w-[320px] shrink-0 sticky top-[80px] h-[calc(100vh-104px)]">
+          <AiCopilotPanel projects={projects} />
+        </div>
       </div>
 
-      <Card className="mb-12 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-          <span className="material-symbols-outlined text-[120px]">tactic</span>
+      {/* AI Copilot — full width on smaller screens */}
+      <div className="xl:hidden mt-6">
+        <div className="h-[480px]">
+          <AiCopilotPanel projects={projects} />
         </div>
-        <h3 className="font-heading text-lg font-bold text-on-surface mb-6 flex items-center gap-2">
-          <span className="material-symbols-outlined text-electric-blue">monitoring</span>
-          {t('dashboard.showcase')}
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex flex-col gap-4">
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-on-surface-variant">{t('dashboard.activeMilestones')}</span>
-                <span className="text-on-surface font-semibold">72%</span>
-              </div>
-              <ProgressBar value={72} glow />
-            </div>
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-on-surface-variant">{t('dashboard.teamVelocity')}</span>
-                <span className="text-on-surface font-semibold">92%</span>
-              </div>
-              <ProgressBar value={92} color="purple" glow />
-            </div>
-          </div>
-          <div className="flex flex-col justify-center">
-            <p className="text-xs text-on-surface-variant leading-relaxed">
-              {t('dashboard.telemetryDesc')}
-            </p>
-          </div>
-        </div>
-      </Card>
+      </div>
     </div>
   )
 }
