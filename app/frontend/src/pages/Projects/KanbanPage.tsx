@@ -65,13 +65,9 @@ export default function KanbanPage() {
     description: '',
     priority: 'medium' as TaskPriority,
     dueDate: '',
-<<<<<<< HEAD
-    assigneeId: '', // Add assignee field
-    storyPoints: '' as number | '',
-=======
     assigneeId: '',
+    storyPoints: '' as number | '',
     milestoneId: '',
->>>>>>> origin/main
   })
 
   // Raw tasks from API (for milestone filtering)
@@ -247,6 +243,7 @@ export default function KanbanPage() {
       priority: 'medium',
       dueDate: '',
       assigneeId: '',
+      storyPoints: '',
       milestoneId: selectedMilestoneId && selectedMilestoneId !== '__none__' ? selectedMilestoneId : '',
     })
     setIsAddModalOpen(true)
