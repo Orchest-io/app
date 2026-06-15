@@ -11,6 +11,7 @@ import {
   useRemoveMilestone,
 } from '../../../hooks/useProjectMutations'
 import TeamManagementTab from './TeamManagementTab'
+import ProjectAttachmentsTab from './ProjectAttachmentsTab'
 import type { UpdateMilestoneDto } from '@orchest/shared'
 import client from '../../../api/client'
 import { getMilestones } from '../../../api/projects.api'
@@ -398,6 +399,7 @@ export default function ProjectDetailsOverview() {
           { key: 'tasks', label: `Tasks (${taskStats.total})`, icon: 'task_alt' },
           { key: 'milestones', label: `Milestones (${project.milestones?.length || 0})`, icon: 'flag' },
           { key: 'activity', label: 'Activity Logs', icon: 'history' },
+          { key: 'attachments', label: 'Attachments', icon: 'attach_file' },
         ]}
         className="mb-8"
       />
@@ -749,6 +751,15 @@ export default function ProjectDetailsOverview() {
             )}
           </div>
         </Card>
+      )}
+
+      {/* ATTACHMENTS TAB */}
+      {activeTab === 'attachments' && (
+        <ProjectAttachmentsTab
+          projectId={projectId!}
+          currentUserId={currentUserId || ''}
+          isOwner={isOwner}
+        />
       )}
 
       {/* ── Delete Confirm Dialog ───────────────────────────────────────────────── */}

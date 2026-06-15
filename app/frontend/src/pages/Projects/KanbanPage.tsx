@@ -95,7 +95,7 @@ export default function KanbanPage() {
         priority: apiTask.priority || 'medium',
         assignees: apiTask.assignees?.map((a: any) => ({
           id: a.userId,
-          name: a.user?.name || 'Unknown',
+          name: a.user?.fullName || 'Unknown',
           avatarUrl: a.user?.avatarUrl || '',
         })) || [],
         subtasks: apiTask.subtasks?.map((s: any) => ({
@@ -297,7 +297,7 @@ export default function KanbanPage() {
         priority: createdTask.priority || 'medium',
         assignees: assignedMember ? [{
           id: assignedMember.userId,
-          name: assignedMember.user?.name || 'Unknown',
+          name: assignedMember.user?.fullName || 'Unknown',
           avatarUrl: assignedMember.user?.avatarUrl || '',
         }] : [],
         subtasks: [],
@@ -614,7 +614,7 @@ export default function KanbanPage() {
                   <option value="">Unassigned</option>
                   {projectMembers.map((member) => (
                     <option key={member.userId} value={member.userId}>
-                      {member.user?.name || 'Unknown'} ({member.role})
+                      {member.user?.fullName || 'Unknown'} ({member.role})
                     </option>
                   ))}
                 </select>

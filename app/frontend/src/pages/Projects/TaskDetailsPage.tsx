@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import apiClient from '../../api/client'
 import { getMilestones } from '../../api/projects.api'
 import type { Task, TaskPriority, Subtask } from './types/kanban.types'
+import {
+  useTaskAttachments,
+  useUploadTaskAttachment,
+  useDeleteAttachment,
+} from '../../hooks/useAttachments'
+import type { AttachmentResponseDto } from '@orchest/shared'
 
 export default function TaskDetailsPage() {
   const { projectId, taskId } = useParams<{ projectId: string; taskId: string }>()
@@ -74,7 +80,7 @@ export default function TaskDetailsPage() {
           priority: apiTask.priority || 'medium',
           assignees: apiTask.assignees?.map((a: any) => ({
             id: a.userId,
-            name: a.user?.name || 'Unknown',
+            name: a.user?.fullName || 'Unknown',
             avatarUrl: a.user?.avatarUrl || '',
           })) || [],
           subtasks: apiTask.subtasks?.map((s: any) => ({
@@ -123,7 +129,7 @@ export default function TaskDetailsPage() {
 
     try {
       const res = await apiClient.post(`/tasks/${task.id}/comments`, { content: commentText.trim() })
-      setComments(prev => [...prev, { ...res.data, user: res.data.user || { name: 'You', avatarUrl: '' } }])
+      setComments(prev => [...prev, { ...res.data, user: res.data.user || { fullName: 'You', avatarUrl: '' } }])
       setCommentText('')
     } catch (error) {
       console.error('Failed to add comment:', error)
@@ -234,7 +240,7 @@ export default function TaskDetailsPage() {
           ...task,
           assignees: [
             ...task.assignees,
-            { id: member.userId, name: member.user?.name || 'Unknown', avatarUrl: member.user?.avatarUrl || '' },
+            { id: member.userId, name: member.user?.fullName || 'Unknown', avatarUrl: member.user?.avatarUrl || '' },
           ],
         })
       }
@@ -556,7 +562,7 @@ export default function TaskDetailsPage() {
                           .filter(m => !task.assignees.some(a => a.id === m.userId))
                           .map((member) => (
                             <option key={member.userId} value={member.userId}>
-                              {member.user?.name || 'Unknown'} ({member.role})
+                              {member.user?.fullName || 'Unknown'} ({member.role})
                             </option>
                           ))}
                       </select>
@@ -653,6 +659,9 @@ export default function TaskDetailsPage() {
                 </div>
               </div>
 
+              {/* ── Task Attachments ──────────────────────────────────────── */}
+              <TaskAttachmentsSection taskId={task.id} />
+
               {/* Comments Section */}
               <div className="pt-8 border-t border-white/5">
                 <div className="flex items-center justify-between mb-6">
@@ -679,17 +688,17 @@ export default function TaskDetailsPage() {
                           {/* Avatar */}
                           <div className="shrink-0">
                             {comment.user?.avatarUrl ? (
-                              <img src={comment.user.avatarUrl} alt={comment.user?.name} className="w-10 h-10 rounded-full object-cover border border-white/10 shadow-sm" />
+                              <img src={comment.user.avatarUrl} alt={comment.user?.fullName} className="w-10 h-10 rounded-full object-cover border border-white/10 shadow-sm" />
                             ) : (
                               <div className="w-10 h-10 rounded-full bg-electric-blue/20 flex items-center justify-center text-sm font-bold text-electric-blue border border-white/10 shadow-sm">
-                                {comment.user?.name?.charAt(0)?.toUpperCase() || '?'}
+                                {comment.user?.fullName?.charAt(0)?.toUpperCase() || '?'}
                               </div>
                             )}
                           </div>
                           {/* Content */}
                           <div className="flex-1 space-y-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-[15px] font-semibold text-on-surface">{comment.user?.name || 'Unknown User'}</span>
+                              <span className="text-[15px] font-semibold text-on-surface">{comment.user?.fullName || 'Unknown User'}</span>
                               <span className="text-xs text-on-surface-variant/60 font-medium">{formatTimeAgo(comment.createdAt)}</span>
                             </div>
                             <p className="text-[15px] text-on-surface-variant leading-relaxed break-words pt-1">
@@ -763,6 +772,187 @@ export default function TaskDetailsPage() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TaskAttachmentsSection — self-contained upload + list widget for a single task
+// ─────────────────────────────────────────────────────────────────────────────
+
+function getFileIcon(mimeType?: string | null): { icon: string; color: string } {
+  if (!mimeType) return { icon: 'attach_file', color: 'text-on-surface-variant' }
+  if (mimeType.startsWith('image/')) return { icon: 'image', color: 'text-purple-400' }
+  if (mimeType === 'application/pdf') return { icon: 'picture_as_pdf', color: 'text-red-400' }
+  if (mimeType.includes('word') || mimeType.includes('document')) return { icon: 'description', color: 'text-blue-400' }
+  if (mimeType.includes('sheet') || mimeType.includes('excel') || mimeType.includes('csv')) return { icon: 'table_chart', color: 'text-emerald-400' }
+  if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('tar')) return { icon: 'folder_zip', color: 'text-amber-400' }
+  if (mimeType.startsWith('video/')) return { icon: 'videocam', color: 'text-pink-400' }
+  if (mimeType.startsWith('audio/')) return { icon: 'audio_file', color: 'text-cyan-400' }
+  if (mimeType.startsWith('text/') || mimeType.includes('json')) return { icon: 'code', color: 'text-electric-blue' }
+  return { icon: 'attach_file', color: 'text-on-surface-variant' }
+}
+
+function formatBytes(bytes?: number | null): string {
+  if (!bytes) return '—'
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function TaskAttachmentsSection({ taskId }: { taskId: string }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const currentUserId = localStorage.getItem('orchest_user_id') || ''
+
+  const { data: attachments = [], isLoading } = useTaskAttachments(taskId)
+  const uploadMutation = useUploadTaskAttachment(taskId)
+  const deleteMutation = useDeleteAttachment({ taskId })
+
+  const handleFile = (file: File) => {
+    uploadMutation.mutate(file, {
+      onSuccess: () => toast.success(`"${file.name}" attached`),
+      onError: (err: any) => {
+        const msg = err?.response?.data?.message || err?.message || 'Upload failed'
+        toast.error(Array.isArray(msg) ? msg.join(', ') : msg)
+      },
+    })
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) handleFile(file)
+  }
+
+  const handleDelete = (att: AttachmentResponseDto) => {
+    deleteMutation.mutate(att.id, {
+      onSuccess: () => toast.success('Attachment removed'),
+      onError: (err: any) => {
+        const msg = err?.response?.data?.message || err?.message || 'Delete failed'
+        toast.error(Array.isArray(msg) ? msg.join(', ') : msg)
+      },
+    })
+  }
+
+  return (
+    <div className="pt-8 border-t border-white/5">
+      {/* Section header */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2 text-on-surface">
+          <span className="material-symbols-outlined text-[20px]">attach_file</span>
+          <h3 className="font-heading text-xl font-bold">Attachments</h3>
+          {attachments.length > 0 && (
+            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-electric-blue/15 text-electric-blue">
+              {attachments.length}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={() => inputRef.current?.click()}
+          disabled={uploadMutation.isPending}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 text-xs font-semibold rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        >
+          {uploadMutation.isPending ? (
+            <div className="w-3.5 h-3.5 border-2 border-electric-blue border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <span className="material-symbols-outlined text-[16px]">upload</span>
+          )}
+          {uploadMutation.isPending ? 'Uploading…' : 'Upload'}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = '' }}
+        />
+      </div>
+
+      {/* Drop zone (only shown when no files yet) */}
+      {attachments.length === 0 && !isLoading && (
+        <div
+          onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
+          onDragLeave={() => setIsDragOver(false)}
+          onDrop={handleDrop}
+          onClick={() => !uploadMutation.isPending && inputRef.current?.click()}
+          className={`cursor-pointer rounded-xl border-2 border-dashed p-8 flex flex-col items-center gap-2 transition-all duration-200 mb-4
+            ${isDragOver ? 'border-electric-blue/70 bg-electric-blue/5' : 'border-white/10 hover:border-electric-blue/30 hover:bg-white/[0.02]'}
+            ${uploadMutation.isPending ? 'pointer-events-none opacity-60' : ''}
+          `}
+        >
+          <span className="material-symbols-outlined text-[32px] text-on-surface-variant">cloud_upload</span>
+          <p className="text-sm text-on-surface-variant">
+            {isDragOver ? 'Drop to attach' : 'Drag & drop a file, or click Upload above'}
+          </p>
+          <p className="text-xs text-on-surface-variant/50">Any file type · Max 10 MB</p>
+        </div>
+      )}
+
+      {/* Drag overlay when files already exist */}
+      {attachments.length > 0 && (
+        <div
+          onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
+          onDragLeave={() => setIsDragOver(false)}
+          onDrop={handleDrop}
+          className={`rounded-xl transition-all duration-150 ${isDragOver ? 'ring-2 ring-electric-blue/50 bg-electric-blue/[0.03]' : ''}`}
+        >
+          {/* File list */}
+          <div className="flex flex-col gap-2">
+            {isLoading ? (
+              [1, 2].map((i) => (
+                <div key={i} className="h-14 rounded-xl bg-surface-container-low border border-white/5 animate-pulse" />
+              ))
+            ) : (
+              attachments.map((att) => {
+                const { icon, color } = getFileIcon(att.fileType)
+                const canDelete = att.uploadedBy === currentUserId
+                return (
+                  <div
+                    key={att.id}
+                    className="group/att flex items-center gap-3 p-3 rounded-xl bg-surface-container-low border border-white/5 hover:border-electric-blue/20 hover:bg-electric-blue/[0.03] transition-all"
+                  >
+                    <div className={`w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center shrink-0 ${color}`}>
+                      <span className="material-symbols-outlined text-[18px]">{icon}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-on-surface truncate">{att.fileName}</p>
+                      <p className="text-[11px] text-on-surface-variant">
+                        {formatBytes(att.fileSizeBytes)} · {new Date(att.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 opacity-0 group-hover/att:opacity-100 transition-opacity shrink-0">
+                      <a
+                        href={att.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download={att.fileName}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-electric-blue hover:bg-electric-blue/10 transition-colors"
+                        title="Download"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">download</span>
+                      </a>
+                      {canDelete && (
+                        <button
+                          onClick={() => handleDelete(att)}
+                          disabled={deleteMutation.isPending}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-red-400 hover:bg-red-400/10 disabled:opacity-40 transition-colors"
+                          title="Remove"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">delete</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+          {isDragOver && (
+            <p className="text-center text-xs text-electric-blue font-semibold mt-3 animate-pulse">Drop to attach file</p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
