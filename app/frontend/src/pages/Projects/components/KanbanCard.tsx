@@ -108,13 +108,23 @@ export default function KanbanCard({ task, index, onClick, milestones = [], mile
               {task.assignees.length > 0 && (
                 <div className="flex -space-x-1.5 overflow-hidden">
                   {task.assignees.slice(0, 3).map((assignee) => (
-                    <img
-                      key={assignee.id}
-                      src={assignee.avatarUrl}
-                      alt={assignee.name}
-                      title={assignee.name}
-                      className="w-5.5 h-5.5 rounded-full border border-surface-container-low object-cover shrink-0"
-                    />
+                    assignee.avatarUrl ? (
+                      <img
+                        key={assignee.id}
+                        src={assignee.avatarUrl}
+                        alt={assignee.name}
+                        title={assignee.name}
+                        className="w-5.5 h-5.5 rounded-full border border-surface-container-low object-cover shrink-0"
+                      />
+                    ) : (
+                      <div
+                        key={assignee.id}
+                        title={assignee.name}
+                        className="w-5.5 h-5.5 rounded-full border border-surface-container-low bg-electric-blue/10 text-electric-blue flex items-center justify-center text-[9px] font-bold shrink-0"
+                      >
+                        {assignee.name.charAt(0).toUpperCase()}
+                      </div>
+                    )
                   ))}
                   {task.assignees.length > 3 && (
                     <div className="w-5.5 h-5.5 rounded-full border border-surface-container-low bg-white/5 text-[9px] font-bold text-on-surface flex items-center justify-center shrink-0">

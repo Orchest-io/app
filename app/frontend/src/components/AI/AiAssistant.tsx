@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type FormEvent, type KeyboardEvent } from 'react'
+import { useState, useRef, useEffect, type KeyboardEvent } from 'react'
 import { useAiAssistant, type ChatMessage } from '../../hooks/useAiAssistant'
 
 // ─── Welcome message shown at the top of an empty chat ─────────────
