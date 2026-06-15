@@ -5,7 +5,6 @@ import { toast } from 'sonner'
 import type { Task, Column, BoardState, FilterState, TaskPriority } from './types/kanban.types'
 import TaskFilters from './components/TaskFilters'
 import KanbanColumn from './components/KanbanColumn'
-import TaskDetails from './components/TaskDetails'
 import apiClient from '../../api/client'
 
 // Column definitions (fixed structure)
@@ -37,8 +36,6 @@ export default function KanbanPage() {
     searchQuery: '',
     priority: 'all',
   })
-
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
   // Add Task Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -136,9 +133,6 @@ export default function KanbanPage() {
     fetchProjectMembers()
   }, [projectId, navigate])
 
-  // Get active selected task with fresh data
-  const activeTask = selectedTask ? board.tasks[selectedTask.id] || null : null
-
   // Handle Drag & Drop Callback
   const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result
@@ -192,61 +186,6 @@ export default function KanbanPage() {
       toast.error('Failed to move task')
       // Revert on error
       setBoard(board)
-    }
-  }
-
-  // Update Task Info (Called from TaskDetails)
-  const handleUpdateTask = async (updatedTask: Task) => {
-    // Update UI optimistically
-    setBoard({
-      ...board,
-      tasks: { ...board.tasks, [updatedTask.id]: updatedTask },
-    })
-
-    // Update backend
-    try {
-      await apiClient.patch(`/tasks/${updatedTask.id}`, {
-        title: updatedTask.title,
-        description: updatedTask.description,
-        priority: updatedTask.priority,
-        dueDate: updatedTask.dueDate || null,
-      })
-      toast.success('Task updated')
-    } catch (error) {
-      console.error('Failed to update task:', error)
-      toast.error('Failed to update task')
-    }
-  }
-
-  // Delete Task (Called from TaskDetails)
-  const handleDeleteTask = async (taskId: string) => {
-    try {
-      // Delete from backend first
-      await apiClient.delete(`/tasks/${taskId}`)
-
-      // Update UI
-      const task = board.tasks[taskId]
-      if (task) {
-        const newTasks = { ...board.tasks }
-        delete newTasks[taskId]
-
-        const newColumns = { ...board.columns }
-        const column = newColumns[task.columnId]
-        if (column) {
-          column.taskIds = column.taskIds.filter(id => id !== taskId)
-        }
-
-        setBoard({
-          ...board,
-          tasks: newTasks,
-          columns: newColumns,
-        })
-      }
-
-      toast.success('Task deleted')
-    } catch (error) {
-      console.error('Failed to delete task:', error)
-      toast.error('Failed to delete task')
     }
   }
 
@@ -391,11 +330,11 @@ export default function KanbanPage() {
               const column = board.columns[colId]
               const tasksInCol = filteredTasksByColumn[colId] || []
               return (
-                <KanbanColumn
+                  <KanbanColumn
                   key={column.id}
                   column={column}
                   tasks={tasksInCol}
-                  onCardClick={setSelectedTask}
+                  onCardClick={(task) => navigate(`/projects/${projectId}/tasks/${task.id}`)}
                   onAddTask={handleOpenAddTask}
                 />
               )
@@ -403,15 +342,6 @@ export default function KanbanPage() {
           </div>
         </DragDropContext>
       </div>
-
-      {/* Task Details Side Drawer */}
-      <TaskDetails
-        task={activeTask}
-        onClose={() => setSelectedTask(null)}
-        onUpdateTask={handleUpdateTask}
-        onDeleteTask={handleDeleteTask}
-        projectMembers={projectMembers}
-      />
 
       {/* Add Task Modal */}
       {isAddModalOpen && (
