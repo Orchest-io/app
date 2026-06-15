@@ -6,6 +6,7 @@ import {
   AcceptPlanDto,
   ProjectCreatedResponse,
   UsageLimitResponse,
+  SubscriptionStatusResponse,
 } from '@orchest/shared';
 
 /**
@@ -71,5 +72,24 @@ export const chatWithAssistant = async (data: {
   conversationId?: string;
 }): Promise<{ answer: string; conversationId: string }> => {
   const response = await client.post('/ai/chat', data);
+  return response.data;
+};
+
+/**
+ * Get complete subscription status and quotas
+ */
+export const getSubscriptionStatus = async (): Promise<SubscriptionStatusResponse> => {
+  const response = await client.get('/ai/subscription-status');
+  return response.data;
+};
+
+/**
+ * Generate description using AI infrastructure stub
+ */
+export const generateDescription = async (
+  context: string,
+  type: 'task' | 'project',
+): Promise<{ text: string }> => {
+  const response = await client.post('/ai/generate-description', { context, type });
   return response.data;
 };

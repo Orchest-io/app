@@ -4,6 +4,7 @@ import { Repository, Between } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { AiUsageLog } from '../entities/ai-usage-log.entity';
 import { UsersService } from '../../users/users.service';
+import { SubscriptionStatusResponse, SubscriptionTier } from '@orchest/shared';
 
 @Injectable()
 export class AiUsageService {
@@ -49,6 +50,7 @@ export class AiUsageService {
     limit: number;
     canUse: boolean;
     resetsAt: Date;
+    tier: SubscriptionTier;
   }> {
     // Check if user has bypass permission
     const hasBypass = await this.checkBypass(userId);
@@ -58,11 +60,19 @@ export class AiUsageService {
         limit: 999999,
         canUse: true,
         resetsAt: new Date('2099-12-31'),
+        tier: 'pro',
       };
     }
 
-    // Get limit from env (default 10)
-    const limit = this.configService.get<number>('AI_USAGE_LIMIT', 10);
+    // Get user and subscription tier
+    const user = await this.usersService.findOne(userId);
+    const tier = user.subscriptionTier || 'free';
+
+    // Determine limit
+    let limit = 3;
+    if (tier === 'pro') {
+      limit = 30;
+    }
 
     // Get current month's usage
     const startOfMonth = this.getStartOfMonth();
@@ -83,6 +93,37 @@ export class AiUsageService {
       limit,
       canUse: used < limit,
       resetsAt,
+      tier,
+    };
+  }
+
+  /**
+   * Get the full subscription status response for a user
+   */
+  async getSubscriptionStatus(userId: string): Promise<SubscriptionStatusResponse> {
+    const user = await this.usersService.findOne(userId);
+    const tier = user.subscriptionTier || 'free';
+
+    const projectPlanningStatus = await this.checkMonthlyLimit(userId, 'project_planning');
+    const descriptionGenStatus = await this.checkMonthlyLimit(userId, 'description_generation');
+
+    return {
+      tier,
+      stripeCustomerId: user.stripeCustomerId || undefined,
+      stripeSubscriptionId: user.stripeSubscriptionId || undefined,
+      subscriptionExpiresAt: user.subscriptionExpiresAt?.toISOString() || undefined,
+      aiPlans: {
+        used: projectPlanningStatus.used,
+        limit: projectPlanningStatus.limit,
+        canUse: projectPlanningStatus.canUse,
+        resetsAt: projectPlanningStatus.resetsAt.toISOString(),
+      },
+      aiDescriptions: {
+        used: descriptionGenStatus.used,
+        limit: descriptionGenStatus.limit,
+        canUse: descriptionGenStatus.canUse,
+        resetsAt: descriptionGenStatus.resetsAt.toISOString(),
+      },
     };
   }
 

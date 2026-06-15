@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { logoutUser } from '../../../api/users.api'
 import NotificationPanel from '../../ui/NotificationPanel/NotificationPanel'
 import { useMe } from '../../../hooks/useSettings'
+import { useSubscriptionStatus } from '../../../hooks/useSubscription'
+import { AiUpgradeModal } from '../../AI'
 
 type HeaderProps = {
   collapsed?: boolean
@@ -15,6 +17,9 @@ export default function Header({ collapsed = false }: HeaderProps) {
 
   const userId = localStorage.getItem('orchest_user_id')
   const { data: user } = useMe()
+  const { data: subStatus } = useSubscriptionStatus()
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalFeature, setModalFeature] = useState<'project_planning' | 'description_generation'>('project_planning')
 
   const handleLogout = async () => {
     await logoutUser()
@@ -54,16 +59,51 @@ export default function Header({ collapsed = false }: HeaderProps) {
 
       {/* Actions */}
       <div className="flex items-center gap-4">
-        {/* AI Copilot Indicator */}
-        <div className="flex items-center gap-1.5 py-1.5 px-3.5 rounded-full bg-surface-container-high border border-peri-purple/20 text-peri-purple text-[12px] font-medium tracking-wider">
-          <span
-            className="material-symbols-outlined animate-pulse"
-            style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}
-          >
-            auto_awesome
-          </span>
-          AI Active
-        </div>
+        {/* Dynamic AI Subscription / Usage Badge */}
+        {(() => {
+          const used = subStatus?.aiPlans?.used ?? 0;
+          const limit = subStatus?.aiPlans?.limit ?? 3;
+          const isPro = subStatus?.tier === 'pro';
+
+          if (isPro) {
+            return (
+              <button
+                onClick={() => navigate('/settings?section=billing')}
+                className="flex items-center gap-1.5 py-1 px-3 rounded-full bg-gradient-to-r from-purple-600/20 to-electric-blue/20 border border-purple-500/30 text-purple-300 text-[11px] font-bold tracking-wider cursor-pointer hover:from-purple-600/30 hover:to-electric-blue/30 transition-all shadow-[0_0_8px_rgba(168,85,247,0.15)]"
+              >
+                <span className="material-symbols-outlined text-[14px] text-purple-400">auto_awesome</span>
+                Pro Plan
+              </button>
+            );
+          }
+
+          const isWarning = used === limit - 1;
+          const isLimitReached = used >= limit;
+
+          let badgeClass = "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+          let iconClass = "text-emerald-400";
+          
+          if (isLimitReached) {
+            badgeClass = "bg-red-500/10 border-red-500/20 text-red-400 animate-pulse";
+            iconClass = "text-red-400";
+          } else if (isWarning) {
+            badgeClass = "bg-amber-500/10 border-amber-500/20 text-amber-400";
+            iconClass = "text-amber-400";
+          }
+
+          return (
+            <button
+              onClick={() => {
+                setModalFeature('project_planning');
+                setModalOpen(true);
+              }}
+              className={`flex items-center gap-1.5 py-1 px-3.5 rounded-full border text-[11px] font-semibold tracking-wider cursor-pointer transition-all hover:bg-opacity-20 ${badgeClass}`}
+            >
+              <span className={`material-symbols-outlined text-[14px] ${iconClass}`}>auto_awesome</span>
+              AI: {used}/{limit}
+            </button>
+          );
+        })()}
 
         {/* Theme Toggle */}
         <button className="text-on-surface-variant p-1.5 rounded-sm hover:text-primary transition-colors duration-150 cursor-pointer">
@@ -134,6 +174,11 @@ export default function Header({ collapsed = false }: HeaderProps) {
           )}
         </div>
       </div>
+      <AiUpgradeModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        feature={modalFeature}
+      />
     </header>
   )
 }
