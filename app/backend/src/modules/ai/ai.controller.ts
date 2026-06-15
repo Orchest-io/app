@@ -157,4 +157,23 @@ export class AiController {
     await this.aiJobService.cancelJob(jobId, user.id);
     return { success: true };
   }
+
+  // ========================================
+  // AI ASSISTANT CHAT ENDPOINT
+  // ========================================
+
+  /**
+   * POST /ai/chat
+   * Send a message to the AI assistant and receive an answer.
+   * The assistant only answers questions related to this system.
+   * Body: { message: string, conversationId?: string }
+   */
+  @Post('chat')
+  async chat(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { message: string; conversationId?: string },
+  ) {
+    const { message, conversationId } = body;
+    return this.aiService.chatWithAssistant(user.id, message, conversationId);
+  }
 }

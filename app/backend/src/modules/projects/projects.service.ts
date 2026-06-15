@@ -27,7 +27,6 @@ import {
 import { ActivityLogService } from "../analytics/activity-log.service";
 import { NotificationService } from "../analytics/notification.service";
 import { UsersService } from "../users/users.service";
-import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
 	MILESTONE_CREATED_EVENT,
 	MilestoneCreatedEvent,

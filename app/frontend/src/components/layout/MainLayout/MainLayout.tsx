@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Sidebar from '../Sidebar/Sidebar'
 import Header from '../Header/Header'
 import { useNotificationStream } from '../../../hooks/useNotificationStream'
+import { AiAssistant } from '../../AI'
 
 type MainLayoutProps = {
   children: React.ReactNode
@@ -34,6 +35,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
       >
         {children}
       </main>
+
+      {/* AI Assistant — floating chat button, visible on all protected pages */}
+      <AiAssistant />
     </div>
   )
 }

@@ -62,3 +62,14 @@ export const getMyAiJobs = async (status?: string): Promise<AiJobDto[]> => {
 export const cancelAiJob = async (jobId: string): Promise<void> => {
   await client.post(`/ai/jobs/${jobId}/cancel`);
 };
+
+/**
+ * Send a message to the AI assistant
+ */
+export const chatWithAssistant = async (data: {
+  message: string;
+  conversationId?: string;
+}): Promise<{ answer: string; conversationId: string }> => {
+  const response = await client.post('/ai/chat', data);
+  return response.data;
+};
