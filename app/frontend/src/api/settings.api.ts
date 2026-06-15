@@ -27,5 +27,42 @@ export const changePassword = async (dto: {
 }): Promise<void> => {
   const userId = localStorage.getItem('orchest_user_id')
   if (!userId) throw new Error('Not authenticated')
-  await apiClient.patch(`/users/${userId}`, { passwordHash: dto.newPassword })
+  await apiClient.post(`/users/${userId}/change-password`, dto)
+}
+
+// Delete account
+export const deleteAccount = async (password: string): Promise<void> => {
+  const userId = localStorage.getItem('orchest_user_id')
+  if (!userId) throw new Error('Not authenticated')
+  await apiClient.post(`/users/${userId}/delete-account`, { password })
+}
+
+// Get user sessions
+export const getUserSessions = async (): Promise<any[]> => {
+  const userId = localStorage.getItem('orchest_user_id')
+  if (!userId) throw new Error('Not authenticated')
+  const response = await apiClient.get(`/users/${userId}/sessions`)
+  return response.data
+}
+
+// Revoke a session
+export const revokeSession = async (sessionId: string): Promise<void> => {
+  const userId = localStorage.getItem('orchest_user_id')
+  if (!userId) throw new Error('Not authenticated')
+  await apiClient.delete(`/users/${userId}/sessions/${sessionId}`)
+}
+
+// Revoke all other sessions
+export const revokeAllOtherSessions = async (currentSessionId: string): Promise<void> => {
+  const userId = localStorage.getItem('orchest_user_id')
+  if (!userId) throw new Error('Not authenticated')
+  await apiClient.post(`/users/${userId}/sessions/revoke-all`, { currentSessionId })
+}
+
+// Get user activity logs
+export const getUserActivityLogs = async (): Promise<any[]> => {
+  const userId = localStorage.getItem('orchest_user_id')
+  if (!userId) throw new Error('Not authenticated')
+  const response = await apiClient.get(`/activity-logs?user_id=${userId}`)
+  return response.data
 }

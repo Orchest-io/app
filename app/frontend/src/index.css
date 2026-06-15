@@ -1,38 +1,110 @@
 @import "tailwindcss";
 
+:root {
+  /* Light Theme Variables */
+  --bg-deep: #f6f8fa;
+  --surface: #ffffff;
+  --surface-dim: #eceef0;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f0f2f5;
+  --surface-container: #e8ebf0;
+  --surface-container-high: #dfe3e8;
+  --surface-container-highest: #d5dbdf;
+  --surface-bright: #ffffff;
+  --surface-glass: rgba(0, 0, 0, 0.03);
+
+  --on-surface: #0f172a;
+  --on-surface-variant: #475569;
+
+  --electric-blue: #007BFF;
+  --primary: #0052cc;
+  --primary-container: #e0ecff;
+
+  --peri-purple: #5c5dfb;
+  --secondary: #4f46e5;
+  --secondary-container: #e0e7ff;
+  --on-secondary-container: #312e81;
+
+  --error: #d32f2f;
+  --error-container: #ffebee;
+
+  --border-low: rgba(0, 0, 0, 0.08);
+  --outline: #64748b;
+  --outline-variant: #cbd5e1;
+
+  --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --ai-glow: rgba(0, 123, 255, 0.06);
+}
+
+.dark {
+  /* Dark Theme Variables */
+  --bg-deep: #050505;
+  --surface: #131313;
+  --surface-dim: #131313;
+  --surface-container-lowest: #0e0e0e;
+  --surface-container-low: #1c1b1b;
+  --surface-container: #201f1f;
+  --surface-container-high: #2a2a2a;
+  --surface-container-highest: #353534;
+  --surface-bright: #3a3939;
+  --surface-glass: rgba(255, 255, 255, 0.03);
+
+  --on-surface: #e5e2e1;
+  --on-surface-variant: #c1c6d7;
+
+  --electric-blue: #007BFF;
+  --primary: #adc7ff;
+  --primary-container: #4a8eff;
+
+  --peri-purple: #CCCCFF;
+  --secondary: #c2c2f5;
+  --secondary-container: #444570;
+  --on-secondary-container: #b4b4e6;
+
+  --error: #ffb4ab;
+  --error-container: #93000a;
+
+  --border-low: rgba(255, 255, 255, 0.08);
+  --outline: #8b90a0;
+  --outline-variant: #414754;
+
+  --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  --ai-glow: rgba(0, 123, 255, 0.15);
+}
+
 @theme {
-  /* Colors */
-  --color-bg-deep: #050505;
-  --color-surface: #131313;
-  --color-surface-dim: #131313;
-  --color-surface-container-lowest: #0e0e0e;
-  --color-surface-container-low: #1c1b1b;
-  --color-surface-container: #201f1f;
-  --color-surface-container-high: #2a2a2a;
-  --color-surface-container-highest: #353534;
-  --color-surface-bright: #3a3939;
-  --color-surface-glass: rgba(255, 255, 255, 0.03);
+  /* Colors mapping to dynamic CSS variables */
+  --color-bg-deep: var(--bg-deep);
+  --color-surface: var(--surface);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-surface-bright: var(--surface-bright);
+  --color-surface-glass: var(--surface-glass);
 
-  --color-on-surface: #e5e2e1;
-  --color-on-surface-variant: #c1c6d7;
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
 
-  --color-electric-blue: #007BFF;
-  --color-primary: #adc7ff;
-  --color-primary-container: #4a8eff;
+  --color-electric-blue: var(--electric-blue);
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
 
-  --color-peri-purple: #CCCCFF;
-  --color-secondary: #c2c2f5;
-  --color-secondary-container: #444570;
-  --color-on-secondary-container: #b4b4e6;
+  --color-peri-purple: var(--peri-purple);
+  --color-secondary: var(--secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
 
-  --color-error: #ffb4ab;
-  --color-error-container: #93000a;
+  --color-error: var(--error);
+  --color-error-container: var(--error-container);
 
-  --color-border-low: rgba(255, 255, 255, 0.08);
-  --color-outline: #8b90a0;
-  --color-outline-variant: #414754;
+  --color-border-low: var(--border-low);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
 
-  --color-ai-glow: rgba(0, 123, 255, 0.15);
+  --color-ai-glow: var(--ai-glow);
 
   /* Spacing */
   --spacing-sidebar-w: 260px;
@@ -56,11 +128,13 @@
     background-color: var(--color-bg-deep);
     color: var(--color-on-surface);
     overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   /* Custom Scrollbar */
   ::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
@@ -68,7 +142,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--scrollbar-thumb);
     border-radius: 10px;
   }
 
@@ -87,9 +161,9 @@
 
 /* Landing Page Mockup Utilities */
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-glass);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-low);
 }
 
 .electric-glow {
@@ -110,4 +184,5 @@
   0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-10px); }
 }
+
 

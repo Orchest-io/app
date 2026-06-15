@@ -10,6 +10,9 @@ import CreateProjectWizard from './pages/Projects/CreateProjectWizard'
 import ProjectDetailsOverview from './pages/Projects/ProjectDetails/ProjectDetails'
 import KanbanPage from './pages/Projects/KanbanPage'
 import Settings from './pages/Settings/Settings'
+import { useTheme } from './context/ThemeContext'
+import ThemeSync from './components/layout/ThemeSync'
+import LanguageSync from './components/layout/LanguageSync'
 
 // ── Auth helpers ────────────────────────────────────────────────────
 function isLoggedIn() {
@@ -28,9 +31,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // ────────────────────────────────────────────────────────────────────
 export default function App() {
+  const { resolvedTheme } = useTheme()
+
   return (
     <>
-      <Toaster position="top-right" theme="dark" closeButton richColors />
+      <ThemeSync />
+      <LanguageSync />
+      <Toaster position="top-right" theme={resolvedTheme} closeButton richColors />
 
       <Routes>
         {/* Public */}

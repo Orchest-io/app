@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { logoutUser } from '../../../api/users.api'
+import { useTranslation } from 'react-i18next'
 
 type NavItem = {
   key: string
@@ -22,6 +23,7 @@ type SidebarProps = {
 
 export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const handleLogout = async () => {
     await logoutUser()
@@ -47,7 +49,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         {!collapsed && (
           <div>
             <h1 className="font-heading text-lg font-bold leading-none text-on-surface">Orchist</h1>
-            <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mt-0.5">AI Smart Planner</p>
+            <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mt-0.5">{t('sidebar.logoSubtitle')}</p>
           </div>
         )}
       </div>
@@ -60,7 +62,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         onClick={() => navigate('/projects')}
       >
         <span className="material-symbols-outlined">add</span>
-        {!collapsed && 'New Project'}
+        {!collapsed && t('sidebar.newProject')}
       </button>
 
       {/* Nav links */}
@@ -76,7 +78,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             }
           >
             <span className="material-symbols-outlined">{item.icon}</span>
-            {!collapsed && item.label}
+            {!collapsed && t(`sidebar.${item.key}`)}
           </NavLink>
         ))}
       </nav>
@@ -93,7 +95,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           <span className="material-symbols-outlined">
             {collapsed ? 'chevron_right' : 'chevron_left'}
           </span>
-          {!collapsed && 'Collapse'}
+          {!collapsed && (collapsed ? t('sidebar.expand') : t('sidebar.collapse'))}
         </a>
 
         {/* Help */}
@@ -103,7 +105,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           }`}
         >
           <span className="material-symbols-outlined">help</span>
-          {!collapsed && 'Help'}
+          {!collapsed && t('sidebar.help')}
         </a>
 
         {/* Notifications */}
@@ -114,7 +116,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         >
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined">notifications</span>
-            {!collapsed && 'Notifications'}
+            {!collapsed && t('sidebar.notifications')}
           </div>
           {!collapsed && <span className="w-2 h-2 bg-electric-blue rounded-full shrink-0" />}
         </a>
@@ -127,9 +129,10 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           onClick={handleLogout}
         >
           <span className="material-symbols-outlined">logout</span>
-          {!collapsed && 'Sign Out'}
+          {!collapsed && t('sidebar.signOut')}
         </a>
       </div>
     </aside>
   )
 }
+
