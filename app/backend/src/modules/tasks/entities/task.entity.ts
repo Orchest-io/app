@@ -58,11 +58,11 @@ export class Task {
   @Column({ name: 'actual_hours', type: 'decimal', precision: 5, scale: 2, nullable: true, default: 0 })
   actualHours: number;
 
-  @Column({ name: 'ai_complexity_vector', type: 'vector' as any, length: 1536, nullable: true })
-  aiComplexityVector: number[];
+  @Column({ name: 'ai_complexity_vector', type: 'jsonb', nullable: true })
+  aiComplexityVector: number[] | null;
 
-  @Column({ name: 'ai_risk_score', type: 'vector' as any, length: 1536, nullable: true })
-  aiRiskScore: number[];
+  @Column({ name: 'ai_risk_score', type: 'jsonb', nullable: true })
+  aiRiskScore: number[] | null;
 
   @Column({ name: 'completed_at', type: 'timestamp', nullable: true })
   completedAt: Date;

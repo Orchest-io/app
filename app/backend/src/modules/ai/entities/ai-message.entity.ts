@@ -27,8 +27,8 @@ export class AiMessage {
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ name: 'content_embedding', type: 'vector' as any, length: 1536, nullable: true })
-  contentEmbedding: number[];
+  @Column({ name: 'content_embedding', type: 'jsonb', nullable: true })
+  contentEmbedding: number[] | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

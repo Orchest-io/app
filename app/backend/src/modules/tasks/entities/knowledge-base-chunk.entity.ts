@@ -14,6 +14,6 @@ export class KnowledgeBaseChunk {
   @Column({ name: 'text_chunk', type: 'text' })
   textChunk: string;
 
-  @Column({ name: 'embedding', type: 'vector' as any, length: 1536 })
-  embedding: number[];
+  @Column({ name: 'embedding', type: 'jsonb', nullable: true })
+  embedding: number[] | null;
 }
