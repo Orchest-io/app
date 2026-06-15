@@ -1,17 +1,32 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
-import { TasksService } from './tasks.service';
 import {
-  CreateTaskDto,
-  UpdateTaskDto,
-  BulkUpdateTasksDto,
-  CreateSubtaskDto,
-  UpdateSubtaskDto,
-  AddTaskAssigneeDto,
-  CreateTaskDependencyDto,
-} from '@orchest/shared';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+	Controller,
+	Get,
+	Post,
+	Body,
+	Patch,
+	Param,
+	Delete,
+	UseGuards,
+	Request,
+} from "@nestjs/common";
+import { TasksService } from "./tasks.service";
+import {
+	CreateTaskDto,
+	UpdateTaskDto,
+	BulkUpdateTasksDto,
+	CreateSubtaskDto,
+	UpdateSubtaskDto,
+	AddTaskAssigneeDto,
+	CreateTaskDependencyDto,
+	CreateCommentDto,
+} from "@orchest/shared";
+import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
+import {
+	CurrentUser,
+	JwtPayload,
+} from "../../common/decorators/current-user.decorator";
 
-@Controller('tasks')
+@Controller("tasks")
 @UseGuards(JwtAuthGuard)
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}

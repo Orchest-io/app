@@ -7,6 +7,7 @@ import {
   Notification, 
   ActivityLog 
 } from './entities';
+import { Task } from '../tasks/entities/task.entity';
 import { ReportService } from './report.service';
 import { ReportController } from './report.controller';
 import { TimeEntryService } from './time-entry.service';
@@ -15,6 +16,9 @@ import { NotificationService } from './notification.service';
 import { NotificationController } from './notification.controller';
 import { ActivityLogService } from './activity-log.service';
 import { ActivityLogController } from './activity-log.controller';
+import { SseService } from './sse.service';
+import { DueDateSchedulerService } from './due-date-scheduler.service';
+import { NotificationEventsListener } from './notification-events.listener';
 
 @Module({
   imports: [
@@ -24,6 +28,7 @@ import { ActivityLogController } from './activity-log.controller';
       TimeEntry,
       Notification,
       ActivityLog,
+      Task,
     ]),
   ],
   controllers: [
@@ -37,12 +42,17 @@ import { ActivityLogController } from './activity-log.controller';
     TimeEntryService,
     NotificationService,
     ActivityLogService,
+    SseService,
+    DueDateSchedulerService,
+    NotificationEventsListener,
   ],
   exports: [
     ReportService,
     TimeEntryService,
     NotificationService,
     ActivityLogService,
+    SseService,
+    DueDateSchedulerService,
   ],
 })
 export class AnalyticsModule {}

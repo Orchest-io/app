@@ -4,7 +4,6 @@ import type {
   ProjectDetailDto,
   CreateProjectDto,
   UpdateProjectDto,
-  AddProjectMemberDto,
   CreateMilestoneDto,
   UpdateMilestoneDto,
 } from '@orchest/shared';
