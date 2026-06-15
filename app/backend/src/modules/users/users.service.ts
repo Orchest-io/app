@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,6 +12,7 @@ import { User } from './entities/user.entity';
 import { UserSession } from './entities/user-session.entity';
 import { UserSettings } from './entities/user-settings.entity';
 import { UserSkill } from './entities/user-skill.entity';
+import { StorageService } from '../storage/storage.service';
 import {
   CreateUserDto,
   UpdateUserDto,
@@ -32,7 +34,52 @@ export class UsersService {
     private readonly settingsRepository: Repository<UserSettings>,
     @InjectRepository(UserSkill)
     private readonly skillRepository: Repository<UserSkill>,
+    private readonly storageService: StorageService,
   ) {}
+
+  async updateAvatar(userId: string, file: Express.Multer.File): Promise<User> {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    if (!file.mimetype.startsWith('image/')) {
+      throw new BadRequestException('File must be an image');
+    }
+
+    const maxSizeBytes = 2 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      throw new BadRequestException('Avatar exceeds 2MB size limit');
+    }
+
+    const user = await this.findOne(userId);
+
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const fileExt = file.originalname.split('.').pop() || 'png';
+    const storagePath = `users/${userId}/${uniqueSuffix}.${fileExt}`;
+
+    const avatarUrl = await this.storageService.uploadFile(
+      'avatars',
+      storagePath,
+      file.buffer,
+      file.mimetype,
+    );
+
+    // Optional: delete old avatar from Supabase storage if it was stored there
+    if (user.avatarUrl && user.avatarUrl.includes('supabase.co')) {
+      try {
+        const match = user.avatarUrl.match(/\/avatars\/(.+)$/);
+        if (match && match[1]) {
+          const oldPath = decodeURIComponent(match[1]);
+          await this.storageService.deleteFile('avatars', oldPath);
+        }
+      } catch (err) {
+        console.error('Failed to delete old avatar:', err);
+      }
+    }
+
+    user.avatarUrl = avatarUrl;
+    return this.userRepository.save(user);
+  }
 
   // ─── Register ──────────────────────────────────────────────────────
 

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logoutUser } from '../../../api/users.api'
 import NotificationPanel from '../../ui/NotificationPanel/NotificationPanel'
+import { useMe } from '../../../hooks/useSettings'
 
 type HeaderProps = {
   collapsed?: boolean
@@ -13,6 +14,7 @@ export default function Header({ collapsed = false }: HeaderProps) {
   const menuRef = useRef<HTMLDivElement>(null)
 
   const userId = localStorage.getItem('orchest_user_id')
+  const { data: user } = useMe()
 
   const handleLogout = async () => {
     await logoutUser()
@@ -74,20 +76,31 @@ export default function Header({ collapsed = false }: HeaderProps) {
         {/* Profile dropdown */}
         <div className="relative" ref={menuRef}>
           <button
-            className="w-8 h-8 rounded-full bg-electric-blue/20 border border-electric-blue/40 flex items-center justify-center text-electric-blue font-heading font-bold text-xs hover:bg-electric-blue/30 transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-electric-blue/20 border border-electric-blue/40 flex items-center justify-center text-electric-blue font-heading font-bold text-xs hover:bg-electric-blue/30 transition-colors cursor-pointer overflow-hidden"
             onClick={() => setMenuOpen((v) => !v)}
             title="Account menu"
           >
-            <span className="material-symbols-outlined text-[18px]">person</span>
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.fullName} className="w-full h-full object-cover" />
+            ) : (
+              user?.fullName ? (
+                <span>{user.fullName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}</span>
+              ) : (
+                <span className="material-symbols-outlined text-[18px]">person</span>
+              )
+            )}
           </button>
 
           {menuOpen && (
             <div className="absolute right-0 top-11 w-52 bg-surface-container-low border border-border-low rounded-xl shadow-2xl overflow-hidden z-50">
               {/* User info */}
               <div className="px-4 py-3 border-b border-border-low">
-                <p className="text-[11px] text-on-surface-variant">Signed in</p>
-                <p className="text-xs font-mono text-on-surface truncate mt-0.5">
-                  {userId ? `${userId.slice(0, 8)}...` : '—'}
+                <p className="text-[11px] text-on-surface-variant">Signed in as</p>
+                <p className="text-xs font-semibold text-on-surface truncate mt-0.5">
+                  {user?.fullName || '—'}
+                </p>
+                <p className="text-[10px] text-on-surface-variant/80 truncate font-mono mt-0.5">
+                  {user?.email || (userId ? `${userId.slice(0, 8)}...` : '—')}
                 </p>
               </div>
 

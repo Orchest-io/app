@@ -4,6 +4,8 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { ScheduleModule } from "@nestjs/schedule";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { getDatabaseConfig } from "./common/config/database.config";
+import { StorageModule } from "./modules/storage/storage.module";
+import { AttachmentsModule } from "./modules/attachments/attachments.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { UsersModule } from "./modules/users/users.module";
 import { ProjectsModule } from "./modules/projects/projects.module";
@@ -25,6 +27,8 @@ import { DashboardModule } from "./modules/dashboard/dashboard.module";
 		}),
 		ScheduleModule.forRoot(),
 		EventEmitterModule.forRoot(),
+		StorageModule,
+		AttachmentsModule,
 		AuthModule,
 		UsersModule,
 		ProjectsModule,
