@@ -678,10 +678,17 @@ export default function CreateProjectWizard() {
             <div className="mb-8 border-t border-white/5 pt-8">
               <h3 className="font-heading text-sm font-semibold text-on-surface mb-2 uppercase tracking-wider flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">straighten</span>
+<<<<<<< HEAD
                 {t('wizard.agileSetup')} <span className="text-on-surface-variant font-normal normal-case">{t('wizard.agileSetupOptional')}</span>
               </h3>
               <p className="text-xs text-on-surface-variant mb-6">
                 {t('wizard.agileSetupDesc')}
+=======
+                Agile Estimation Setup <span className="text-on-surface-variant font-normal normal-case">(Optional)</span>
+              </h3>
+              <p className="text-xs text-on-surface-variant mb-6">
+                Configure how many hours each Story Point equates to for this specific project. This helps track velocity accurately.
+>>>>>>> da467d6d7d3b4b17fca90985d1e95e65063a4a63
               </p>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -701,7 +708,11 @@ export default function CreateProjectWizard() {
                         min="0"
                         step="0.5"
                       />
+<<<<<<< HEAD
                       <span className="text-[10px] text-on-surface-variant font-medium">{t('wizard.hrs')}</span>
+=======
+                      <span className="text-[10px] text-on-surface-variant font-medium">hrs</span>
+>>>>>>> da467d6d7d3b4b17fca90985d1e95e65063a4a63
                     </div>
                   </div>
                 ))}

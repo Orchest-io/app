@@ -5,6 +5,7 @@ export * from './dtos/user.dtos';
 export * from './dtos/project.dtos';
 export * from './dtos/task.dtos';
 export * from './dtos/project-analytics.dto';
+export * from './dtos/analytics-hub.dto';
 export * from './dtos/ai.dtos';
 export * from './dtos/ai-job.dto';
 export * from './dtos/analytics.dtos';

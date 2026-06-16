@@ -485,6 +485,11 @@ export default function KanbanPage() {
         </div>
       )}
 
+<<<<<<< HEAD
+      {/* Filter Toolbar */}
+      <div className="mb-6">
+        <TaskFilters filters={filters} onFiltersChange={setFilters} />
+=======
       {/* Filter Toolbar & Analytics */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <TaskFilters filters={filters} onFiltersChange={setFilters} />
@@ -494,8 +499,9 @@ export default function KanbanPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-electric-blue/10 text-electric-blue border border-electric-blue/20 hover:bg-electric-blue hover:text-white transition-all font-semibold text-sm shadow-sm"
         >
           <span className="material-symbols-outlined text-[18px]">insights</span>
-          {t('kanban.projectAnalytics')}
+          Project Analytics
         </button>
+>>>>>>> da467d6d7d3b4b17fca90985d1e95e65063a4a63
       </div>
 
       {/* Kanban Board Area */}
