@@ -4,26 +4,36 @@ import Stripe from "stripe";
 
 @Injectable()
 export class StripeService {
-	private stripe: any;
+	private stripe: InstanceType<typeof Stripe> | null = null;
 
 	constructor(private readonly configService: ConfigService) {
 		const apiKey = this.configService.get<string>("STRIPE_SECRET_KEY");
 		if (!apiKey) {
 			// Don't crash at startup if not provided, but log warning
 			console.warn(
-				"STRIPE_SECRET_KEY is not defined in environment variables.",
+				"STRIPE_SECRET_KEY is not defined in environment variables. Stripe features will be disabled.",
+			);
+		} else {
+			this.stripe = new Stripe(apiKey, {
+				apiVersion: "2024-12-18.acacia" as any,
+			});
+		}
+	}
+
+	private ensureStripeConfigured(): void {
+		if (!this.stripe) {
+			throw new BadRequestException(
+				"Stripe is not configured. Please set STRIPE_SECRET_KEY in environment variables.",
 			);
 		}
-		this.stripe = new Stripe(apiKey || "")
-		// , {
-		// 	apiVersion: "2025-02-18-preview" as any, // standard version
-		// });
 	}
 
 	async createCheckoutSession(
 		userId: string,
 		email: string,
 	): Promise<{ url: string }> {
+		this.ensureStripeConfigured();
+
 		const priceId = this.configService.get<string>("STRIPE_PRO_PRICE_ID");
 		const successUrl =
 			this.configService.get<string>("STRIPE_SUCCESS_URL") ||
@@ -37,7 +47,7 @@ export class StripeService {
 		}
 
 		try {
-			const session = await this.stripe.checkout.sessions.create({
+			const session = await this.stripe!.checkout.sessions.create({
 				payment_method_types: ["card"],
 				line_items: [
 					{
@@ -72,12 +82,14 @@ export class StripeService {
 	async createCustomerPortalSession(
 		stripeCustomerId: string,
 	): Promise<{ url: string }> {
+		this.ensureStripeConfigured();
+
 		const cancelUrl =
 			this.configService.get<string>("STRIPE_CANCEL_URL") ||
 			"http://localhost:5173/settings?section=billing";
 
 		try {
-			const session = await this.stripe.billingPortal.sessions.create({
+			const session = await this.stripe!.billingPortal.sessions.create({
 				customer: stripeCustomerId,
 				return_url: cancelUrl,
 			});
@@ -91,6 +103,8 @@ export class StripeService {
 	}
 
 	constructEvent(rawBody: string | Buffer, signature: string): any {
+		this.ensureStripeConfigured();
+
 		const webhookSecret = this.configService.get<string>(
 			"STRIPE_WEBHOOK_SECRET",
 		);
@@ -99,7 +113,7 @@ export class StripeService {
 		}
 
 		try {
-			return this.stripe.webhooks.constructEvent(
+			return this.stripe!.webhooks.constructEvent(
 				rawBody,
 				signature,
 				webhookSecret,
@@ -112,6 +126,7 @@ export class StripeService {
 	}
 
 	async retrieveSubscription(subscriptionId: string): Promise<any> {
-		return this.stripe.subscriptions.retrieve(subscriptionId);
+		this.ensureStripeConfigured();
+		return this.stripe!.subscriptions.retrieve(subscriptionId);
 	}
 }

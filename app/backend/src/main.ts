@@ -13,14 +13,14 @@ async function bootstrap() {
 		.build();
 
 	const document = SwaggerModule.createDocument(app, config);
-	const OpenApiSpecification =
-		/* … */
-		app.use(
-			"/reference",
-			apiReference({
+	app.use(
+		"/reference",
+		apiReference({
+			spec: {
 				content: document,
-			}),
-		);
+			},
+		}),
+	);
 
 	// CORS configuration for credentials support
 	app.enableCors({

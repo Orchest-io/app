@@ -32,6 +32,65 @@ export class CreateStoryPointConfigDto {
 	hoursEquivalent: number;
 }
 
+export class CreateProjectMemberDto {
+	@IsString()
+	email: string;
+
+	@IsOptional()
+	@IsEnum(ProjectMemberRole)
+	role?: ProjectMemberRole;
+
+	@IsOptional()
+	@IsString()
+	jobTitle?: string;
+
+	@IsOptional()
+	@IsString()
+	skills?: string;
+}
+
+export class CreateProjectTaskDto {
+	@IsString()
+	title: string;
+
+	@IsOptional()
+	@IsString()
+	description?: string;
+
+	@IsOptional()
+	@IsString()
+	priority?: string;
+
+	@IsOptional()
+	@IsString()
+	status?: string;
+
+	@IsOptional()
+	@IsDateString()
+	dueDate?: string;
+
+	@IsOptional()
+	@IsUUID()
+	milestoneId?: string;
+}
+
+export class CreateProjectMilestoneDto {
+	@IsString()
+	title: string;
+
+	@IsOptional()
+	@IsString()
+	description?: string;
+
+	@IsOptional()
+	@IsDateString()
+	targetDate?: string;
+
+	@IsOptional()
+	@IsString()
+	color?: string;
+}
+
 export class CreateProjectDto {
 	@IsString()
 	name: string;
@@ -85,6 +144,24 @@ export class CreateProjectDto {
 	@ValidateNested({ each: true })
 	@Type(() => CreateStoryPointConfigDto)
 	storyPointConfigs?: CreateStoryPointConfigDto[];
+
+	@IsOptional()
+	@IsArray()
+	@ValidateNested({ each: true })
+	@Type(() => CreateProjectMemberDto)
+	teamMembers?: CreateProjectMemberDto[];
+
+	@IsOptional()
+	@IsArray()
+	@ValidateNested({ each: true })
+	@Type(() => CreateProjectMilestoneDto)
+	milestones?: CreateProjectMilestoneDto[];
+
+	@IsOptional()
+	@IsArray()
+	@ValidateNested({ each: true })
+	@Type(() => CreateProjectTaskDto)
+	tasks?: CreateProjectTaskDto[];
 }
 
 export class UpdateProjectDto {

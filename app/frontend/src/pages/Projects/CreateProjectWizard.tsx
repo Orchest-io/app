@@ -7,7 +7,6 @@ import { useCreateProject } from '../../hooks/useProjectMutations'
 import { useStartGeneration, useJobProgress, useJobStatus, useAcceptPlan } from '../../hooks/useAiPlanning'
 import { useUsers } from '../../hooks/useUsers'
 import type { GenerateProjectPlanDto } from '@orchest/shared'
-import apiClient from '../../api/client'
 import { AiDescriptionGenerator, AiUpgradeModal } from '../../components/AI'
 
 type ProjectMode = 'ai' | 'manual' | null
@@ -108,14 +107,14 @@ export default function CreateProjectWizard() {
     description: string
     priority: string
     dueDate: string
-    assignedTo: string
     status: string
+    milestoneId?: string
   }>>([])
   const [teamMembers, setTeamMembers] = useState<Array<{ 
     email: string
-    role: string
-    skills: string
-    status: string
+    role: 'owner' | 'member'
+    jobTitle?: string
+    skills?: string
   }>>([])
 
   // Modals state
@@ -134,14 +133,14 @@ export default function CreateProjectWizard() {
     description: '', 
     priority: 'medium',
     dueDate: '',
-    assignedTo: '',
-    status: 'todo'
+    status: 'todo',
+    milestoneId: ''
   })
   const [memberForm, setMemberForm] = useState({ 
     email: '', 
-    role: '',
-    skills: '',
-    status: 'available'
+    role: 'member' as 'owner' | 'member',
+    jobTitle: '',
+    skills: ''
   })
 
   const submitting = createProjectMutation.isPending
@@ -323,8 +322,8 @@ export default function CreateProjectWizard() {
       toast.warning(t('wizard.enterTaskDesc'))
       return
     }
-    setTasks([...tasks, { ...taskForm }])
-    setTaskForm({ title: '', description: '', priority: 'medium', dueDate: '', assignedTo: '', status: 'todo' })
+    setTasks([...tasks, { ...taskForm, milestoneId: taskForm.milestoneId || undefined }])
+    setTaskForm({ title: '', description: '', priority: 'medium', dueDate: '', status: 'todo', milestoneId: '' })
     setIsTaskModalOpen(false)
     toast.success(t('wizard.taskAdded'))
   }
@@ -342,20 +341,20 @@ export default function CreateProjectWizard() {
       toast.error(t('wizard.invalidEmail'))
       return
     }
-    if (!memberForm.role || memberForm.role === '') {
-      toast.warning(t('wizard.selectRole'))
-      return
-    }
     // Check duplicate
     if (teamMembers.some(m => m.email === memberForm.email)) {
       toast.error(t('wizard.memberAlreadyAdded'))
       return
     }
 
-    // TODO: Validate user exists in backend
-    // For now, just add to list
-    setTeamMembers([...teamMembers, { ...memberForm }])
-    setMemberForm({ email: '', role: '', skills: '', status: 'available' })
+    // Add to list
+    setTeamMembers([...teamMembers, { 
+      email: memberForm.email,
+      role: memberForm.role,
+      jobTitle: memberForm.jobTitle || undefined,
+      skills: memberForm.skills || undefined
+    }])
+    setMemberForm({ email: '', role: 'member', jobTitle: '', skills: '' })
     setIsMemberModalOpen(false)
     toast.success(t('wizard.membersAdded'))
   }
@@ -564,6 +563,7 @@ export default function CreateProjectWizard() {
         projectType: projectMode, // 'ai' or 'manual'
         projectMode: projectType, // 'team' or 'individual'
         storyPointConfigs,
+        teamMembers, // Include team members
       }
 
       createProjectMutation.mutate(projectData as any, {
@@ -708,6 +708,77 @@ export default function CreateProjectWizard() {
               </div>
             </div>
 
+            {/* Team Members Section - Only show for team projects */}
+            {projectType === 'team' && (
+              <div className="mb-8 border-t border-white/5 pt-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-heading text-sm font-semibold text-on-surface uppercase tracking-wider flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px]">groups</span>
+                      {t('wizard.teamMembers')}
+                    </h3>
+                    <p className="text-xs text-on-surface-variant mt-1">
+                      {t('wizard.teamMembersDesc', { defaultValue: 'Add team members to collaborate on this project' })}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setIsMemberModalOpen(true)}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">add</span>
+                    {t('wizard.addMember')}
+                  </Button>
+                </div>
+
+                {teamMembers.length === 0 ? (
+                  <div className="bg-white/5 border border-dashed border-white/20 rounded-lg p-8 text-center">
+                    <span className="material-symbols-outlined text-[48px] text-on-surface-variant/50 mb-2">
+                      group_add
+                    </span>
+                    <p className="text-sm text-on-surface-variant">
+                      {t('wizard.noMembersYet', { defaultValue: 'No team members added yet' })}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {teamMembers.map((member, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-white/5 border border-white/10 rounded-lg p-4 flex items-center justify-between hover:bg-white/10 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-electric-blue/30 to-purple-400/30 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-[20px] text-electric-blue">
+                              person
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-on-surface">{member.email}</p>
+                            <p className="text-xs text-on-surface-variant">
+                              {member.jobTitle || (member.role === 'owner' ? t('wizard.roleOwner', { defaultValue: 'Owner' }) : t('wizard.roleMember', { defaultValue: 'Member' }))} {member.skills && `• ${member.skills}`}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setTeamMembers(teamMembers.filter((_, i) => i !== idx))
+                            toast.success(t('wizard.memberRemoved'))
+                          }}
+                        >
+                          <span className="material-symbols-outlined text-[18px]">close</span>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex gap-3 justify-end pt-6 border-t border-border-low">
               <Button
@@ -746,6 +817,9 @@ export default function CreateProjectWizard() {
           projectType: projectMode, // 'ai' or 'manual'
           projectMode: projectType, // 'team' or 'individual'
           storyPointConfigs,
+          teamMembers, // Include team members
+          milestones, // Include milestones
+          tasks, // Include tasks
         }
 
         toast.info(t('wizard.creatingProject'))
@@ -756,83 +830,7 @@ export default function CreateProjectWizard() {
           return
         }
 
-        const projectId = newProject.id
         toast.success(t('wizard.projectCreated'))
-
-        // 2. Add milestones (if any)
-        if (milestones.length > 0) {
-          toast.info(t('wizard.addingMilestones', { count: milestones.length }))
-          for (const milestone of milestones) {
-            try {
-              // Convert date to ISO format if provided
-              const targetDate = milestone.targetDate 
-                ? new Date(milestone.targetDate).toISOString() 
-                : undefined
-
-              await apiClient.post(`/projects/${projectId}/milestones`, {
-                title: milestone.title,
-                description: milestone.description,
-                targetDate,
-              })
-            } catch (err: any) {
-              console.error('Failed to add milestone:', err)
-              const errorMsg = err?.response?.data?.message || 'Unknown error'
-              toast.error(`${t('wizard.milestoneUpdateFailed')}: ${errorMsg}`)
-            }
-          }
-          toast.success(t('wizard.milestonesAdded'))
-        }
-
-        // 3. Add tasks (if any)
-        if (tasks.length > 0) {
-          toast.info(t('wizard.addingTasks', { count: tasks.length }))
-          for (const task of tasks) {
-            try {
-              await apiClient.post(`/tasks`, { 
-                projectId,
-                title: task.title,
-                description: task.description,
-                priority: task.priority,
-                status: task.status,
-                dueDate: task.dueDate || undefined,
-                assignedTo: task.assignedTo || undefined,
-              })
-            } catch (err: any) {
-              console.error('Failed to add task:', err)
-              const errorMsg = err?.response?.data?.message || 'Unknown error'
-              toast.error(`${t('wizard.taskUpdated')}: ${errorMsg}`)
-            }
-          }
-          toast.success(t('wizard.tasksAdded'))
-        }
-
-        // 4. Add team members (if any)
-        if (teamMembers.length > 0) {
-          toast.info(t('wizard.addingMembers', { count: teamMembers.length }))
-          for (const member of teamMembers) {
-            try {
-              await apiClient.post(`/projects/${projectId}/members/by-email`, {
-                email: member.email,
-                role: 'member',
-                jobTitle: member.role,
-                skills: member.skills || undefined,
-                status: member.status,
-              })
-              toast.success(t('wizard.memberAddedCount', { name: member.email, defaultValue: `Added ${member.email}` }))
-            } catch (err: any) {
-              const errorMsg = err?.response?.data?.message || err.message || 'Unknown error'
-              if (err?.response?.status === 404) {
-                toast.error(`${t('wizard.invalidEmail')}: ${member.email}`)
-              } else if (err?.response?.status === 409) {
-                toast.error(`${member.email} ${t('wizard.memberAlreadyAdded')}`)
-              } else {
-                toast.error(`${t('wizard.failedCreateProject')}: ${errorMsg}`)
-              }
-              console.error('Failed to add member:', err)
-            }
-          }
-          toast.success(t('wizard.membersAdded'))
-        }
 
         // Navigate to projects list
         toast.success(t('wizard.projectSetupComplete'))
@@ -1023,12 +1021,10 @@ export default function CreateProjectWizard() {
                               {task.dueDate}
                             </span>
                           )}
-                          {task.assignedTo && (
-                            <span className="flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[12px]">person</span>
-                              {task.assignedTo}
-                            </span>
-                          )}
+                          <span className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[12px]">flag</span>
+                            {task.priority}
+                          </span>
                         </div>
                       </div>
                       <button
@@ -1104,15 +1100,6 @@ export default function CreateProjectWizard() {
                             )}
                           </div>
                         )}
-                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border inline-block mt-1 ${
-                          member.status === 'available' ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' :
-                          member.status === 'busy' ? 'text-amber-400 bg-amber-400/10 border-amber-400/20' :
-                          'text-red-400 bg-red-400/10 border-red-400/20'
-                        }`}>
-                          {member.status === 'available' ? t('wizard.memberAvailable') :
-                           member.status === 'busy' ? t('wizard.memberBusy') :
-                           t('wizard.memberOnLeave', { defaultValue: 'On Leave' })}
-                        </span>
                       </div>
                       <button
                         onClick={() => setTeamMembers(teamMembers.filter((_, i) => i !== idx))}
@@ -2181,16 +2168,6 @@ export default function CreateProjectWizard() {
                 type="date"
                 value={taskForm.dueDate}
                 onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
-                required
-              />
-
-              <Input
-                label={t('wizard.taskAssignTo')}
-                type="email"
-                placeholder="teammate@example.com"
-                value={taskForm.assignedTo}
-                onChange={(e) => setTaskForm({ ...taskForm, assignedTo: e.target.value })}
-                helperText={t('wizard.assignLaterHelper')}
               />
 
               <div className="flex gap-3 justify-end mt-4">
@@ -2234,21 +2211,23 @@ export default function CreateProjectWizard() {
               />
 
               <Select
-                label={t('wizard.memberRole')}
+                label={t('wizard.projectRole')}
                 value={memberForm.role}
-                onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value })}
+                onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value as 'owner' | 'member' })}
                 options={[
-                  { value: '', label: t('wizard.selectPosition') },
-                  { value: 'Full Stack Engineer', label: t('wizard.roleFullStack') },
-                  { value: 'Backend Developer', label: t('wizard.roleBackend') },
-                  { value: 'Frontend Developer', label: t('wizard.roleFrontend') },
-                  { value: 'AI Specialist', label: t('wizard.roleAi') },
-                  { value: 'Product Designer', label: t('wizard.roleDesigner') },
-                  { value: 'QA Engineer', label: t('wizard.roleQa') },
-                  { value: 'DevOps Engineer', label: t('wizard.roleDevOps') },
-                  { value: 'Project Manager', label: t('wizard.rolePm') },
+                  { value: 'member', label: t('wizard.roleMember', { defaultValue: 'Member' }) },
+                  { value: 'owner', label: t('wizard.roleOwner', { defaultValue: 'Owner' }) },
                 ]}
                 required
+              />
+              <p className="text-xs text-on-surface-variant -mt-2">{t('wizard.projectRoleHelper', { defaultValue: 'Project access level' })}</p>
+
+              <Input
+                label={t('wizard.jobTitle', { defaultValue: 'Job Title' })}
+                placeholder="e.g. Full Stack Engineer, Backend Developer"
+                value={memberForm.jobTitle}
+                onChange={(e) => setMemberForm({ ...memberForm, jobTitle: e.target.value })}
+                helperText={t('wizard.jobTitleHelper', { defaultValue: 'Optional: Their role/position in the team' })}
               />
 
               <TextArea
@@ -2257,18 +2236,6 @@ export default function CreateProjectWizard() {
                 value={memberForm.skills}
                 onChange={(e) => setMemberForm({ ...memberForm, skills: e.target.value })}
                 rows={3}
-              />
-
-              <Select
-                label={t('wizard.memberStatus')}
-                value={memberForm.status}
-                onChange={(e) => setMemberForm({ ...memberForm, status: e.target.value })}
-                options={[
-                  { value: 'available', label: t('wizard.memberAvailable') },
-                  { value: 'busy', label: t('wizard.memberBusy') },
-                  { value: 'on-leave', label: t('wizard.memberOnLeave') },
-                ]}
-                required
               />
 
               <div className="flex gap-3 justify-end mt-4">

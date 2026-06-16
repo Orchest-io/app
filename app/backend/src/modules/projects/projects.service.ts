@@ -90,8 +90,8 @@ export class ProjectsService {
 		createProjectDto: CreateProjectDto,
 	): Promise<Project> {
 		return await this.projectsRepository.manager.transaction(async (manager) => {
-			// Extract storyPointConfigs to prevent them from being passed to Project entity
-			const { storyPointConfigs, ...projectData } = createProjectDto;
+			// Extract storyPointConfigs, teamMembers, milestones, and tasks to prevent them from being passed to Project entity
+			const { storyPointConfigs, teamMembers, milestones, tasks, ...projectData } = createProjectDto;
 
 			const project = manager.create(Project, {
 				...projectData,
@@ -129,6 +129,72 @@ export class ProjectsService {
 				})
 			);
 			await manager.save(spEntities);
+
+			// Add team members if provided
+			if (teamMembers && teamMembers.length > 0) {
+				for (const teamMember of teamMembers) {
+					try {
+						// Find user by email
+						const user = await this.usersService.findByEmail(teamMember.email);
+						if (user) {
+							// Check if already a member
+							const existingMember = await manager.findOne(ProjectMember, {
+								where: { projectId: savedProject.id, userId: user.id },
+							});
+
+							if (!existingMember) {
+								const newMember = manager.create(ProjectMember, {
+									projectId: savedProject.id,
+									userId: user.id,
+									role: teamMember.role || ProjectMemberRole.MEMBER,
+									jobTitle: teamMember.jobTitle,
+									skills: teamMember.skills,
+								});
+								await manager.save(newMember);
+							}
+						}
+					} catch (error) {
+						// Continue on error - don't fail entire project creation
+						console.error(`Failed to add team member ${teamMember.email}:`, error);
+					}
+				}
+			}
+
+			// Create milestones if provided
+			const milestoneIdMap = new Map<number, string>(); // Map index to created milestone ID
+			if (milestones && milestones.length > 0) {
+				for (let i = 0; i < milestones.length; i++) {
+					const milestoneData = milestones[i];
+					const milestone = manager.create(Milestone, {
+						projectId: savedProject.id,
+						title: milestoneData.title,
+						description: milestoneData.description,
+						targetDate: milestoneData.targetDate,
+						color: milestoneData.color,
+						status: 'pending',
+						progress: 0,
+					});
+					const savedMilestone = await manager.save(milestone);
+					milestoneIdMap.set(i, savedMilestone.id);
+				}
+			}
+
+			// Create tasks if provided
+			if (tasks && tasks.length > 0) {
+				for (const taskData of tasks) {
+					const task = manager.create(Task, {
+						projectId: savedProject.id,
+						createdBy: userId,
+						title: taskData.title,
+						description: taskData.description,
+						priority: taskData.priority as any,
+						status: taskData.status as any || 'backlog',
+						dueDate: taskData.dueDate,
+						milestoneId: taskData.milestoneId || null, // Optional milestone
+					});
+					await manager.save(task);
+				}
+			}
 
 			// Log activity (using the injected service outside transaction is generally okay here 
 			// because if transaction fails it throws and doesn't reach the event emission, 
