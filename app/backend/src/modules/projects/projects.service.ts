@@ -8,25 +8,14 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, In } from "typeorm";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { Project, ProjectMember, Milestone, ProjectStoryPointConfig } from "./entities";
+import {
+	Project,
+	ProjectMember,
+	Milestone,
+	ProjectStoryPointConfig,
+} from "./entities";
 import { Task } from "../tasks/entities/task.entity";
 import {
-<<<<<<< HEAD
-  CreateProjectDto,
-  UpdateProjectDto,
-  AddProjectMemberDto,
-  CreateMilestoneDto,
-  UpdateMilestoneDto,
-  AssignTasksToMilestoneDto,
-  ProjectMemberRole,
-  MilestoneStatus,
-  TaskStatus,
-  ActivityAction,
-  EntityType,
-  NotificationType,
-  ReferenceType,
-  UpdateStoryPointConfigDto,
-=======
 	CreateProjectDto,
 	UpdateProjectDto,
 	AddProjectMemberDto,
@@ -40,10 +29,9 @@ import {
 	EntityType,
 	NotificationType,
 	ReferenceType,
+	UpdateStoryPointConfigDto,
 	ContextualAnalyticsDto,
 	AnalyticsHubProjectDto,
-	UpdateStoryPointConfigDto,
->>>>>>> da467d6d7d3b4b17fca90985d1e95e65063a4a63
 } from "@orchest/shared";
 import { ActivityLogService } from "../analytics/activity-log.service";
 import { NotificationService } from "../analytics/notification.service";
@@ -107,66 +95,70 @@ export class ProjectsService {
 		userId: string,
 		createProjectDto: CreateProjectDto,
 	): Promise<Project> {
-		return await this.projectsRepository.manager.transaction(async (manager) => {
-			// Extract storyPointConfigs to prevent them from being passed to Project entity
-			const { storyPointConfigs, ...projectData } = createProjectDto;
+		return await this.projectsRepository.manager
+			.transaction(async (manager) => {
+				// Extract storyPointConfigs to prevent them from being passed to Project entity
+				const { storyPointConfigs, ...projectData } = createProjectDto;
 
-			const project = manager.create(Project, {
-				...projectData,
-				createdBy: userId,
-			});
-			const savedProject = await manager.save(project);
+				const project = manager.create(Project, {
+					...projectData,
+					createdBy: userId,
+				});
+				const savedProject = await manager.save(project);
 
-			// Add creator as owner
-			const member = manager.create(ProjectMember, {
-				projectId: savedProject.id,
-				userId: userId,
-				role: ProjectMemberRole.OWNER,
-			});
-			await manager.save(member);
-
-			// Seed Story Point Configurations
-			let configsToSave = storyPointConfigs;
-			if (!configsToSave || configsToSave.length === 0) {
-				// Default preset
-				configsToSave = [
-					{ storyPointValue: 1, hoursEquivalent: 4 },
-					{ storyPointValue: 2, hoursEquivalent: 8 },
-					{ storyPointValue: 3, hoursEquivalent: 16 },
-					{ storyPointValue: 5, hoursEquivalent: 40 },
-					{ storyPointValue: 8, hoursEquivalent: 80 },
-					{ storyPointValue: 13, hoursEquivalent: 120 },
-				];
-			}
-
-			const spEntities = configsToSave.map(c => 
-				manager.create(ProjectStoryPointConfig, {
+				// Add creator as owner
+				const member = manager.create(ProjectMember, {
 					projectId: savedProject.id,
-					storyPointValue: c.storyPointValue,
-					hoursEquivalent: c.hoursEquivalent,
-				})
-			);
-			await manager.save(spEntities);
+					userId: userId,
+					role: ProjectMemberRole.OWNER,
+				});
+				await manager.save(member);
 
-			// Log activity (using the injected service outside transaction is generally okay here 
-			// because if transaction fails it throws and doesn't reach the event emission, 
-			// though strictly it's better to await it after transaction. We'll do it after to be safe.)
-			return savedProject;
-		}).then(async (savedProject) => {
-			// After transaction commits
-			await this.activityLogService.create(userId, {
-				project_id: savedProject.id,
-				action: ActivityAction.CREATED,
-				entity_type: EntityType.PROJECT,
-				entity_id: savedProject.id,
-				description: `Project "${savedProject.name}" created`,
+				// Seed Story Point Configurations
+				let configsToSave = storyPointConfigs;
+				if (!configsToSave || configsToSave.length === 0) {
+					// Default preset
+					configsToSave = [
+						{ storyPointValue: 1, hoursEquivalent: 4 },
+						{ storyPointValue: 2, hoursEquivalent: 8 },
+						{ storyPointValue: 3, hoursEquivalent: 16 },
+						{ storyPointValue: 5, hoursEquivalent: 40 },
+						{ storyPointValue: 8, hoursEquivalent: 80 },
+						{ storyPointValue: 13, hoursEquivalent: 120 },
+					];
+				}
+
+				const spEntities = configsToSave.map((c) =>
+					manager.create(ProjectStoryPointConfig, {
+						projectId: savedProject.id,
+						storyPointValue: c.storyPointValue,
+						hoursEquivalent: c.hoursEquivalent,
+					}),
+				);
+				await manager.save(spEntities);
+
+				// Log activity (using the injected service outside transaction is generally okay here
+				// because if transaction fails it throws and doesn't reach the event emission,
+				// though strictly it's better to await it after transaction. We'll do it after to be safe.)
+				return savedProject;
+			})
+			.then(async (savedProject) => {
+				// After transaction commits
+				await this.activityLogService.create(userId, {
+					project_id: savedProject.id,
+					action: ActivityAction.CREATED,
+					entity_type: EntityType.PROJECT,
+					entity_id: savedProject.id,
+					description: `Project "${savedProject.name}" created`,
+				});
+
+				// Emit event for RAG indexing (non-blocking)
+				this.eventEmitter.emit("project.created", {
+					projectId: savedProject.id,
+				});
+
+				return savedProject;
 			});
-
-			// Emit event for RAG indexing (non-blocking)
-			this.eventEmitter.emit('project.created', { projectId: savedProject.id });
-
-			return savedProject;
-		});
 	}
 
 	async findAll(userId: string): Promise<Project[]> {
@@ -558,7 +550,7 @@ export class ProjectsService {
 
 		const milestones = await this.milestonesRepository.find({
 			where: { projectId },
-			order: { createdAt: 'ASC' },
+			order: { createdAt: "ASC" },
 		});
 
 		// Attach task counts per milestone
@@ -577,17 +569,20 @@ export class ProjectsService {
 		return result;
 	}
 
-	async getMilestoneTasks(milestoneId: string, userId: string): Promise<Task[]> {
+	async getMilestoneTasks(
+		milestoneId: string,
+		userId: string,
+	): Promise<Task[]> {
 		const milestone = await this.milestonesRepository.findOne({
 			where: { id: milestoneId },
 		});
-		if (!milestone) throw new NotFoundException('Milestone not found');
+		if (!milestone) throw new NotFoundException("Milestone not found");
 		await this.requireMember(milestone.projectId, userId);
 
 		return this.tasksRepository.find({
 			where: { milestoneId },
-			relations: ['subtasks', 'assignees', 'assignees.user'],
-			order: { createdAt: 'ASC' },
+			relations: ["subtasks", "assignees", "assignees.user"],
+			order: { createdAt: "ASC" },
 		});
 	}
 
@@ -599,7 +594,7 @@ export class ProjectsService {
 		const milestone = await this.milestonesRepository.findOne({
 			where: { id: milestoneId },
 		});
-		if (!milestone) throw new NotFoundException('Milestone not found');
+		if (!milestone) throw new NotFoundException("Milestone not found");
 		await this.requireMember(milestone.projectId, userId);
 
 		if (dto.taskIds.length === 0) return;
@@ -616,10 +611,7 @@ export class ProjectsService {
 			);
 		}
 
-		await this.tasksRepository.update(
-			{ id: In(dto.taskIds) },
-			{ milestoneId },
-		);
+		await this.tasksRepository.update({ id: In(dto.taskIds) }, { milestoneId });
 
 		await this.recalculateMilestoneProgress(milestoneId, userId);
 	}
@@ -632,15 +624,15 @@ export class ProjectsService {
 		const milestone = await this.milestonesRepository.findOne({
 			where: { id: milestoneId },
 		});
-		if (!milestone) throw new NotFoundException('Milestone not found');
+		if (!milestone) throw new NotFoundException("Milestone not found");
 		await this.requireMember(milestone.projectId, userId);
 
 		const task = await this.tasksRepository.findOne({ where: { id: taskId } });
-		if (!task) throw new NotFoundException('Task not found');
+		if (!task) throw new NotFoundException("Task not found");
 
 		if (task.milestoneId !== milestoneId) {
 			throw new UnprocessableEntityException(
-				'Task is not assigned to this milestone',
+				"Task is not assigned to this milestone",
 			);
 		}
 
@@ -648,14 +640,12 @@ export class ProjectsService {
 		await this.recalculateMilestoneProgress(milestoneId, userId);
 	}
 
-<<<<<<< HEAD
-=======
 	// --- Analytics Hub ---
 
 	async getAnalyticsHub(userId: string): Promise<AnalyticsHubProjectDto[]> {
 		const memberships = await this.projectMembersRepository.find({
 			where: { userId },
-			relations: ['project'],
+			relations: ["project"],
 		});
 
 		return memberships
@@ -663,7 +653,10 @@ export class ProjectsService {
 			.map((m) => ({
 				id: m.project.id,
 				title: m.project.name,
-				userRole: m.role === ProjectMemberRole.OWNER ? 'PM' as const : 'Member' as const,
+				userRole:
+					m.role === ProjectMemberRole.OWNER
+						? ("PM" as const)
+						: ("Member" as const),
 			}));
 	}
 
@@ -675,11 +668,11 @@ export class ProjectsService {
 	): Promise<ContextualAnalyticsDto> {
 		const role = await this.requireMember(projectId, userId);
 		const isPM = role === ProjectMemberRole.OWNER;
-		const mappedRole: 'PM' | 'Member' = isPM ? 'PM' : 'Member';
+		const mappedRole: "PM" | "Member" = isPM ? "PM" : "Member";
 
 		const tasks = await this.tasksRepository.find({
 			where: { projectId },
-			relations: ['assignees', 'assignees.user'],
+			relations: ["assignees", "assignees.user"],
 		});
 
 		// ── Project-wide totals ──
@@ -695,20 +688,28 @@ export class ProjectsService {
 		let myActualHours = 0;
 
 		// ── Risk arrays ──
-		const myPersonalTimeBleed: ContextualAnalyticsDto['myPersonalTimeBleed'] = [];
-		const projectTimeBleedAll: NonNullable<ContextualAnalyticsDto['projectTimeBleed']> = [];
+		const myPersonalTimeBleed: ContextualAnalyticsDto["myPersonalTimeBleed"] =
+			[];
+		const projectTimeBleedAll: NonNullable<
+			ContextualAnalyticsDto["projectTimeBleed"]
+		> = [];
 
 		// ── Team workload map (PM only) ──
 		const workloadMap = new Map<
 			string,
-			{ name: string; avatarUrl?: string; hoursLogged: number; pointsAssigned: number }
+			{
+				name: string;
+				avatarUrl?: string;
+				hoursLogged: number;
+				pointsAssigned: number;
+			}
 		>();
 
 		for (const task of tasks) {
 			const sp = task.storyPoints ? Number(task.storyPoints) : 0;
 			const est = task.estimatedHours ? Number(task.estimatedHours) : 0;
 			const act = task.actualHours ? Number(task.actualHours) : 0;
-			const isDone = task.status === TaskStatus.DONE || task.status === 'done';
+			const isDone = task.status === TaskStatus.DONE || task.status === "done";
 
 			// Project-wide aggregation
 			totalPoints += sp;
@@ -763,7 +764,7 @@ export class ProjectsService {
 						const uId = assignee.userId;
 						if (!workloadMap.has(uId)) {
 							workloadMap.set(uId, {
-								name: assignee.user.fullName || 'Unknown',
+								name: assignee.user.fullName || "Unknown",
 								avatarUrl: assignee.user.avatarUrl || undefined,
 								hoursLogged: 0,
 								pointsAssigned: 0,
@@ -779,9 +780,13 @@ export class ProjectsService {
 		}
 
 		const completionPercentage =
-			totalPoints > 0 ? Math.round((completedPoints / totalPoints) * 10000) / 100 : 0;
+			totalPoints > 0
+				? Math.round((completedPoints / totalPoints) * 10000) / 100
+				: 0;
 		const myCompletionPercentage =
-			myTotalPoints > 0 ? Math.round((myCompletedPoints / myTotalPoints) * 10000) / 100 : 0;
+			myTotalPoints > 0
+				? Math.round((myCompletedPoints / myTotalPoints) * 10000) / 100
+				: 0;
 
 		const result: ContextualAnalyticsDto = {
 			userRole: mappedRole,
@@ -822,7 +827,6 @@ export class ProjectsService {
 		return result;
 	}
 
->>>>>>> da467d6d7d3b4b17fca90985d1e95e65063a4a63
 	// --- Story Point Calibration ---
 
 	async getStoryPointConfig(projectId: string, userId: string) {
@@ -830,11 +834,11 @@ export class ProjectsService {
 
 		const configs = await this.storyPointConfigRepository.find({
 			where: { projectId },
-			order: { storyPointValue: 'ASC' },
+			order: { storyPointValue: "ASC" },
 		});
 
 		if (configs.length > 0) {
-			return configs.map(c => ({
+			return configs.map((c) => ({
 				storyPointValue: c.storyPointValue,
 				hoursEquivalent: Number(c.hoursEquivalent),
 			}));
@@ -861,18 +865,18 @@ export class ProjectsService {
 		await this.storyPointConfigRepository.delete({ projectId });
 
 		// Save new
-		const entities = dto.configs.map(c => 
+		const entities = dto.configs.map((c) =>
 			this.storyPointConfigRepository.create({
 				projectId,
 				storyPointValue: c.storyPointValue,
 				hoursEquivalent: c.hoursEquivalent,
-			})
+			}),
 		);
-		
+
 		await this.storyPointConfigRepository.save(entities);
 
 		// Re-trigger RAG indexing so it learns the new mapping
-		this.eventEmitter.emit('project.created', { projectId });
+		this.eventEmitter.emit("project.created", { projectId });
 
 		return this.getStoryPointConfig(projectId, userId);
 	}
