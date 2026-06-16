@@ -27,6 +27,11 @@ export class ProjectsController {
     return this.projectsService.findAll(user.id);
   }
 
+  @Get('analytics-hub')
+  getAnalyticsHub(@CurrentUser() user: JwtPayload) {
+    return this.projectsService.getAnalyticsHub(user.id);
+  }
+
   @Get(':id')
   findOne(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
     return this.projectsService.findOne(id, user.id);
@@ -69,6 +74,14 @@ export class ProjectsController {
     return this.projectsService.removeMember(id, memberUserId, user.id);
   }
 
+<<<<<<< HEAD
+=======
+  @Get(':id/analytics')
+  getProjectAnalytics(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.projectsService.getProjectAnalytics(id, user.id);
+  }
+
+>>>>>>> da467d6d7d3b4b17fca90985d1e95e65063a4a63
   @Get(':id/story-points/config')
   async getStoryPointConfig(
     @Param('id') id: string,

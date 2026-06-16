@@ -11,6 +11,7 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Project, ProjectMember, Milestone, ProjectStoryPointConfig } from "./entities";
 import { Task } from "../tasks/entities/task.entity";
 import {
+<<<<<<< HEAD
   CreateProjectDto,
   UpdateProjectDto,
   AddProjectMemberDto,
@@ -25,6 +26,24 @@ import {
   NotificationType,
   ReferenceType,
   UpdateStoryPointConfigDto,
+=======
+	CreateProjectDto,
+	UpdateProjectDto,
+	AddProjectMemberDto,
+	CreateMilestoneDto,
+	UpdateMilestoneDto,
+	AssignTasksToMilestoneDto,
+	ProjectMemberRole,
+	MilestoneStatus,
+	TaskStatus,
+	ActivityAction,
+	EntityType,
+	NotificationType,
+	ReferenceType,
+	ContextualAnalyticsDto,
+	AnalyticsHubProjectDto,
+	UpdateStoryPointConfigDto,
+>>>>>>> da467d6d7d3b4b17fca90985d1e95e65063a4a63
 } from "@orchest/shared";
 import { ActivityLogService } from "../analytics/activity-log.service";
 import { NotificationService } from "../analytics/notification.service";
@@ -629,6 +648,181 @@ export class ProjectsService {
 		await this.recalculateMilestoneProgress(milestoneId, userId);
 	}
 
+<<<<<<< HEAD
+=======
+	// --- Analytics Hub ---
+
+	async getAnalyticsHub(userId: string): Promise<AnalyticsHubProjectDto[]> {
+		const memberships = await this.projectMembersRepository.find({
+			where: { userId },
+			relations: ['project'],
+		});
+
+		return memberships
+			.filter((m) => m.project)
+			.map((m) => ({
+				id: m.project.id,
+				title: m.project.name,
+				userRole: m.role === ProjectMemberRole.OWNER ? 'PM' as const : 'Member' as const,
+			}));
+	}
+
+	// --- Contextual Analytics Engine ---
+
+	async getProjectAnalytics(
+		projectId: string,
+		userId: string,
+	): Promise<ContextualAnalyticsDto> {
+		const role = await this.requireMember(projectId, userId);
+		const isPM = role === ProjectMemberRole.OWNER;
+		const mappedRole: 'PM' | 'Member' = isPM ? 'PM' : 'Member';
+
+		const tasks = await this.tasksRepository.find({
+			where: { projectId },
+			relations: ['assignees', 'assignees.user'],
+		});
+
+		// ── Project-wide totals ──
+		let totalPoints = 0;
+		let completedPoints = 0;
+		let totalEstimatedHours = 0;
+		let totalActualHours = 0;
+
+		// ── Personal totals ──
+		let myTotalPoints = 0;
+		let myCompletedPoints = 0;
+		let myEstimatedHours = 0;
+		let myActualHours = 0;
+
+		// ── Risk arrays ──
+		const myPersonalTimeBleed: ContextualAnalyticsDto['myPersonalTimeBleed'] = [];
+		const projectTimeBleedAll: NonNullable<ContextualAnalyticsDto['projectTimeBleed']> = [];
+
+		// ── Team workload map (PM only) ──
+		const workloadMap = new Map<
+			string,
+			{ name: string; avatarUrl?: string; hoursLogged: number; pointsAssigned: number }
+		>();
+
+		for (const task of tasks) {
+			const sp = task.storyPoints ? Number(task.storyPoints) : 0;
+			const est = task.estimatedHours ? Number(task.estimatedHours) : 0;
+			const act = task.actualHours ? Number(task.actualHours) : 0;
+			const isDone = task.status === TaskStatus.DONE || task.status === 'done';
+
+			// Project-wide aggregation
+			totalPoints += sp;
+			totalEstimatedHours += est;
+			totalActualHours += act;
+			if (isDone) completedPoints += sp;
+
+			// Check if this task is assigned to the requesting user
+			const isAssignedToMe =
+				task.assignees?.some((a) => a.userId === userId) ?? false;
+
+			if (isAssignedToMe) {
+				const assigneesCount = task.assignees.length;
+				const myShareSp = sp / assigneesCount;
+				const myShareEst = est / assigneesCount;
+				const myShareAct = act / assigneesCount;
+
+				myTotalPoints += myShareSp;
+				myEstimatedHours += myShareEst;
+				myActualHours += myShareAct;
+				if (isDone) myCompletedPoints += myShareSp;
+
+				// Personal time bleed (always computed)
+				if (act > est && est > 0) {
+					myPersonalTimeBleed.push({
+						id: task.id,
+						title: task.title,
+						estimatedHours: est,
+						actualHours: act,
+						overrunHours: Math.round((act - est) * 100) / 100,
+					});
+				}
+			}
+
+			// PM-only aggregations
+			if (isPM) {
+				// Project-wide time bleed
+				if (act > est && est > 0) {
+					projectTimeBleedAll.push({
+						id: task.id,
+						title: task.title,
+						estimatedHours: est,
+						actualHours: act,
+						overrunHours: Math.round((act - est) * 100) / 100,
+					});
+				}
+
+				// Team workload matrix
+				if (task.assignees && task.assignees.length > 0) {
+					for (const assignee of task.assignees) {
+						if (!assignee.user) continue;
+						const uId = assignee.userId;
+						if (!workloadMap.has(uId)) {
+							workloadMap.set(uId, {
+								name: assignee.user.fullName || 'Unknown',
+								avatarUrl: assignee.user.avatarUrl || undefined,
+								hoursLogged: 0,
+								pointsAssigned: 0,
+							});
+						}
+						const wl = workloadMap.get(uId)!;
+						const cnt = task.assignees.length;
+						wl.hoursLogged += act / cnt;
+						wl.pointsAssigned += sp / cnt;
+					}
+				}
+			}
+		}
+
+		const completionPercentage =
+			totalPoints > 0 ? Math.round((completedPoints / totalPoints) * 10000) / 100 : 0;
+		const myCompletionPercentage =
+			myTotalPoints > 0 ? Math.round((myCompletedPoints / myTotalPoints) * 10000) / 100 : 0;
+
+		const result: ContextualAnalyticsDto = {
+			userRole: mappedRole,
+			projectSummary: {
+				totalPoints,
+				completedPoints,
+				completionPercentage,
+				totalEstimatedHours: Math.round(totalEstimatedHours * 100) / 100,
+				totalActualHours: Math.round(totalActualHours * 100) / 100,
+			},
+			personalSummary: {
+				myTotalPoints: Math.round(myTotalPoints * 100) / 100,
+				myCompletedPoints: Math.round(myCompletedPoints * 100) / 100,
+				myCompletionPercentage,
+				myEstimatedHours: Math.round(myEstimatedHours * 100) / 100,
+				myActualHours: Math.round(myActualHours * 100) / 100,
+			},
+			myPersonalTimeBleed: myPersonalTimeBleed.sort(
+				(a, b) => b.overrunHours - a.overrunHours,
+			),
+		};
+
+		// PM-only scope-guarded fields
+		if (isPM) {
+			result.teamWorkload = Array.from(workloadMap.entries()).map(
+				([uId, data]) => ({
+					userId: uId,
+					...data,
+					hoursLogged: Math.round(data.hoursLogged * 100) / 100,
+					pointsAssigned: Math.round(data.pointsAssigned * 100) / 100,
+				}),
+			);
+			result.projectTimeBleed = projectTimeBleedAll.sort(
+				(a, b) => b.overrunHours - a.overrunHours,
+			);
+		}
+
+		return result;
+	}
+
+>>>>>>> da467d6d7d3b4b17fca90985d1e95e65063a4a63
 	// --- Story Point Calibration ---
 
 	async getStoryPointConfig(projectId: string, userId: string) {
