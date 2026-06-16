@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logoutUser } from '../../../api/users.api'
+import { useMe, useUpdateMySettings } from '../../../hooks/useSettings'
 import NotificationPanel from '../../ui/NotificationPanel/NotificationPanel'
-import { useMe } from '../../../hooks/useSettings'
 import { useSubscriptionStatus } from '../../../hooks/useSubscription'
 import { AiUpgradeModal } from '../../AI'
+import { useTheme } from '../../../context/ThemeContext'
 
 type HeaderProps = {
   collapsed?: boolean
@@ -15,11 +16,12 @@ export default function Header({ collapsed = false }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const userId = localStorage.getItem('orchest_user_id')
   const { data: user } = useMe()
   const { data: subStatus } = useSubscriptionStatus()
   const [modalOpen, setModalOpen] = useState(false)
   const [modalFeature, setModalFeature] = useState<'project_planning' | 'description_generation'>('project_planning')
+  const { resolvedTheme, setTheme } = useTheme()
+  const updateSettings = useUpdateMySettings()
 
   const handleLogout = async () => {
     await logoutUser()
@@ -40,7 +42,7 @@ export default function Header({ collapsed = false }: HeaderProps) {
   return (
     <Fragment>
     <header
-      className="fixed top-0 right-0 h-header-h bg-[#131313]/80 backdrop-blur-md border-b border-border-low flex items-center justify-between px-6 z-40 transition-[width] duration-300"
+      className="fixed top-0 right-0 h-header-h bg-surface/80 backdrop-blur-md border-b border-border-low flex items-center justify-between px-6 z-40 transition-[width] duration-300"
       style={{ width: `calc(100% - ${collapsed ? 'var(--spacing-sidebar-c)' : 'var(--spacing-sidebar-w)'})` }}
     >
       {/* Search */}
@@ -107,8 +109,18 @@ export default function Header({ collapsed = false }: HeaderProps) {
         })()}
 
         {/* Theme Toggle */}
-        <button className="text-on-surface-variant p-1.5 rounded-sm hover:text-primary transition-colors duration-150 cursor-pointer">
-          <span className="material-symbols-outlined">dark_mode</span>
+        <button
+          onClick={() => {
+            const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
+            setTheme(newTheme)
+            updateSettings.mutate({ theme: newTheme as any })
+          }}
+          className="text-on-surface-variant p-1.5 rounded-sm hover:text-primary transition-colors duration-150 cursor-pointer flex items-center justify-center"
+          title={`Switch to ${resolvedTheme === 'dark' ? 'Light' : 'Dark'} Mode`}
+        >
+          <span className="material-symbols-outlined">
+            {resolvedTheme === 'dark' ? 'light_mode' : 'dark_mode'}
+          </span>
         </button>
 
         {/* Notification Bell + Panel */}
@@ -136,12 +148,11 @@ export default function Header({ collapsed = false }: HeaderProps) {
             <div className="absolute right-0 top-11 w-52 bg-surface-container-low border border-border-low rounded-xl shadow-2xl overflow-hidden z-50">
               {/* User info */}
               <div className="px-4 py-3 border-b border-border-low">
-                <p className="text-[11px] text-on-surface-variant">Signed in as</p>
-                <p className="text-xs font-semibold text-on-surface truncate mt-0.5">
-                  {user?.fullName || '—'}
+                <p className="text-sm font-heading font-semibold text-on-surface truncate">
+                  {user?.fullName || 'User'}
                 </p>
-                <p className="text-[10px] text-on-surface-variant/80 truncate font-mono mt-0.5">
-                  {user?.email || (userId ? `${userId.slice(0, 8)}...` : '—')}
+                <p className="text-xs text-on-surface-variant truncate mt-0.5">
+                  {user?.email || '—'}
                 </p>
               </div>
 

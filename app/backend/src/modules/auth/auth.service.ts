@@ -34,7 +34,32 @@ export class AuthService {
     private refreshTokenRepository: Repository<RefreshToken>,
   ) {}
 
-  private async generateTokens(userId: string, email: string) {
+  /**
+   * Parse User-Agent to get device info
+   */
+  private parseUserAgent(userAgent: string): string {
+    if (!userAgent) return 'Unknown Device';
+
+    // Simple parser (you can use ua-parser-js for better results)
+    let device = 'Unknown Device';
+
+    if (userAgent.includes('Windows')) device = 'Windows';
+    else if (userAgent.includes('Mac OS')) device = 'macOS';
+    else if (userAgent.includes('Linux')) device = 'Linux';
+    else if (userAgent.includes('iPhone')) device = 'iPhone';
+    else if (userAgent.includes('iPad')) device = 'iPad';
+    else if (userAgent.includes('Android')) device = 'Android';
+
+    let browser = '';
+    if (userAgent.includes('Edg')) browser = 'Edge';
+    else if (userAgent.includes('Chrome')) browser = 'Chrome';
+    else if (userAgent.includes('Firefox')) browser = 'Firefox';
+    else if (userAgent.includes('Safari')) browser = 'Safari';
+
+    return browser ? `${browser} on ${device}` : device;
+  }
+
+  private async generateTokens(userId: string, email: string, requestInfo?: { ipAddress?: string; userAgent?: string }) {
     const accessToken = this.jwtService.sign(
       { sub: userId, email },
       { expiresIn: '15m' }, // 15 minutes
@@ -59,10 +84,26 @@ export class AuthService {
       isActive: true,
     });
 
+    // Create session if request info provided
+    if (requestInfo) {
+      const deviceInfo = this.parseUserAgent(requestInfo.userAgent || '');
+      const sessionExpiresAt = new Date();
+      sessionExpiresAt.setDate(sessionExpiresAt.getDate() + 7); // 7 days
+
+      await this.usersService.createSession({
+        userId,
+        sessionToken: accessToken, // Use access token as session identifier
+        deviceInfo,
+        userAgent: requestInfo.userAgent,
+        ipAddress: requestInfo.ipAddress,
+        expiresAt: sessionExpiresAt,
+      });
+    }
+
     return { accessToken, refreshToken };
   }
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto, requestInfo?: { ipAddress?: string; userAgent?: string }) {
     // Check if user exists
     const existingUser = await this.usersService.findByEmail(dto.email);
     if (existingUser) {
@@ -78,8 +119,8 @@ export class AuthService {
       isActive: true,
     });
 
-    // Generate tokens
-    const { accessToken, refreshToken } = await this.generateTokens(user.id, user.email);
+    // Generate tokens and create session
+    const { accessToken, refreshToken } = await this.generateTokens(user.id, user.email, requestInfo);
 
     return {
       user: {
@@ -93,7 +134,7 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, requestInfo?: { ipAddress?: string; userAgent?: string }) {
     // Find user
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) {
@@ -121,8 +162,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Generate tokens
-    const { accessToken, refreshToken } = await this.generateTokens(user.id, user.email);
+    // Generate tokens and create session
+    const { accessToken, refreshToken } = await this.generateTokens(user.id, user.email, requestInfo);
 
     return {
       user: {
@@ -136,7 +177,7 @@ export class AuthService {
     };
   }
 
-  async googleAuth(dto: GoogleAuthDto) {
+  async googleAuth(dto: GoogleAuthDto, requestInfo?: { ipAddress?: string; userAgent?: string }) {
     // Find or create user
     let user = await this.usersService.findByEmail(dto.email);
 
@@ -153,8 +194,8 @@ export class AuthService {
       });
     }
 
-    // Generate tokens
-    const { accessToken, refreshToken } = await this.generateTokens(user.id, user.email);
+    // Generate tokens and create session
+    const { accessToken, refreshToken } = await this.generateTokens(user.id, user.email, requestInfo);
 
     return {
       user: {

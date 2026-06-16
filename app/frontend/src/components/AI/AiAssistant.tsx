@@ -1,16 +1,25 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAiAssistant, type ChatMessage } from '../../hooks/useAiAssistant'
 
-// ─── Welcome message shown at the top of an empty chat ─────────────
-const WELCOME_MESSAGE: ChatMessage = {
-  role: 'assistant',
-  content:
-    "Hi! I'm your Orchist AI Assistant 👋\n\nI can help you with anything related to this system — creating projects, managing tasks, adding team members, using the Kanban board, and more.\n\nWhat would you like to know?",
-}
-
 export default function AiAssistant() {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE])
+  
+  const welcomeMessage: ChatMessage = {
+    role: 'assistant',
+    content: t('aiAssistant.welcome'),
+  }
+
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  
+  // Set welcome message once translation hook is ready or when messages list is cleared/empty
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([welcomeMessage])
+    }
+  }, [messages.length, welcomeMessage.content])
+
   const [input, setInput] = useState('')
   const [conversationId, setConversationId] = useState<string | undefined>()
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -53,8 +62,7 @@ export default function AiAssistant() {
             ...prev,
             {
               role: 'assistant',
-              content:
-                "I'm temporarily unavailable. Please try again in a moment.",
+              content: t('aiAssistant.errorMsg'),
             },
           ])
         },
@@ -71,7 +79,7 @@ export default function AiAssistant() {
   }
 
   const handleReset = () => {
-    setMessages([WELCOME_MESSAGE])
+    setMessages([welcomeMessage])
     setConversationId(undefined)
     setInput('')
   }
@@ -80,7 +88,7 @@ export default function AiAssistant() {
     <>
       {/* ── Floating trigger button ─────────────────────────────────── */}
       <button
-        aria-label="Open AI Assistant"
+        aria-label={t('aiAssistant.ariaLabel')}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-electric-blue to-peri-purple shadow-[0_8px_32px_rgba(0,123,255,0.4)] flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
         onClick={() => setOpen((v) => !v)}
       >
@@ -110,16 +118,16 @@ export default function AiAssistant() {
               </div>
               <div>
                 <p className="font-heading text-sm font-semibold text-on-surface leading-none">
-                  Orchist Assistant
+                  {t('aiAssistant.title')}
                 </p>
                 <p className="text-[10px] text-emerald-400 mt-0.5 font-medium">
-                  ● Online
+                  {t('aiAssistant.statusOnline')}
                 </p>
               </div>
             </div>
             <button
               className="text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer p-1"
-              title="Clear conversation"
+              title={t('aiAssistant.clearTitle') || 'Clear conversation'}
               onClick={handleReset}
             >
               <span className="material-symbols-outlined text-[18px]">
@@ -165,7 +173,7 @@ export default function AiAssistant() {
                 ref={inputRef}
                 rows={1}
                 value={input}
-                placeholder="Ask anything about the system..."
+                placeholder={t('aiAssistant.placeholder') || 'Ask anything about the system...'}
                 disabled={mutation.isPending}
                 className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/50 resize-none outline-none leading-relaxed max-h-[100px] disabled:opacity-50"
                 style={{ minHeight: '24px' }}
@@ -188,7 +196,7 @@ export default function AiAssistant() {
               </button>
             </div>
             <p className="text-[10px] text-on-surface-variant/50 text-center mt-2">
-              Enter to send · Shift+Enter for new line
+              {t('aiAssistant.hintText')}
             </p>
           </div>
         </div>

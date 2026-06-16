@@ -2,9 +2,11 @@ import { useNavigate } from 'react-router-dom'
 import type { ProjectListItemDto } from '@orchest/shared'
 import { Card, ProgressBar, Button } from '../../components/ui'
 import { useProjects } from '../../hooks/useProjects'
+import { useTranslation } from 'react-i18next'
 
 export default function ProjectsList() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { data: projects = [], isLoading, isError, refetch } = useProjects()
 
   const getPriorityColor = (priority: string) => {
@@ -31,22 +33,46 @@ export default function ProjectsList() {
     }
   }
 
+  const getPriorityLabel = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return t('projects.priorityHigh')
+      case 'medium':
+        return t('projects.priorityMedium')
+      default:
+        return t('projects.priorityLow')
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return t('projects.statusCompleted')
+      case 'active':
+        return t('projects.statusActive')
+      case 'archived':
+        return t('projects.statusArchived')
+      default:
+        return t('projects.statusPlanning')
+    }
+  }
+
   return (
     <div className="max-w-[1100px] mx-auto py-8">
       {/* Page Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
           <h2 className="font-heading text-[32px] font-semibold text-on-surface">
-            Workspace Projects
+            {t('projects.workspaceProjects')}
           </h2>
           <p className="text-sm text-on-surface-variant mt-1">
-            Manage your project lifecycles, track phase progress, and coordinate delivery.
+            {t('projects.workspaceProjectsDesc')}
           </p>
         </div>
 
         <div className="flex gap-3">
           <Button icon="add" onClick={() => navigate('/projects/create')}>
-            Create Project
+            {t('projects.createProject')}
           </Button>
         </div>
       </div>
@@ -68,12 +94,12 @@ export default function ProjectsList() {
           <div className="w-16 h-16 rounded-full bg-surface-glass border border-border-low flex items-center justify-center text-red-400 mb-4">
             <span className="material-symbols-outlined text-[32px]">error</span>
           </div>
-          <h3 className="font-heading text-xl font-bold mb-2">Failed to Load Projects</h3>
+          <h3 className="font-heading text-xl font-bold mb-2">{t('projects.failedLoad')}</h3>
           <p className="text-sm text-on-surface-variant max-w-sm mb-6 leading-relaxed">
-            There was an error loading your projects. Please try again.
+            {t('projects.failedLoadDesc')}
           </p>
           <Button icon="refresh" onClick={() => refetch()}>
-            Retry
+            {t('projects.retry')}
           </Button>
         </Card>
       ) : projects.length === 0 ? (
@@ -81,12 +107,12 @@ export default function ProjectsList() {
           <div className="w-16 h-16 rounded-full bg-surface-glass border border-border-low flex items-center justify-center text-on-surface-variant mb-4">
             <span className="material-symbols-outlined text-[32px]">tactic</span>
           </div>
-          <h3 className="font-heading text-xl font-bold mb-2">No Projects Found</h3>
+          <h3 className="font-heading text-xl font-bold mb-2">{t('projects.noProjects')}</h3>
           <p className="text-sm text-on-surface-variant max-w-sm mb-6 leading-relaxed">
-            Create your first project to get started with task tracking and team collaboration.
+            {t('projects.noProjectsDesc')}
           </p>
           <Button icon="add" onClick={() => navigate('/projects/create')}>
-            Create Project
+            {t('projects.createProject')}
           </Button>
         </Card>
       ) : (
@@ -105,34 +131,34 @@ export default function ProjectsList() {
                   </h3>
                   <div className="flex gap-2 shrink-0">
                     <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${getPriorityColor(project.priority)}`}>
-                      {project.priority}
+                      {getPriorityLabel(project.priority)}
                     </span>
                     <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${getStatusColor(project.status)}`}>
-                      {project.status}
+                      {getStatusLabel(project.status)}
                     </span>
                   </div>
                 </div>
 
                 <p className="text-sm text-on-surface-variant mb-6 line-clamp-3 leading-relaxed">
-                  No description provided.
+                  {project.description || t('projects.noDescription')}
                 </p>
               </div>
 
               <div>
                 <div className="flex justify-between items-center text-xs text-on-surface-variant mb-2">
-                  <span>Progress</span>
+                  <span>{t('projects.progress')}</span>
                   <span className="font-semibold text-on-surface">{project.progress}%</span>
                 </div>
                 <ProgressBar value={project.progress} glow className="mb-4" />
 
-                <div className="flex justify-between items-center text-xs text-on-surface-variant pt-2 border-t border-border-low">
+                <div className="flex justify-between items-center text-xs text-on-surface-variant pt-2 border-t border-t-border-low">
                   <span className="flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">calendar_today</span>
                     {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'TBD'} - {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'TBD'}
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                    View Details
+                    {t('projects.viewDetails')}
                   </span>
                 </div>
               </div>

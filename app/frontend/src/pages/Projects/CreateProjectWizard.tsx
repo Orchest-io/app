@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Card, Button, Input, Select, TextArea, ProgressBar } from '../../components/ui'
+import { useTranslation } from 'react-i18next'
 import { useCreateProject } from '../../hooks/useProjectMutations'
 import { useStartGeneration, useJobProgress, useJobStatus, useAcceptPlan } from '../../hooks/useAiPlanning'
 import { useUsers } from '../../hooks/useUsers'
@@ -14,6 +15,7 @@ type ProjectType = 'team' | 'individual' | null
 
 export default function CreateProjectWizard() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const createProjectMutation = useCreateProject()
   const startGenerationMutation = useStartGeneration()
   const acceptPlanMutation = useAcceptPlan()
@@ -166,7 +168,7 @@ export default function CreateProjectWizard() {
     e.preventDefault()
     if (!editablePlan) return
     if (!aiMilestoneForm.title.trim()) {
-      toast.warning('Please enter milestone title')
+      toast.warning(t('wizard.enterMilestoneTitle'))
       return
     }
 
@@ -177,7 +179,7 @@ export default function CreateProjectWizard() {
         ...updatedMilestones[editingAiMilestoneIndex],
         ...aiMilestoneForm,
       }
-      toast.success('Milestone updated!')
+      toast.success(t('wizard.milestoneUpdated'))
     } else {
       // Add new
       updatedMilestones.push({
@@ -185,7 +187,7 @@ export default function CreateProjectWizard() {
         order: updatedMilestones.length + 1,
         tasks: [],
       })
-      toast.success('Milestone added!')
+      toast.success(t('wizard.milestoneAdded'))
     }
 
     setEditablePlan({ ...editablePlan, milestones: updatedMilestones })
@@ -196,10 +198,10 @@ export default function CreateProjectWizard() {
 
   const handleDeleteMilestone = (milestoneIdx: number) => {
     if (!editablePlan) return
-    if (!confirm('Delete this milestone and all its tasks?')) return
+    if (!confirm(t('wizard.deleteMilestoneConfirm'))) return
     const updatedMilestones = editablePlan.milestones.filter((_: any, i: number) => i !== milestoneIdx)
     setEditablePlan({ ...editablePlan, milestones: updatedMilestones })
-    toast.success('Milestone deleted!')
+    toast.success(t('wizard.milestoneDeleted'))
   }
 
   const handleEditTask = (milestoneIdx: number, taskIdx: number) => {
@@ -220,11 +222,11 @@ export default function CreateProjectWizard() {
     e.preventDefault()
     if (!editablePlan) return
     if (!aiTaskForm.title.trim()) {
-      toast.warning('Please enter task title')
+      toast.warning(t('wizard.enterTaskTitle'))
       return
     }
     if (!editingAiTaskIndices) {
-      toast.error('Invalid state')
+      toast.error(t('wizard.invalidState', { defaultValue: 'Invalid state' }))
       return
     }
 
@@ -237,7 +239,7 @@ export default function CreateProjectWizard() {
         ...updatedMilestones[milestoneIdx].tasks[taskIdx],
         ...aiTaskForm,
       }
-      toast.success('Task updated!')
+      toast.success(t('wizard.taskUpdated'))
     } else {
       // Add new task
       updatedMilestones[milestoneIdx].tasks.push({
@@ -248,7 +250,7 @@ export default function CreateProjectWizard() {
         riskLevel: 'medium',
         complexity: 'medium',
       })
-      toast.success('Task added!')
+      toast.success(t('wizard.taskAdded'))
     }
 
     setEditablePlan({ ...editablePlan, milestones: updatedMilestones })
@@ -265,11 +267,11 @@ export default function CreateProjectWizard() {
 
   const handleDeleteTask = (milestoneIdx: number, taskIdx: number) => {
     if (!editablePlan) return
-    if (!confirm('Delete this task?')) return
+    if (!confirm(t('wizard.deleteTaskConfirm'))) return
     const updatedMilestones = [...editablePlan.milestones]
     updatedMilestones[milestoneIdx].tasks = updatedMilestones[milestoneIdx].tasks.filter((_: any, i: number) => i !== taskIdx)
     setEditablePlan({ ...editablePlan, milestones: updatedMilestones })
-    toast.success('Task deleted!')
+    toast.success(t('wizard.taskDeleted'))
   }
 
   // Handle AI job completion/failure via useEffect (not in render)
@@ -284,7 +286,7 @@ export default function CreateProjectWizard() {
     }
     if (jobData?.status === 'failed') {
       hasNavigatedRef.current = true
-      toast.error(jobData.errorMessage || 'AI generation failed')
+      toast.error(jobData.errorMessage || t('wizard.generationFailed'))
       setStep(2)
     }
   }, [jobData?.status, jobData?.resultData])
@@ -293,60 +295,60 @@ export default function CreateProjectWizard() {
   const handleAddMilestone = (e: React.FormEvent) => {
     e.preventDefault()
     if (!milestoneForm.title.trim()) {
-      toast.warning('Please enter milestone title')
+      toast.warning(t('wizard.enterMilestoneTitle'))
       return
     }
     if (!milestoneForm.description.trim()) {
-      toast.warning('Please enter milestone description')
+      toast.warning(t('wizard.enterMilestoneDesc'))
       return
     }
     if (!milestoneForm.targetDate) {
-      toast.warning('Please select target date')
+      toast.warning(t('wizard.selectTargetDate'))
       return
     }
     setMilestones([...milestones, { ...milestoneForm }])
     setMilestoneForm({ title: '', description: '', targetDate: '' })
     setIsMilestoneModalOpen(false)
-    toast.success('Milestone added!')
+    toast.success(t('wizard.milestoneAdded'))
   }
 
   // Task handlers
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault()
     if (!taskForm.title.trim()) {
-      toast.warning('Please enter task title')
+      toast.warning(t('wizard.enterTaskTitle'))
       return
     }
     if (!taskForm.description.trim()) {
-      toast.warning('Please enter task description')
+      toast.warning(t('wizard.enterTaskDesc'))
       return
     }
     setTasks([...tasks, { ...taskForm }])
     setTaskForm({ title: '', description: '', priority: 'medium', dueDate: '', assignedTo: '', status: 'todo' })
     setIsTaskModalOpen(false)
-    toast.success('Task added!')
+    toast.success(t('wizard.taskAdded'))
   }
 
   // Member handlers
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!memberForm.email.trim()) {
-      toast.warning('Please enter email address')
+      toast.warning(t('wizard.enterMemberEmail'))
       return
     }
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(memberForm.email)) {
-      toast.error('Please enter a valid email address')
+      toast.error(t('wizard.invalidEmail'))
       return
     }
     if (!memberForm.role || memberForm.role === '') {
-      toast.warning('Please select a role')
+      toast.warning(t('wizard.selectRole'))
       return
     }
     // Check duplicate
     if (teamMembers.some(m => m.email === memberForm.email)) {
-      toast.error('This member is already added')
+      toast.error(t('wizard.memberAlreadyAdded'))
       return
     }
 
@@ -355,7 +357,7 @@ export default function CreateProjectWizard() {
     setTeamMembers([...teamMembers, { ...memberForm }])
     setMemberForm({ email: '', role: '', skills: '', status: 'available' })
     setIsMemberModalOpen(false)
-    toast.success('Team member added!')
+    toast.success(t('wizard.membersAdded'))
   }
 
   // Step 1: Choose Mode (AI vs Manual)
@@ -363,10 +365,10 @@ export default function CreateProjectWizard() {
     <div className="max-w-2xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="font-heading text-[28px] font-semibold text-on-surface mb-2">
-          Create New Project
+          {t('wizard.title')}
         </h2>
         <p className="text-sm text-on-surface-variant">
-          How would you like to create your project?
+          {t('wizard.subtitle')}
         </p>
       </div>
 
@@ -389,10 +391,10 @@ export default function CreateProjectWizard() {
               </span>
             </div>
             <h3 className="font-heading text-lg font-semibold text-on-surface mb-2">
-              AI-Powered Planning
+              {t('wizard.aiTitle')}
             </h3>
             <p className="text-sm text-on-surface-variant leading-relaxed">
-              Let AI help you structure your project with intelligent suggestions and automated planning.
+              {t('wizard.aiDesc')}
             </p>
           </div>
         </Card>
@@ -415,10 +417,10 @@ export default function CreateProjectWizard() {
               </span>
             </div>
             <h3 className="font-heading text-lg font-semibold text-on-surface mb-2">
-              Manual Planning
+              {t('wizard.manualTitle')}
             </h3>
             <p className="text-sm text-on-surface-variant leading-relaxed">
-              Build your project from scratch with full control over every detail and timeline.
+              {t('wizard.manualDesc')}
             </p>
           </div>
         </Card>
@@ -426,7 +428,7 @@ export default function CreateProjectWizard() {
 
       <div className="mt-8 text-center">
         <Button variant="ghost" onClick={() => navigate('/projects')}>
-          Cancel
+          {t('wizard.cancel')}
         </Button>
       </div>
     </div>
@@ -437,10 +439,10 @@ export default function CreateProjectWizard() {
     <div className="max-w-2xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="font-heading text-[28px] font-semibold text-on-surface mb-2">
-          Choose Project Type
+          {t('wizard.typeTitle')}
         </h2>
         <p className="text-sm text-on-surface-variant">
-          Will you be working alone or with a team?
+          {t('wizard.typeSubtitle')}
         </p>
       </div>
 
@@ -463,10 +465,10 @@ export default function CreateProjectWizard() {
               </span>
             </div>
             <h3 className="font-heading text-lg font-semibold text-on-surface mb-2">
-              Team Project
+              {t('wizard.teamTitle')}
             </h3>
             <p className="text-sm text-on-surface-variant leading-relaxed">
-              Collaborate with team members, assign roles, and track collective progress.
+              {t('wizard.teamDesc')}
             </p>
           </div>
         </Card>
@@ -488,10 +490,10 @@ export default function CreateProjectWizard() {
               </span>
             </div>
             <h3 className="font-heading text-lg font-semibold text-on-surface mb-2">
-              Individual Project
+              {t('wizard.individualTitle')}
             </h3>
             <p className="text-sm text-on-surface-variant leading-relaxed">
-              Work independently on your project with personal task management and tracking.
+              {t('wizard.individualDesc')}
             </p>
           </div>
         </Card>
@@ -499,10 +501,10 @@ export default function CreateProjectWizard() {
 
       <div className="mt-8 flex justify-center gap-3">
         <Button variant="ghost" onClick={() => setStep(1)}>
-          Back
+          {t('wizard.back')}
         </Button>
         <Button variant="ghost" onClick={() => navigate('/projects')}>
-          Cancel
+          {t('wizard.cancel')}
         </Button>
       </div>
     </div>
@@ -515,19 +517,19 @@ export default function CreateProjectWizard() {
 
       // Validation
       if (!formData.name.trim()) {
-        toast.warning('Please enter a project name')
+        toast.warning(t('wizard.enterProjectName'))
         return
       }
       if (!formData.description.trim()) {
-        toast.warning('Please enter a project description')
+        toast.warning(t('wizard.enterDescription'))
         return
       }
       if (!formData.startDate) {
-        toast.warning('Please select a start date')
+        toast.warning(t('wizard.selectStartDate'))
         return
       }
       if (!formData.endDate) {
-        toast.warning('Please select an end date')
+        toast.warning(t('wizard.selectEndDate'))
         return
       }
 
@@ -540,19 +542,19 @@ export default function CreateProjectWizard() {
 
       // Validation
       if (!formData.name.trim()) {
-        toast.warning('Please enter a project name')
+        toast.warning(t('wizard.enterProjectName'))
         return
       }
       if (!formData.description.trim()) {
-        toast.warning('Please enter a project description')
+        toast.warning(t('wizard.enterDescription'))
         return
       }
       if (!formData.startDate) {
-        toast.warning('Please select a start date')
+        toast.warning(t('wizard.selectStartDate'))
         return
       }
       if (!formData.endDate) {
-        toast.warning('Please select an end date')
+        toast.warning(t('wizard.selectEndDate'))
         return
       }
 
@@ -566,11 +568,11 @@ export default function CreateProjectWizard() {
 
       createProjectMutation.mutate(projectData as any, {
         onSuccess: () => {
-          toast.success('Project created successfully!')
+          toast.success(t('wizard.projectCreatedSuccess'))
           navigate('/projects')
         },
         onError: (error: any) => {
-          const errorMsg = error?.response?.data?.message || 'Failed to create project'
+          const errorMsg = error?.response?.data?.message || t('wizard.failedCreateProject')
           toast.error(errorMsg)
           console.error('Project creation error:', error)
         },
@@ -581,20 +583,20 @@ export default function CreateProjectWizard() {
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
           <h2 className="font-heading text-[28px] font-semibold text-on-surface mb-2">
-            Create New Project
+            {t('wizard.createNewProject')}
           </h2>
           <p className="text-sm text-on-surface-variant">
-            Fill in the project details to get started
+            {t('wizard.fillDetails')}
           </p>
         </div>
 
         {/* Project Mode & Type Badge */}
         <div className="flex gap-2 mb-6">
           <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded bg-electric-blue/20 text-electric-blue border border-electric-blue/30">
-            Manual
+            {t('wizard.manual')}
           </span>
           <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded bg-surface-glass text-on-surface-variant border border-border-low">
-            {projectType === 'team' ? 'Team' : 'Individual'}
+            {projectType === 'team' ? t('wizard.team') : t('wizard.individual')}
           </span>
         </div>
 
@@ -604,13 +606,13 @@ export default function CreateProjectWizard() {
             <div className="mb-8">
               <h3 className="font-heading text-sm font-semibold text-on-surface mb-4 uppercase tracking-wider flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">info</span>
-                Basic Information
+                {t('wizard.basicInfo')}
               </h3>
 
               <div className="flex flex-col gap-4">
                 <Input
-                  label="Project Name"
-                  placeholder="e.g. Website Redesign Project"
+                  label={t('wizard.projectName')}
+                  placeholder={t('wizard.projectNamePlaceholder')}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
@@ -627,7 +629,7 @@ export default function CreateProjectWizard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
-                    label="Start Date"
+                    label={t('wizard.startDate')}
                     type="date"
                     value={formData.startDate}
                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
@@ -635,7 +637,7 @@ export default function CreateProjectWizard() {
                   />
 
                   <Input
-                    label="Target End Date"
+                    label={t('wizard.targetEndDate')}
                     type="date"
                     value={formData.endDate}
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
@@ -645,26 +647,26 @@ export default function CreateProjectWizard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Select
-                    label="Status"
+                    label={t('wizard.status')}
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     options={[
-                      { value: 'planning', label: 'Planning' },
-                      { value: 'active', label: 'Active' },
-                      { value: 'completed', label: 'Completed' },
-                      { value: 'archived', label: 'Archived' },
+                      { value: 'planning', label: t('wizard.statusPlanning') },
+                      { value: 'active', label: t('wizard.statusActive') },
+                      { value: 'completed', label: t('wizard.statusCompleted') },
+                      { value: 'archived', label: t('wizard.statusArchived') },
                     ]}
                     required
                   />
 
                   <Select
-                    label="Priority"
+                    label={t('wizard.priority')}
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
                     options={[
-                      { value: 'low', label: 'Low' },
-                      { value: 'medium', label: 'Medium' },
-                      { value: 'high', label: 'High' },
+                      { value: 'low', label: t('wizard.priorityLow') },
+                      { value: 'medium', label: t('wizard.priorityMedium') },
+                      { value: 'high', label: t('wizard.priorityHigh') },
                     ]}
                     required
                   />
@@ -676,10 +678,10 @@ export default function CreateProjectWizard() {
             <div className="mb-8 border-t border-white/5 pt-8">
               <h3 className="font-heading text-sm font-semibold text-on-surface mb-2 uppercase tracking-wider flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">straighten</span>
-                Agile Estimation Setup <span className="text-on-surface-variant font-normal normal-case">(Optional)</span>
+                {t('wizard.agileSetup')} <span className="text-on-surface-variant font-normal normal-case">{t('wizard.agileSetupOptional')}</span>
               </h3>
               <p className="text-xs text-on-surface-variant mb-6">
-                Configure how many hours each Story Point equates to for this specific project. This helps track velocity accurately.
+                {t('wizard.agileSetupDesc')}
               </p>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -699,7 +701,7 @@ export default function CreateProjectWizard() {
                         min="0"
                         step="0.5"
                       />
-                      <span className="text-[10px] text-on-surface-variant font-medium">hrs</span>
+                      <span className="text-[10px] text-on-surface-variant font-medium">{t('wizard.hrs')}</span>
                     </div>
                   </div>
                 ))}
@@ -714,7 +716,7 @@ export default function CreateProjectWizard() {
                 onClick={() => setStep(2)}
                 disabled={submitting}
               >
-                Back
+                {t('wizard.back')}
               </Button>
               <Button
                 type="button"
@@ -722,10 +724,10 @@ export default function CreateProjectWizard() {
                 onClick={handleCreateNow}
                 disabled={submitting}
               >
-                {submitting ? 'Creating...' : 'Create Now'}
+                {submitting ? t('wizard.creating') : t('wizard.createNow')}
               </Button>
               <Button type="submit" disabled={submitting}>
-                Continue to Planning
+                {t('wizard.continuePlanning')}
               </Button>
             </div>
           </Card>
@@ -746,20 +748,20 @@ export default function CreateProjectWizard() {
           storyPointConfigs,
         }
 
-        toast.info('Creating project...')
+        toast.info(t('wizard.creatingProject'))
         const newProject = await createProjectMutation.mutateAsync(projectData as any)
         
         if (!newProject || !newProject.id) {
-          toast.error('Failed to create project')
+          toast.error(t('wizard.failedCreateProject'))
           return
         }
 
         const projectId = newProject.id
-        toast.success('Project created!')
+        toast.success(t('wizard.projectCreated'))
 
         // 2. Add milestones (if any)
         if (milestones.length > 0) {
-          toast.info(`Adding ${milestones.length} milestone(s)...`)
+          toast.info(t('wizard.addingMilestones', { count: milestones.length }))
           for (const milestone of milestones) {
             try {
               // Convert date to ISO format if provided
@@ -775,15 +777,15 @@ export default function CreateProjectWizard() {
             } catch (err: any) {
               console.error('Failed to add milestone:', err)
               const errorMsg = err?.response?.data?.message || 'Unknown error'
-              toast.error(`Failed to add milestone "${milestone.title}": ${errorMsg}`)
+              toast.error(`${t('wizard.milestoneUpdateFailed')}: ${errorMsg}`)
             }
           }
-          toast.success('Milestones added!')
+          toast.success(t('wizard.milestonesAdded'))
         }
 
         // 3. Add tasks (if any)
         if (tasks.length > 0) {
-          toast.info(`Adding ${tasks.length} task(s)...`)
+          toast.info(t('wizard.addingTasks', { count: tasks.length }))
           for (const task of tasks) {
             try {
               await apiClient.post(`/tasks`, { 
@@ -798,15 +800,15 @@ export default function CreateProjectWizard() {
             } catch (err: any) {
               console.error('Failed to add task:', err)
               const errorMsg = err?.response?.data?.message || 'Unknown error'
-              toast.error(`Failed to add task "${task.title}": ${errorMsg}`)
+              toast.error(`${t('wizard.taskUpdated')}: ${errorMsg}`)
             }
           }
-          toast.success('Tasks added!')
+          toast.success(t('wizard.tasksAdded'))
         }
 
         // 4. Add team members (if any)
         if (teamMembers.length > 0) {
-          toast.info(`Adding ${teamMembers.length} team member(s)...`)
+          toast.info(t('wizard.addingMembers', { count: teamMembers.length }))
           for (const member of teamMembers) {
             try {
               await apiClient.post(`/projects/${projectId}/members/by-email`, {
@@ -816,28 +818,28 @@ export default function CreateProjectWizard() {
                 skills: member.skills || undefined,
                 status: member.status,
               })
-              toast.success(`Added ${member.email}`)
+              toast.success(t('wizard.memberAddedCount', { name: member.email, defaultValue: `Added ${member.email}` }))
             } catch (err: any) {
               const errorMsg = err?.response?.data?.message || err.message || 'Unknown error'
               if (err?.response?.status === 404) {
-                toast.error(`User not found: ${member.email}`)
+                toast.error(`${t('wizard.invalidEmail')}: ${member.email}`)
               } else if (err?.response?.status === 409) {
-                toast.error(`${member.email} is already a member`)
+                toast.error(`${member.email} ${t('wizard.memberAlreadyAdded')}`)
               } else {
-                toast.error(`Failed to add ${member.email}: ${errorMsg}`)
+                toast.error(`${t('wizard.failedCreateProject')}: ${errorMsg}`)
               }
               console.error('Failed to add member:', err)
             }
           }
-          toast.success('Team members added!')
+          toast.success(t('wizard.membersAdded'))
         }
 
         // Navigate to projects list
-        toast.success('Project setup complete!')
+        toast.success(t('wizard.projectSetupComplete'))
         navigate('/projects')
       } catch (error: any) {
         console.error('Project creation failed:', error)
-        const errorMsg = error?.response?.data?.message || error.message || 'Failed to create project'
+        const errorMsg = error?.response?.data?.message || error.message || t('wizard.failedCreateProject')
         toast.error(errorMsg)
       }
     }
@@ -846,10 +848,10 @@ export default function CreateProjectWizard() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
           <h2 className="font-heading text-[28px] font-semibold text-on-surface mb-2">
-            Project Planning
+            {t('wizard.projectPlanning')}
           </h2>
           <p className="text-sm text-on-surface-variant">
-            Add milestones, tasks, and team members (optional)
+            {t('wizard.planningSubtitle')}
           </p>
         </div>
 
@@ -870,14 +872,14 @@ export default function CreateProjectWizard() {
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="material-symbols-outlined text-[14px]">flag</span>
-                  Priority: {formData.priority}
+                  {t('wizard.priority')}: {t(`wizard.priority${formData.priority.charAt(0).toUpperCase() + formData.priority.slice(1)}`)}
                 </span>
                 {projectType && (
                   <span className="flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">
                       {projectType === 'team' ? 'groups' : 'person'}
                     </span>
-                    {projectType === 'team' ? 'Team' : 'Individual'}
+                    {projectType === 'team' ? t('wizard.team') : t('wizard.individual')}
                   </span>
                 )}
               </div>
@@ -888,7 +890,7 @@ export default function CreateProjectWizard() {
               icon="edit"
               onClick={() => setStep(3)}
             >
-              Edit
+              {t('wizard.edit')}
             </Button>
           </div>
         </Card>
@@ -900,10 +902,10 @@ export default function CreateProjectWizard() {
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-heading text-base font-semibold text-on-surface flex items-center gap-2">
                 <span className="material-symbols-outlined text-[20px]">flag</span>
-                Project Milestones
+                {t('wizard.projectMilestones')}
               </h3>
               <span className="text-xs text-on-surface-variant">
-                {milestones.length} added
+                {t('wizard.added', { count: milestones.length })}
               </span>
             </div>
 
@@ -913,7 +915,7 @@ export default function CreateProjectWizard() {
                   flag
                 </span>
                 <p className="text-xs text-on-surface-variant">
-                  No milestones added yet
+                  {t('wizard.noMilestonesYet')}
                 </p>
               </div>
             ) : (
@@ -957,7 +959,7 @@ export default function CreateProjectWizard() {
               onClick={() => setIsMilestoneModalOpen(true)}
               className="w-full"
             >
-              Add Milestone
+              {t('wizard.addMilestone')}
             </Button>
           </Card>
 
@@ -966,10 +968,10 @@ export default function CreateProjectWizard() {
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-heading text-base font-semibold text-on-surface flex items-center gap-2">
                 <span className="material-symbols-outlined text-[20px]">task_alt</span>
-                Task Timeline
+                {t('wizard.taskTimeline')}
               </h3>
               <span className="text-xs text-on-surface-variant">
-                {tasks.length} added
+                {t('wizard.added', { count: tasks.length })}
               </span>
             </div>
 
@@ -979,7 +981,7 @@ export default function CreateProjectWizard() {
                   task_alt
                 </span>
                 <p className="text-xs text-on-surface-variant">
-                  No tasks added yet
+                  {t('wizard.noTasksYet')}
                 </p>
               </div>
             ) : (
@@ -1000,10 +1002,15 @@ export default function CreateProjectWizard() {
                             task.priority === 'medium' ? 'text-amber-400 bg-amber-400/10 border-amber-400/20' :
                             'text-blue-400 bg-blue-400/10 border-blue-400/20'
                           }`}>
-                            {task.priority}
+                            {t(`wizard.priority${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}`)}
                           </span>
                           <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border text-electric-blue bg-electric-blue/10 border-electric-blue/20">
-                            {task.status}
+                            {task.status === 'todo' ? t('wizard.statusTodo') :
+                             task.status === 'in-progress' ? t('wizard.statusInProgress') :
+                             task.status === 'review' ? t('wizard.statusReview') :
+                             task.status === 'done' ? t('wizard.statusDone') :
+                             task.status === 'backlog' ? t('wizard.statusBacklog') :
+                             task.status}
                           </span>
                         </div>
                         <p className="text-xs text-on-surface-variant mt-1 line-clamp-2">
@@ -1043,7 +1050,7 @@ export default function CreateProjectWizard() {
               onClick={() => setIsTaskModalOpen(true)}
               className="w-full"
             >
-              Add Task
+              {t('wizard.addTask')}
             </Button>
           </Card>
 
@@ -1052,10 +1059,10 @@ export default function CreateProjectWizard() {
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-heading text-base font-semibold text-on-surface flex items-center gap-2">
                 <span className="material-symbols-outlined text-[20px]">group</span>
-                Team Allocation
+                {t('wizard.teamMembers')}
               </h3>
               <span className="text-xs text-on-surface-variant">
-                {teamMembers.length} added
+                {t('wizard.added', { count: teamMembers.length })}
               </span>
             </div>
 
@@ -1065,7 +1072,7 @@ export default function CreateProjectWizard() {
                   group
                 </span>
                 <p className="text-xs text-on-surface-variant">
-                  No team members added yet
+                  {t('wizard.noMembersYet')}
                 </p>
               </div>
             ) : (
@@ -1102,7 +1109,9 @@ export default function CreateProjectWizard() {
                           member.status === 'busy' ? 'text-amber-400 bg-amber-400/10 border-amber-400/20' :
                           'text-red-400 bg-red-400/10 border-red-400/20'
                         }`}>
-                          {member.status}
+                          {member.status === 'available' ? t('wizard.memberAvailable') :
+                           member.status === 'busy' ? t('wizard.memberBusy') :
+                           t('wizard.memberOnLeave', { defaultValue: 'On Leave' })}
                         </span>
                       </div>
                       <button
@@ -1124,7 +1133,7 @@ export default function CreateProjectWizard() {
               onClick={() => setIsMemberModalOpen(true)}
               className="w-full"
             >
-              Add Member
+              {t('wizard.addMember')}
             </Button>
           </Card>
         </div>
@@ -1133,10 +1142,10 @@ export default function CreateProjectWizard() {
         <Card variant="glass" padding="lg">
           <div className="text-center mb-4">
             <h3 className="font-heading text-base font-semibold text-on-surface mb-1">
-              Ready to Create?
+              {t('wizard.readyToCreate', { defaultValue: 'Ready to Create?' })}
             </h3>
             <p className="text-xs text-on-surface-variant">
-              Review your project plan and save to create the project
+              {t('wizard.reviewPlanDesc', { defaultValue: 'Review your project plan and save to create the project' })}
             </p>
           </div>
 
@@ -1147,7 +1156,7 @@ export default function CreateProjectWizard() {
               onClick={() => setStep(3)}
               disabled={submitting}
             >
-              Back
+              {t('wizard.back')}
             </Button>
             <Button
               type="button"
@@ -1155,13 +1164,13 @@ export default function CreateProjectWizard() {
               onClick={() => navigate('/projects')}
               disabled={submitting}
             >
-              Cancel
+              {t('wizard.cancel')}
             </Button>
             <Button
               onClick={handleFinalCreate}
               disabled={submitting}
             >
-              {submitting ? 'Creating...' : 'Save & Create Project'}
+              {submitting ? t('wizard.creatingProject') : t('wizard.createProject')}
             </Button>
           </div>
         </Card>
@@ -1175,7 +1184,7 @@ export default function CreateProjectWizard() {
       e.preventDefault()
 
       if (!aiFormData.description.trim()) {
-        toast.warning('Please describe your project')
+        toast.warning(t('wizard.enterDescription'))
         return
       }
 
@@ -1187,11 +1196,11 @@ export default function CreateProjectWizard() {
           teamMembers: aiFormData.teamMembers.length > 0 ? aiFormData.teamMembers : undefined,
         }
 
-        toast.info('Starting AI generation...')
+        toast.info(t('wizard.startingGeneration'))
         const result = await startGenerationMutation.mutateAsync(input)
         setAiJobId(result.jobId)
         setStep(3) // Go to progress step
-        toast.success('AI is analyzing your project!')
+        toast.success(t('wizard.aiAnalyzing'))
       } catch (error: any) {
         const status = error.response?.status
         const data = error.response?.data
@@ -1209,7 +1218,7 @@ export default function CreateProjectWizard() {
 
       // Check if already added
       if (aiFormData.teamMembers.some(m => m.email === user.email)) {
-        toast.error('Member already added')
+        toast.error(t('wizard.memberAlreadyAdded'))
         return
       }
 
@@ -1226,7 +1235,7 @@ export default function CreateProjectWizard() {
           },
         ],
       })
-      toast.success(`Added ${user.fullName || user.email}`)
+      toast.success(t('wizard.memberAddedCount', { name: user.fullName || user.email, defaultValue: `Added ${user.fullName || user.email}` }))
     }
 
     const handleRemoveTeamMember = (email: string) => {
@@ -1234,7 +1243,7 @@ export default function CreateProjectWizard() {
         ...aiFormData,
         teamMembers: aiFormData.teamMembers.filter(m => m.email !== email),
       })
-      toast.success('Member removed')
+      toast.success(t('wizard.memberRemoved'))
     }
 
     const handleUpdateTeamMember = (index: number, field: string, value: any) => {
@@ -1247,10 +1256,10 @@ export default function CreateProjectWizard() {
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
           <h2 className="font-heading text-[28px] font-semibold text-on-surface mb-2">
-            Describe Your Project
+            {t('wizard.aiDescribeTitle')}
           </h2>
           <p className="text-sm text-on-surface-variant">
-            Tell AI about your project and let it create a complete plan
+            {t('wizard.aiDescribeSubtitle')}
           </p>
         </div>
 
@@ -1258,8 +1267,8 @@ export default function CreateProjectWizard() {
           <Card variant="glass" padding="lg">
             <div className="flex flex-col gap-4">
               <TextArea
-                label="Project Description"
-                placeholder="Describe what you want to build, the main features, and any specific requirements..."
+                label={t('wizard.aiProjectDesc')}
+                placeholder={t('wizard.aiProjectDescPlaceholder')}
                 value={aiFormData.description}
                 onChange={(e) => setAiFormData({ ...aiFormData, description: e.target.value })}
                 required
@@ -1267,21 +1276,21 @@ export default function CreateProjectWizard() {
               />
 
               <TextArea
-                label="Goals (Optional)"
-                placeholder="What are the main objectives and success criteria?"
+                label={t('wizard.aiGoals')}
+                placeholder={t('wizard.aiGoalsPlaceholder')}
                 value={aiFormData.goals}
                 onChange={(e) => setAiFormData({ ...aiFormData, goals: e.target.value })}
                 rows={3}
               />
 
               <Select
-                label="Timeline Preference"
+                label={t('wizard.aiTimeline')}
                 value={aiFormData.timelinePreference}
                 onChange={(e) => setAiFormData({ ...aiFormData, timelinePreference: e.target.value as any })}
                 options={[
-                  { value: 'urgent', label: 'Urgent (Fast-track)' },
-                  { value: 'normal', label: 'Normal' },
-                  { value: 'flexible', label: 'Flexible' },
+                  { value: 'urgent', label: t('wizard.aiTimelineUrgent') },
+                  { value: 'normal', label: t('wizard.aiTimelineNormal') },
+                  { value: 'flexible', label: t('wizard.aiTimelineFlexible') },
                 ]}
                 required
               />
@@ -1291,21 +1300,21 @@ export default function CreateProjectWizard() {
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-heading text-sm font-semibold text-on-surface uppercase tracking-wider flex items-center gap-2">
                     <span className="material-symbols-outlined text-[18px]">groups</span>
-                    Team Members (Optional)
+                    {t('wizard.aiTeamMembers')}
                   </h3>
                   <span className="text-xs text-on-surface-variant">
-                    {aiFormData.teamMembers.length} selected
+                    {t('wizard.selectedCount', { count: aiFormData.teamMembers.length })}
                   </span>
                 </div>
                 <p className="text-xs text-on-surface-variant mb-3">
-                  Select team members to help AI assign tasks based on skills
+                  {t('wizard.aiTeamMembersDesc')}
                 </p>
 
                 {/* User Selection */}
                 {!isLoadingUsers && allUsers.length > 0 && (
                   <div className="mb-4">
                     <Select
-                      label="Add Team Member"
+                      label={t('wizard.addTeamMember')}
                       value=""
                       onChange={(e) => {
                         if (e.target.value) {
@@ -1314,7 +1323,7 @@ export default function CreateProjectWizard() {
                         }
                       }}
                       options={[
-                        { value: '', label: 'Select a user...' },
+                        { value: '', label: t('wizard.selectUserPlaceholder') },
                         ...allUsers
                           .filter((u: any) => !aiFormData.teamMembers.some(m => m.email === u.email))
                           .map((u: any) => ({
@@ -1327,7 +1336,7 @@ export default function CreateProjectWizard() {
                 )}
 
                 {isLoadingUsers && (
-                  <p className="text-xs text-on-surface-variant text-center py-4">Loading users...</p>
+                  <p className="text-xs text-on-surface-variant text-center py-4">{t('settings.loading')}</p>
                 )}
 
                 {/* Selected Team Members */}
@@ -1343,24 +1352,24 @@ export default function CreateProjectWizard() {
                             </div>
                             <div className="flex flex-col gap-2">
                               <Input
-                                label="Job Title"
+                                label={t('wizard.jobTitleLabel')}
                                 placeholder="e.g. Frontend Developer"
                                 value={member.jobTitle}
                                 onChange={(e) => handleUpdateTeamMember(idx, 'jobTitle', e.target.value)}
                               />
                               <Input
-                                label="Skills"
+                                label={t('wizard.memberSkills')}
                                 placeholder="e.g. React, TypeScript"
                                 value={member.skills}
                                 onChange={(e) => handleUpdateTeamMember(idx, 'skills', e.target.value)}
                               />
                               <Select
-                                label="Availability"
+                                label={t('wizard.availabilityLabel')}
                                 value={member.availability}
                                 onChange={(e) => handleUpdateTeamMember(idx, 'availability', e.target.value)}
                                 options={[
-                                  { value: 'full-time', label: 'Full-time' },
-                                  { value: 'part-time', label: 'Part-time' },
+                                  { value: 'full-time', label: t('wizard.fullTime') },
+                                  { value: 'part-time', label: t('wizard.partTime') },
                                 ]}
                               />
                             </div>
@@ -1387,14 +1396,14 @@ export default function CreateProjectWizard() {
                 onClick={() => setStep(1)}
                 disabled={startGenerationMutation.isPending}
               >
-                Back
+                {t('wizard.back')}
               </Button>
               <Button
                 type="submit"
                 disabled={startGenerationMutation.isPending}
                 icon="auto_awesome"
               >
-                {startGenerationMutation.isPending ? 'Starting...' : 'Generate Plan with AI'}
+                {startGenerationMutation.isPending ? t('wizard.generating') : t('wizard.generatePlan')}
               </Button>
             </div>
           </Card>
@@ -1406,11 +1415,11 @@ export default function CreateProjectWizard() {
   // Step 3 (AI Mode): Progress Tracking
   const renderAiProgress = () => {
     const stages = [
-      { name: 'Analyzing', progress: 20, icon: 'psychology' },
-      { name: 'Milestones', progress: 40, icon: 'flag' },
-      { name: 'Tasks', progress: 60, icon: 'task_alt' },
-      { name: 'Assignments', progress: 80, icon: 'person_add' },
-      { name: 'Validation', progress: 100, icon: 'verified' },
+      { name: t('wizard.stageAnalyzing'), progress: 20, icon: 'psychology' },
+      { name: t('wizard.stageMilestones'), progress: 40, icon: 'flag' },
+      { name: t('wizard.stageTasks'), progress: 60, icon: 'task_alt' },
+      { name: t('wizard.stageAssignments'), progress: 80, icon: 'person_add' },
+      { name: t('wizard.stageValidation'), progress: 100, icon: 'verified' },
     ]
 
     const currentStageIndex = stages.findIndex(s => aiProgress < s.progress)
@@ -1425,10 +1434,10 @@ export default function CreateProjectWizard() {
             </span>
           </div>
           <h2 className="font-heading text-[28px] font-semibold text-on-surface mb-2">
-            AI is Planning Your Project
+            {t('wizard.generatingTitle')}
           </h2>
           <p className="text-sm text-on-surface-variant">
-            {aiStage || 'Initializing...'}
+            {aiStage ? t(`wizard.stage${aiStage.charAt(0).toUpperCase() + aiStage.slice(1)}`, { defaultValue: aiStage }) : t('wizard.initializing')}
           </p>
         </div>
 
@@ -1436,7 +1445,7 @@ export default function CreateProjectWizard() {
           {/* Overall Progress */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-on-surface">Overall Progress</span>
+              <span className="text-sm font-medium text-on-surface">{t('wizard.overallProgress')}</span>
               <span className="text-sm font-bold text-electric-blue">{Math.round(aiProgress)}%</span>
             </div>
             <ProgressBar value={aiProgress} max={100} glow />
@@ -1499,7 +1508,7 @@ export default function CreateProjectWizard() {
       if (!aiJobId) return
 
       try {
-        toast.info('Creating your project...')
+        toast.info(t('wizard.creatingProject'))
         
         const acceptData: any = {
           projectName: editablePlan.projectName,
@@ -1519,9 +1528,9 @@ export default function CreateProjectWizard() {
         }
 
         await acceptPlanMutation.mutateAsync({ jobId: aiJobId, data: acceptData })
-        toast.success('Project created successfully!')
+        toast.success(t('wizard.projectCreatedSuccess'))
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || 'Failed to create project')
+        toast.error(error?.response?.data?.message || t('wizard.failedCreateProject'))
       }
     }
 
@@ -1534,10 +1543,10 @@ export default function CreateProjectWizard() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
           <h2 className="font-heading text-[28px] font-semibold text-on-surface mb-2">
-            Review AI-Generated Plan
+            {t('wizard.reviewTitle')}
           </h2>
           <p className="text-sm text-on-surface-variant">
-            Review and edit your project plan before creating
+            {t('wizard.reviewSubtitle')}
           </p>
         </div>
 
@@ -1559,7 +1568,7 @@ export default function CreateProjectWizard() {
               <div className="flex items-center gap-4 text-sm text-on-surface-variant">
                 <span className="flex items-center gap-1">
                   <span className="material-symbols-outlined text-[16px]">trending_up</span>
-                  {editablePlan.complexity} complexity
+                  {t(`wizard.priority${editablePlan.complexity.charAt(0).toUpperCase() + editablePlan.complexity.slice(1)}`)} {t('wizard.complexity')}
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="material-symbols-outlined text-[16px]">schedule</span>
@@ -1567,17 +1576,17 @@ export default function CreateProjectWizard() {
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="material-symbols-outlined text-[16px]">flag</span>
-                  {editablePlan.milestones.length} milestones
+                  {editablePlan.milestones.length} {t('projectDetails.milestonesTitle')}
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="material-symbols-outlined text-[16px]">task_alt</span>
-                  {totalTasks} tasks
+                  {totalTasks} {t('wizard.tasks')}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <span className="material-symbols-outlined text-[16px] text-purple-400">auto_awesome</span>
-              <span className="text-purple-400">AI Generated</span>
+              <span className="text-purple-400">{t('wizard.aiGenerated')}</span>
             </div>
           </div>
 
@@ -1586,7 +1595,7 @@ export default function CreateProjectWizard() {
             <div className="p-4 rounded-lg bg-amber-400/10 border border-amber-400/20">
               <h4 className="text-sm font-semibold text-amber-400 mb-2 flex items-center gap-2">
                 <span className="material-symbols-outlined text-[16px]">warning</span>
-                Suggestions
+                {t('wizard.suggestions')}
               </h4>
               <ul className="text-xs text-on-surface-variant space-y-1">
                 {editablePlan.warnings.map((warning: string, i: number) => (
@@ -1609,7 +1618,7 @@ export default function CreateProjectWizard() {
               setIsAiMilestoneModalOpen(true)
             }}
           >
-            Add Milestone
+            {t('wizard.addMilestone')}
           </Button>
         </div>
 
@@ -1636,7 +1645,7 @@ export default function CreateProjectWizard() {
                             handleEditMilestone(idx)
                           }}
                           className="text-electric-blue hover:text-electric-blue/80 transition-colors cursor-pointer p-1"
-                          title="Edit Milestone"
+                          title={t('wizard.editMilestone')}
                         >
                           <span className="material-symbols-outlined text-[18px]">edit</span>
                         </button>
@@ -1647,7 +1656,7 @@ export default function CreateProjectWizard() {
                             handleDeleteMilestone(idx)
                           }}
                           className="text-red-400 hover:text-red-300 transition-colors cursor-pointer p-1"
-                          title="Delete Milestone"
+                          title={t('wizard.deleteMilestone')}
                         >
                           <span className="material-symbols-outlined text-[18px]">delete</span>
                         </button>
@@ -1671,11 +1680,11 @@ export default function CreateProjectWizard() {
                     <div className="flex items-center gap-3 text-xs text-on-surface-variant">
                       <span className="flex items-center gap-1">
                         <span className="material-symbols-outlined text-[14px]">schedule</span>
-                        {milestone.estimatedWeeks} weeks
+                        {t('wizard.weeksCount', { count: milestone.estimatedWeeks })}
                       </span>
                       <span className="flex items-center gap-1">
                         <span className="material-symbols-outlined text-[14px]">task_alt</span>
-                        {milestone.tasks.length} tasks
+                        {milestone.tasks.length} {t('wizard.tasks')}
                       </span>
                     </div>
                   </div>
@@ -1695,13 +1704,13 @@ export default function CreateProjectWizard() {
                           handleAddTaskToMilestone(idx)
                         }}
                       >
-                        Add Task
+                        {t('wizard.addTask')}
                       </Button>
                     </div>
                     
                     {milestone.tasks.length === 0 ? (
                       <p className="text-xs text-on-surface-variant text-center py-4">
-                        No tasks yet. Click "Add Task" to create one.
+                        {t('wizard.noTasksClickAdd')}
                       </p>
                     ) : (
                       <div className="space-y-2">
@@ -1720,7 +1729,7 @@ export default function CreateProjectWizard() {
                                     task.priority === 'medium' ? 'text-amber-400 bg-amber-400/10 border-amber-400/20' :
                                     'text-blue-400 bg-blue-400/10 border-blue-400/20'
                                   }`}>
-                                    {task.priority}
+                                    {t(`wizard.priority${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}`)}
                                   </span>
                                 </div>
                                 {task.description && (
@@ -1730,7 +1739,7 @@ export default function CreateProjectWizard() {
                                   {task.estimatedHours && (
                                     <span className="flex items-center gap-1">
                                       <span className="material-symbols-outlined text-[12px]">schedule</span>
-                                      {task.estimatedHours}h
+                                      {task.estimatedHours} {t('wizard.hrs')}
                                     </span>
                                   )}
                                   {task.suggestedAssignee?.name && (
@@ -1741,7 +1750,12 @@ export default function CreateProjectWizard() {
                                   )}
                                   {task.type && (
                                     <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-surface-glass border border-border-low">
-                                      {task.type}
+                                      {task.type === 'feature' ? t('wizard.featureType') :
+                                       task.type === 'bug' ? t('wizard.bugType') :
+                                       task.type === 'chore' ? t('wizard.choreType') :
+                                       task.type === 'research' ? t('wizard.researchType') :
+                                       task.type === 'improvement' ? t('wizard.improvementType') :
+                                       task.type}
                                     </span>
                                   )}
                                 </div>
@@ -1754,7 +1768,7 @@ export default function CreateProjectWizard() {
                                     handleEditTask(idx, tIdx)
                                   }}
                                   className="text-electric-blue hover:text-electric-blue/80 transition-colors cursor-pointer"
-                                  title="Edit Task"
+                                  title={t('wizard.editTask')}
                                 >
                                   <span className="material-symbols-outlined text-[16px]">edit</span>
                                 </button>
@@ -1765,7 +1779,7 @@ export default function CreateProjectWizard() {
                                     handleDeleteTask(idx, tIdx)
                                   }}
                                   className="text-red-400 hover:text-red-300 transition-colors cursor-pointer"
-                                  title="Delete Task"
+                                  title={t('wizard.deleteTask')}
                                 >
                                   <span className="material-symbols-outlined text-[16px]">delete</span>
                                 </button>
@@ -1794,14 +1808,14 @@ export default function CreateProjectWizard() {
               }}
               disabled={acceptPlanMutation.isPending}
             >
-              Start Over
+              {t('wizard.startOver')}
             </Button>
             <Button
               onClick={handleAcceptPlan}
               disabled={acceptPlanMutation.isPending}
               icon="check_circle"
             >
-              {acceptPlanMutation.isPending ? 'Creating...' : 'Accept & Create Project'}
+              {acceptPlanMutation.isPending ? t('wizard.creating') : t('wizard.acceptAndCreate')}
             </Button>
           </div>
         </Card>
@@ -1813,16 +1827,16 @@ export default function CreateProjectWizard() {
   const stepIndicator = () => {
     const isAi = projectMode === 'ai' || (projectMode === null && step === 1)
     const aiSteps = [
-      { num: 1, label: 'Mode' },
-      { num: 2, label: 'Describe' },
-      { num: 3, label: 'Generating' },
-      { num: 4, label: 'Review' },
+      { num: 1, label: t('wizard.stepMode') },
+      { num: 2, label: t('wizard.stepDescribe') },
+      { num: 3, label: t('wizard.stepGenerating') },
+      { num: 4, label: t('wizard.stepReview') },
     ]
     const manualSteps = [
-      { num: 1, label: 'Mode' },
-      { num: 2, label: 'Type' },
-      { num: 3, label: 'Details' },
-      { num: 4, label: 'Plan' },
+      { num: 1, label: t('wizard.stepMode') },
+      { num: 2, label: t('wizard.stepType') },
+      { num: 3, label: t('wizard.stepDetails') },
+      { num: 4, label: t('wizard.stepPlan') },
     ]
     const steps = isAi ? aiSteps : manualSteps
 
@@ -1894,7 +1908,7 @@ export default function CreateProjectWizard() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-lg w-full" padding="lg">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-heading text-xl font-semibold text-on-surface">Add Milestone</h3>
+              <h3 className="font-heading text-xl font-semibold text-on-surface">{t('wizard.addMilestone')}</h3>
               <button
                 className="text-on-surface-variant hover:text-on-surface cursor-pointer"
                 onClick={() => setIsMilestoneModalOpen(false)}
@@ -1905,7 +1919,7 @@ export default function CreateProjectWizard() {
 
             <form onSubmit={handleAddMilestone} className="flex flex-col gap-4">
               <Input
-                label="Milestone Title"
+                label={t('wizard.milestoneTitle')}
                 placeholder="e.g. MVP Launch"
                 value={milestoneForm.title}
                 onChange={(e) => setMilestoneForm({ ...milestoneForm, title: e.target.value })}
@@ -1913,8 +1927,8 @@ export default function CreateProjectWizard() {
               />
 
               <TextArea
-                label="Description"
-                placeholder="Detailed description of this milestone and its objectives..."
+                label={t('wizard.description')}
+                placeholder={t('wizard.milestoneDescPlaceholder', { defaultValue: 'Detailed description of this milestone...' })}
                 value={milestoneForm.description}
                 onChange={(e) => setMilestoneForm({ ...milestoneForm, description: e.target.value })}
                 rows={4}
@@ -1922,7 +1936,7 @@ export default function CreateProjectWizard() {
               />
 
               <Input
-                label="Target Date"
+                label={t('wizard.milestoneTargetDate')}
                 type="date"
                 value={milestoneForm.targetDate}
                 onChange={(e) => setMilestoneForm({ ...milestoneForm, targetDate: e.target.value })}
@@ -1935,9 +1949,9 @@ export default function CreateProjectWizard() {
                   variant="secondary"
                   onClick={() => setIsMilestoneModalOpen(false)}
                 >
-                  Cancel
+                  {t('wizard.cancel')}
                 </Button>
-                <Button type="submit">Add Milestone</Button>
+                <Button type="submit">{t('wizard.addMilestone')}</Button>
               </div>
             </form>
           </Card>
@@ -1950,7 +1964,7 @@ export default function CreateProjectWizard() {
           <Card className="max-w-lg w-full" padding="lg">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-heading text-xl font-semibold text-on-surface">
-                {editingAiMilestoneIndex !== null ? 'Edit Milestone' : 'Add Milestone'}
+                {editingAiMilestoneIndex !== null ? t('wizard.editMilestone') : t('wizard.addMilestone')}
               </h3>
               <button
                 className="text-on-surface-variant hover:text-on-surface cursor-pointer"
@@ -1965,7 +1979,7 @@ export default function CreateProjectWizard() {
 
             <form onSubmit={handleSaveMilestone} className="flex flex-col gap-4">
               <Input
-                label="Milestone Title"
+                label={t('wizard.milestoneTitle')}
                 placeholder="e.g. MVP Launch"
                 value={aiMilestoneForm.title}
                 onChange={(e) => setAiMilestoneForm({ ...aiMilestoneForm, title: e.target.value })}
@@ -1973,8 +1987,8 @@ export default function CreateProjectWizard() {
               />
 
               <TextArea
-                label="Description"
-                placeholder="Detailed description of this milestone and its objectives..."
+                label={t('wizard.description')}
+                placeholder={t('wizard.milestoneDescPlaceholder', { defaultValue: 'Detailed description of this milestone...' })}
                 value={aiMilestoneForm.description}
                 onChange={(e) => setAiMilestoneForm({ ...aiMilestoneForm, description: e.target.value })}
                 rows={4}
@@ -1982,7 +1996,7 @@ export default function CreateProjectWizard() {
               />
 
               <Input
-                label="Estimated Weeks"
+                label={t('wizard.estimatedWeeks')}
                 type="number"
                 min="1"
                 value={aiMilestoneForm.estimatedWeeks}
@@ -1999,10 +2013,10 @@ export default function CreateProjectWizard() {
                     setEditingAiMilestoneIndex(null)
                   }}
                 >
-                  Cancel
+                  {t('wizard.cancel')}
                 </Button>
                 <Button type="submit">
-                  {editingAiMilestoneIndex !== null ? 'Save Changes' : 'Add Milestone'}
+                  {editingAiMilestoneIndex !== null ? t('settings.saveChanges') : t('wizard.addMilestone')}
                 </Button>
               </div>
             </form>
@@ -2016,7 +2030,7 @@ export default function CreateProjectWizard() {
           <Card className="max-w-lg w-full" padding="lg">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-heading text-xl font-semibold text-on-surface">
-                {editingAiTaskIndices && editingAiTaskIndices.taskIdx >= 0 ? 'Edit Task' : 'Add Task'}
+                {editingAiTaskIndices && editingAiTaskIndices.taskIdx >= 0 ? t('wizard.editTask') : t('wizard.addTask')}
               </h3>
               <button
                 className="text-on-surface-variant hover:text-on-surface cursor-pointer"
@@ -2031,7 +2045,7 @@ export default function CreateProjectWizard() {
 
             <form onSubmit={handleSaveTask} className="flex flex-col gap-4">
               <Input
-                label="Task Title"
+                label={t('wizard.taskTitle')}
                 placeholder="e.g. Design homepage mockup"
                 value={aiTaskForm.title}
                 onChange={(e) => setAiTaskForm({ ...aiTaskForm, title: e.target.value })}
@@ -2039,8 +2053,8 @@ export default function CreateProjectWizard() {
               />
 
               <TextArea
-                label="Description"
-                placeholder="Detailed description of the task requirements and acceptance criteria..."
+                label={t('wizard.taskDesc')}
+                placeholder={t('wizard.taskDescPlaceholder', { defaultValue: 'Detailed description of the task...' })}
                 value={aiTaskForm.description}
                 onChange={(e) => setAiTaskForm({ ...aiTaskForm, description: e.target.value })}
                 rows={4}
@@ -2049,33 +2063,33 @@ export default function CreateProjectWizard() {
 
               <div className="grid grid-cols-2 gap-4">
                 <Select
-                  label="Type"
+                  label={t('wizard.taskType')}
                   value={aiTaskForm.type}
                   onChange={(e) => setAiTaskForm({ ...aiTaskForm, type: e.target.value })}
                   options={[
-                    { value: 'feature', label: 'Feature' },
-                    { value: 'bug', label: 'Bug' },
-                    { value: 'improvement', label: 'Improvement' },
+                    { value: 'feature', label: t('wizard.featureType') },
+                    { value: 'bug', label: t('wizard.bugType') },
+                    { value: 'improvement', label: t('wizard.improvementType') },
                   ]}
                   required
                 />
 
                 <Select
-                  label="Priority"
+                  label={t('wizard.taskPriority')}
                   value={aiTaskForm.priority}
                   onChange={(e) => setAiTaskForm({ ...aiTaskForm, priority: e.target.value })}
                   options={[
-                    { value: 'low', label: 'Low' },
-                    { value: 'medium', label: 'Medium' },
-                    { value: 'high', label: 'High' },
-                    { value: 'urgent', label: 'Urgent' },
+                    { value: 'low', label: t('wizard.priorityLow') },
+                    { value: 'medium', label: t('wizard.priorityMedium') },
+                    { value: 'high', label: t('wizard.priorityHigh') },
+                    { value: 'urgent', label: t('wizard.priorityUrgent') },
                   ]}
                   required
                 />
               </div>
 
               <Input
-                label="Estimated Hours"
+                label={t('wizard.estimatedHours')}
                 type="number"
                 min="1"
                 value={aiTaskForm.estimatedHours}
@@ -2092,10 +2106,10 @@ export default function CreateProjectWizard() {
                     setEditingAiTaskIndices(null)
                   }}
                 >
-                  Cancel
+                  {t('wizard.cancel')}
                 </Button>
                 <Button type="submit">
-                  {editingAiTaskIndices && editingAiTaskIndices.taskIdx >= 0 ? 'Save Changes' : 'Add Task'}
+                  {editingAiTaskIndices && editingAiTaskIndices.taskIdx >= 0 ? t('settings.saveChanges') : t('wizard.addTask')}
                 </Button>
               </div>
             </form>
@@ -2108,7 +2122,7 @@ export default function CreateProjectWizard() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-lg w-full" padding="lg">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-heading text-xl font-semibold text-on-surface">Add Task</h3>
+              <h3 className="font-heading text-xl font-semibold text-on-surface">{t('wizard.addTask')}</h3>
               <button
                 className="text-on-surface-variant hover:text-on-surface cursor-pointer"
                 onClick={() => setIsTaskModalOpen(false)}
@@ -2119,7 +2133,7 @@ export default function CreateProjectWizard() {
 
             <form onSubmit={handleAddTask} className="flex flex-col gap-4">
               <Input
-                label="Task Title"
+                label={t('wizard.taskTitle')}
                 placeholder="e.g. Design homepage mockup"
                 value={taskForm.title}
                 onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
@@ -2127,8 +2141,8 @@ export default function CreateProjectWizard() {
               />
 
               <TextArea
-                label="Description"
-                placeholder="Detailed description of the task requirements and acceptance criteria..."
+                label={t('wizard.taskDesc')}
+                placeholder={t('wizard.taskDescPlaceholder', { defaultValue: 'Detailed description of the task...' })}
                 value={taskForm.description}
                 onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
                 rows={4}
@@ -2137,33 +2151,33 @@ export default function CreateProjectWizard() {
 
               <div className="grid grid-cols-2 gap-4">
                 <Select
-                  label="Priority"
+                  label={t('wizard.taskPriority')}
                   value={taskForm.priority}
                   onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value })}
                   options={[
-                    { value: 'low', label: 'Low' },
-                    { value: 'medium', label: 'Medium' },
-                    { value: 'high', label: 'High' },
+                    { value: 'low', label: t('wizard.priorityLow') },
+                    { value: 'medium', label: t('wizard.priorityMedium') },
+                    { value: 'high', label: t('wizard.priorityHigh') },
                   ]}
                   required
                 />
 
                 <Select
-                  label="Status"
+                  label={t('wizard.taskStatus')}
                   value={taskForm.status}
                   onChange={(e) => setTaskForm({ ...taskForm, status: e.target.value })}
                   options={[
-                    { value: 'todo', label: 'To Do' },
-                    { value: 'in-progress', label: 'In Progress' },
-                    { value: 'review', label: 'Review' },
-                    { value: 'done', label: 'Done' },
+                    { value: 'todo', label: t('wizard.statusTodo') },
+                    { value: 'in-progress', label: t('wizard.statusInProgress') },
+                    { value: 'review', label: t('wizard.statusReview') },
+                    { value: 'done', label: t('wizard.statusDone') },
                   ]}
                   required
                 />
               </div>
 
               <Input
-                label="Due Date"
+                label={t('wizard.taskDueDate')}
                 type="date"
                 value={taskForm.dueDate}
                 onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
@@ -2171,12 +2185,12 @@ export default function CreateProjectWizard() {
               />
 
               <Input
-                label="Assigned To (Email - Optional)"
+                label={t('wizard.taskAssignTo')}
                 type="email"
                 placeholder="teammate@example.com"
                 value={taskForm.assignedTo}
                 onChange={(e) => setTaskForm({ ...taskForm, assignedTo: e.target.value })}
-                helperText="Leave empty to assign later"
+                helperText={t('wizard.assignLaterHelper')}
               />
 
               <div className="flex gap-3 justify-end mt-4">
@@ -2185,9 +2199,9 @@ export default function CreateProjectWizard() {
                   variant="secondary"
                   onClick={() => setIsTaskModalOpen(false)}
                 >
-                  Cancel
+                  {t('wizard.cancel')}
                 </Button>
-                <Button type="submit">Add Task</Button>
+                <Button type="submit">{t('wizard.addTask')}</Button>
               </div>
             </form>
           </Card>
@@ -2199,7 +2213,7 @@ export default function CreateProjectWizard() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-lg w-full" padding="lg">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-heading text-xl font-semibold text-on-surface">Add Team Member</h3>
+              <h3 className="font-heading text-xl font-semibold text-on-surface">{t('wizard.addMember')}</h3>
               <button
                 className="text-on-surface-variant hover:text-on-surface cursor-pointer"
                 onClick={() => setIsMemberModalOpen(false)}
@@ -2210,35 +2224,35 @@ export default function CreateProjectWizard() {
 
             <form onSubmit={handleAddMember} className="flex flex-col gap-4">
               <Input
-                label="Email Address"
+                label={t('wizard.memberEmail')}
                 type="email"
                 placeholder="teammate@example.com"
                 value={memberForm.email}
                 onChange={(e) => setMemberForm({ ...memberForm, email: e.target.value })}
                 required
-                helperText="Must be a registered user"
+                helperText={t('wizard.registeredUserHelper')}
               />
 
               <Select
-                label="Role"
+                label={t('wizard.memberRole')}
                 value={memberForm.role}
                 onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value })}
                 options={[
-                  { value: '', label: 'Select Position' },
-                  { value: 'Full Stack Engineer', label: 'Full Stack Engineer' },
-                  { value: 'Backend Developer', label: 'Backend Developer' },
-                  { value: 'Frontend Developer', label: 'Frontend Developer' },
-                  { value: 'AI Specialist', label: 'AI Specialist' },
-                  { value: 'Product Designer', label: 'Product Designer' },
-                  { value: 'QA Engineer', label: 'QA Engineer' },
-                  { value: 'DevOps Engineer', label: 'DevOps Engineer' },
-                  { value: 'Project Manager', label: 'Project Manager' },
+                  { value: '', label: t('wizard.selectPosition') },
+                  { value: 'Full Stack Engineer', label: t('wizard.roleFullStack') },
+                  { value: 'Backend Developer', label: t('wizard.roleBackend') },
+                  { value: 'Frontend Developer', label: t('wizard.roleFrontend') },
+                  { value: 'AI Specialist', label: t('wizard.roleAi') },
+                  { value: 'Product Designer', label: t('wizard.roleDesigner') },
+                  { value: 'QA Engineer', label: t('wizard.roleQa') },
+                  { value: 'DevOps Engineer', label: t('wizard.roleDevOps') },
+                  { value: 'Project Manager', label: t('wizard.rolePm') },
                 ]}
                 required
               />
 
               <TextArea
-                label="Skills"
+                label={t('wizard.memberSkills')}
                 placeholder="e.g. React, Node.js, TypeScript, UI/UX Design"
                 value={memberForm.skills}
                 onChange={(e) => setMemberForm({ ...memberForm, skills: e.target.value })}
@@ -2246,13 +2260,13 @@ export default function CreateProjectWizard() {
               />
 
               <Select
-                label="Status"
+                label={t('wizard.memberStatus')}
                 value={memberForm.status}
                 onChange={(e) => setMemberForm({ ...memberForm, status: e.target.value })}
                 options={[
-                  { value: 'available', label: 'Available' },
-                  { value: 'busy', label: 'Busy' },
-                  { value: 'on-leave', label: 'On Leave' },
+                  { value: 'available', label: t('wizard.memberAvailable') },
+                  { value: 'busy', label: t('wizard.memberBusy') },
+                  { value: 'on-leave', label: t('wizard.memberOnLeave') },
                 ]}
                 required
               />
@@ -2263,9 +2277,9 @@ export default function CreateProjectWizard() {
                   variant="secondary"
                   onClick={() => setIsMemberModalOpen(false)}
                 >
-                  Cancel
+                  {t('wizard.cancel')}
                 </Button>
-                <Button type="submit">Add Member</Button>
+                <Button type="submit">{t('wizard.addMember')}</Button>
               </div>
             </form>
           </Card>

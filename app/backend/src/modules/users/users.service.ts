@@ -181,6 +181,28 @@ export class UsersService {
     await this.userRepository.remove(user);
   }
 
+  // ─── Delete Account (with password confirmation) ──────────────────
+
+  async deleteAccount(userId: string, password: string): Promise<void> {
+    const user = await this.findOne(userId);
+
+    // Check if user has a password (not OAuth-only)
+    if (!user.passwordHash) {
+      throw new UnauthorizedException(
+        'This account uses Google sign-in. Please contact support to delete your account.',
+      );
+    }
+
+    // Verify password
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) {
+      throw new UnauthorizedException('Password is incorrect.');
+    }
+
+    // Delete user (cascades to settings, sessions, etc.)
+    await this.userRepository.remove(user);
+  }
+
   async updateSettings(
     id: string,
     updateSettingsDto: UpdateUserSettingsDto,
@@ -211,6 +233,121 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { email: email.toLowerCase() } });
+  }
+
+  // ─── Change Password ───────────────────────────────────────────────
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await this.findOne(userId);
+
+    // Check if user has a password (not OAuth-only)
+    if (!user.passwordHash) {
+      throw new UnauthorizedException(
+        'This account uses Google sign-in and does not have a password.',
+      );
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isMatch) {
+      throw new UnauthorizedException('Current password is incorrect.');
+    }
+
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    // Update password
+    await this.userRepository.update(userId, { passwordHash: newPasswordHash });
+  }
+
+  // ─── Session Management ────────────────────────────────────────────
+
+  /**
+   * Create a new session when user logs in
+   */
+  async createSession(data: {
+    userId: string;
+    sessionToken: string;
+    deviceInfo?: string;
+    userAgent?: string;
+    ipAddress?: string;
+    expiresAt: Date;
+  }): Promise<UserSession> {
+    // Deactivate old sessions for this device (optional - keep last 5 active)
+    const existingSessions = await this.sessionRepository.find({
+      where: { userId: data.userId, isActive: true },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (existingSessions.length >= 5) {
+      // Keep only the 4 most recent, deactivate the rest
+      const toDeactivate = existingSessions.slice(4);
+      for (const session of toDeactivate) {
+        await this.sessionRepository.update(session.id, { isActive: false });
+      }
+    }
+
+    // Create new session
+    const session = this.sessionRepository.create({
+      ...data,
+      isActive: true,
+      lastActiveAt: new Date(),
+    });
+
+    return this.sessionRepository.save(session);
+  }
+
+  /**
+   * Get all active sessions for a user
+   */
+  async getUserSessions(userId: string): Promise<UserSession[]> {
+    return this.sessionRepository.find({
+      where: { userId, isActive: true },
+      order: { lastActiveAt: 'DESC' },
+    });
+  }
+
+  /**
+   * Revoke a specific session
+   */
+  async revokeSession(sessionId: string, userId: string): Promise<void> {
+    const session = await this.sessionRepository.findOne({
+      where: { id: sessionId, userId },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    await this.sessionRepository.update(sessionId, { isActive: false });
+  }
+
+  /**
+   * Revoke all sessions except current
+   */
+  async revokeAllOtherSessions(userId: string, currentSessionId: string): Promise<void> {
+    await this.sessionRepository
+      .createQueryBuilder()
+      .update(UserSession)
+      .set({ isActive: false })
+      .where('userId = :userId', { userId })
+      .andWhere('id != :currentSessionId', { currentSessionId })
+      .andWhere('isActive = :isActive', { isActive: true })
+      .execute();
+  }
+
+  /**
+   * Update session last active time
+   */
+  async updateSessionActivity(sessionToken: string): Promise<void> {
+    await this.sessionRepository.update(
+      { sessionToken },
+      { lastActiveAt: new Date() },
+    );
   }
 
   // ─── Google OAuth ──────────────────────────────────────────────────

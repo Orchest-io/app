@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import Button from '../ui/Button/Button'
 import type { DashboardStats, DashboardStatsDto } from '../../pages/Dashboard/dashboard.types'
 
@@ -18,6 +19,7 @@ export default function DashboardHero({
   isLoading,
 }: DashboardHeroProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   // Prefer server stats when available, fall back to client-derived
   const avgProgress = apiStats?.averageProgress ?? stats.averageProgress
@@ -28,22 +30,22 @@ export default function DashboardHero({
 
   const systemStatus =
     avgProgress >= 80
-      ? 'System Optimal'
+      ? t('dashboard.systemOptimal')
       : avgProgress >= 50
-        ? 'On Track'
-        : 'Needs Attention'
+        ? t('dashboard.onTrack')
+        : t('dashboard.needsAttention')
 
   const heroMessage = (() => {
     if (overdueTasks > 0) {
-      return `You have ${overdueTasks} overdue task${overdueTasks !== 1 ? 's' : ''} that need attention. Review and reassign to keep your projects on track.`
+      return t('dashboard.overdueTasks', { count: overdueTasks })
     }
     if (avgProgress >= 80) {
-      return `Your team has completed ${completedTasks} of ${totalTasks} tasks. AI suggests shifting focus to high-priority items for maximum velocity.`
+      return t('dashboard.highProgress', { completed: completedTasks, total: totalTasks })
     }
     if (activeCount > 0) {
-      return `You have ${activeCount} active project${activeCount !== 1 ? 's' : ''} in progress. Keep your momentum going.`
+      return t('dashboard.activeProjectsMsg', { count: activeCount })
     }
-    return `No active projects yet. Start a new project to unlock full workspace intelligence.`
+    return t('dashboard.noActiveProjects')
   })()
 
   return (
@@ -77,7 +79,7 @@ export default function DashboardHero({
             </div>
 
             <h2 className="font-heading text-[28px] md:text-[34px] font-bold text-on-surface mb-2 leading-tight">
-              Welcome back, {userName}.
+              {t('dashboard.welcomeBack', { name: userName })}
             </h2>
 
             <p className="text-sm text-on-surface-variant max-w-[540px] leading-relaxed mb-5">
@@ -89,27 +91,27 @@ export default function DashboardHero({
               <div className="flex flex-wrap gap-3 mb-6">
                 <StatPill
                   icon="tactic"
-                  label="Projects"
+                  label={t('dashboard.statProjects')}
                   value={String(apiStats.totalProjects)}
                   color="text-electric-blue"
                 />
                 <StatPill
                   icon="task_alt"
-                  label="Tasks done"
+                  label={t('dashboard.statTasksDone')}
                   value={`${apiStats.completedTasks}/${apiStats.totalTasks}`}
                   color="text-emerald-400"
                 />
                 {apiStats.overdueTasks > 0 && (
                   <StatPill
                     icon="schedule"
-                    label="Overdue"
+                    label={t('dashboard.statOverdue')}
                     value={String(apiStats.overdueTasks)}
                     color="text-error"
                   />
                 )}
                 <StatPill
                   icon="monitoring"
-                  label="Avg progress"
+                  label={t('dashboard.statAvgProgress')}
                   value={`${apiStats.averageProgress}%`}
                   color="text-peri-purple"
                 />
@@ -118,14 +120,14 @@ export default function DashboardHero({
 
             <div className="flex items-center gap-3 flex-wrap">
               <Button icon="auto_awesome" onClick={() => navigate('/projects')}>
-                Optimize Workflow
+                {t('dashboard.optimizeWorkflow')}
               </Button>
               <Button
                 variant="secondary"
                 icon="warning"
                 onClick={() => navigate('/projects')}
               >
-                Review Blockers
+                {t('dashboard.reviewBlockers')}
               </Button>
             </div>
           </>

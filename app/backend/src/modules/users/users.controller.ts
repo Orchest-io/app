@@ -40,8 +40,9 @@ export class UsersController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  async remove(@Param('id') id: string) {
+    await this.usersService.remove(id);
+    return { message: 'Account deleted successfully' };
   }
 
   @Patch(':id/settings')
@@ -52,5 +53,46 @@ export class UsersController {
   @Post(':id/skills')
   addSkill(@Param('id') id: string, @Body() addSkillDto: AddUserSkillDto) {
     return this.usersService.addSkill(id, addSkillDto);
+  }
+
+  @Post(':id/change-password')
+  async changePassword(
+    @Param('id') id: string,
+    @Body() body: { currentPassword: string; newPassword: string },
+  ) {
+    await this.usersService.changePassword(id, body.currentPassword, body.newPassword);
+    return { message: 'Password changed successfully' };
+  }
+
+  @Post(':id/delete-account')
+  async deleteAccount(
+    @Param('id') id: string,
+    @Body() body: { password: string },
+  ) {
+    await this.usersService.deleteAccount(id, body.password);
+    return { message: 'Account deleted successfully' };
+  }
+
+  @Get(':id/sessions')
+  async getSessions(@Param('id') id: string) {
+    return this.usersService.getUserSessions(id);
+  }
+
+  @Delete(':id/sessions/:sessionId')
+  async revokeSession(
+    @Param('id') id: string,
+    @Param('sessionId') sessionId: string,
+  ) {
+    await this.usersService.revokeSession(sessionId, id);
+    return { message: 'Session revoked successfully' };
+  }
+
+  @Post(':id/sessions/revoke-all')
+  async revokeAllSessions(
+    @Param('id') id: string,
+    @Body() body: { currentSessionId: string },
+  ) {
+    await this.usersService.revokeAllOtherSessions(id, body.currentSessionId);
+    return { message: 'All other sessions revoked successfully' };
   }
 }

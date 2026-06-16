@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -20,21 +21,33 @@ export class UserSession {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ name: 'device_info', type: 'varchar', nullable: true })
+  @Column({ name: 'session_token', type: 'varchar', unique: true })
+  sessionToken: string;
+
+  @Column({ name: 'device_info', type: 'text', nullable: true })
   deviceInfo: string;
 
-  @Column({ name: 'ip_address', type: 'varchar', nullable: true })
+  @Column({ name: 'user_agent', type: 'text', nullable: true })
+  userAgent: string;
+
+  @Column({ name: 'ip_address', type: 'varchar', length: 45, nullable: true })
   ipAddress: string;
 
   @Column({ name: 'token_hash', type: 'varchar', nullable:true })
   tokenHash: string | null;
+  
+  @Column({ name: 'location', type: 'varchar', nullable: true })
+  location: string;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
-  @Column({ name: 'expires_at', type: 'timestamp' })
-  expiresAt: Date;
+  @Column({ name: 'last_active_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  lastActiveAt: Date;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
+
+  @Column({ name: 'expires_at', type: 'timestamp' })
+  expiresAt: Date;
 }

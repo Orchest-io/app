@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Card } from '../../../components/ui'
 import {
@@ -39,6 +40,7 @@ interface DropZoneProps {
 }
 
 function DropZone({ onFileSelect, isUploading }: DropZoneProps) {
+  const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragOver, setIsDragOver] = useState(false)
 
@@ -79,9 +81,9 @@ function DropZone({ onFileSelect, isUploading }: DropZoneProps) {
       </div>
       <div className="text-center">
         <p className="text-sm font-semibold text-on-surface">
-          {isUploading ? 'Uploading…' : isDragOver ? 'Drop to upload' : 'Drag & drop or click to upload'}
+          {isUploading ? t('projectDetails.uploadingText') : isDragOver ? t('projectDetails.dropToUpload') : t('projectDetails.dragDropUpload')}
         </p>
-        <p className="text-xs text-on-surface-variant mt-1">Any file type · Max 10 MB</p>
+        <p className="text-xs text-on-surface-variant mt-1">{t('projectDetails.maxFileSize')}</p>
       </div>
     </div>
   )
@@ -98,6 +100,7 @@ interface AttachmentCardProps {
 }
 
 function AttachmentCard({ attachment, currentUserId, isOwner, onDelete, isDeleting }: AttachmentCardProps) {
+  const { t } = useTranslation()
   const { icon, color } = getFileIcon(attachment.fileType)
   const canDelete = isOwner || attachment.uploadedBy === currentUserId
 
@@ -128,7 +131,7 @@ function AttachmentCard({ attachment, currentUserId, isOwner, onDelete, isDeleti
           rel="noopener noreferrer"
           download={attachment.fileName}
           className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-electric-blue hover:bg-electric-blue/10 transition-colors"
-          title="Download"
+          title={t('projectDetails.download') || 'Download'}
         >
           <span className="material-symbols-outlined text-[18px]">download</span>
         </a>
@@ -137,7 +140,7 @@ function AttachmentCard({ attachment, currentUserId, isOwner, onDelete, isDeleti
             onClick={() => onDelete(attachment.id)}
             disabled={isDeleting}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-red-400 hover:bg-red-400/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            title="Delete attachment"
+            title={t('projectDetails.deleteAttachment') || 'Delete attachment'}
           >
             <span className="material-symbols-outlined text-[18px]">delete</span>
           </button>
@@ -156,15 +159,16 @@ interface ProjectAttachmentsTabProps {
 }
 
 export default function ProjectAttachmentsTab({ projectId, currentUserId, isOwner }: ProjectAttachmentsTabProps) {
+  const { t } = useTranslation()
   const { data: attachments = [], isLoading, isError } = useProjectAttachments(projectId)
   const uploadMutation = useUploadProjectAttachment(projectId)
   const deleteMutation = useDeleteAttachment({ projectId })
 
   const handleUpload = (file: File) => {
     uploadMutation.mutate(file, {
-      onSuccess: () => toast.success(`"${file.name}" uploaded successfully`),
+      onSuccess: () => toast.success(t('projectDetails.uploadedSuccess', { name: file.name })),
       onError: (err: any) => {
-        const msg = err?.response?.data?.message || err?.message || 'Upload failed'
+        const msg = err?.response?.data?.message || err?.message || t('projectDetails.uploadFailedMsg')
         toast.error(Array.isArray(msg) ? msg.join(', ') : msg)
       },
     })
@@ -172,9 +176,9 @@ export default function ProjectAttachmentsTab({ projectId, currentUserId, isOwne
 
   const handleDelete = (id: string) => {
     deleteMutation.mutate(id, {
-      onSuccess: () => toast.success('Attachment deleted'),
+      onSuccess: () => toast.success(t('projectDetails.attachmentDeletedMsg')),
       onError: (err: any) => {
-        const msg = err?.response?.data?.message || err?.message || 'Delete failed'
+        const msg = err?.response?.data?.message || err?.message || t('projectDetails.deleteFailedMsg')
         toast.error(Array.isArray(msg) ? msg.join(', ') : msg)
       },
     })
@@ -184,10 +188,10 @@ export default function ProjectAttachmentsTab({ projectId, currentUserId, isOwne
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div>
-        <h3 className="font-heading text-lg font-semibold text-on-surface">Project Attachments</h3>
+        <h3 className="font-heading text-lg font-semibold text-on-surface">{t('projectDetails.projectAttachments')}</h3>
         <p className="text-xs text-on-surface-variant mt-0.5">
-          Upload documents, designs, or any files related to this project.
-          {!isOwner && <span className="ml-1">Only the uploader or project owner can delete files.</span>}
+          {t('projectDetails.uploadDesc')}
+          {!isOwner && <span className="ml-1">{t('projectDetails.uploaderDeleteNote')}</span>}
         </p>
       </div>
 
@@ -199,7 +203,7 @@ export default function ProjectAttachmentsTab({ projectId, currentUserId, isOwne
         <div className="flex items-center justify-between mb-5">
           <h4 className="font-heading text-sm font-semibold text-on-surface flex items-center gap-2">
             <span className="material-symbols-outlined text-[16px] text-on-surface-variant">folder_open</span>
-            Files
+            {t('projectDetails.filesLabel')}
             {attachments.length > 0 && (
               <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-electric-blue/15 text-electric-blue">
                 {attachments.length}
@@ -217,13 +221,13 @@ export default function ProjectAttachmentsTab({ projectId, currentUserId, isOwne
         ) : isError ? (
           <div className="text-center py-10">
             <span className="material-symbols-outlined text-[36px] text-red-400 mb-2">error</span>
-            <p className="text-sm text-on-surface-variant">Failed to load attachments.</p>
+            <p className="text-sm text-on-surface-variant">{t('projectDetails.failedLoadAttachments')}</p>
           </div>
         ) : attachments.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-white/10 rounded-xl">
             <span className="material-symbols-outlined text-[44px] text-on-surface-variant/30 mb-3">attach_file</span>
-            <p className="text-sm text-on-surface-variant font-medium">No attachments yet</p>
-            <p className="text-xs text-on-surface-variant/60 mt-1">Upload a file above to get started.</p>
+            <p className="text-sm text-on-surface-variant font-medium">{t('projectDetails.noAttachmentsYet')}</p>
+            <p className="text-xs text-on-surface-variant/60 mt-1">{t('projectDetails.uploadToStart')}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">

@@ -1,3 +1,4 @@
+
 import { useDashboard } from '../../hooks/useDashboard'
 import { useMe } from '../../hooks/useSettings'
 import DashboardHero from '../../components/dashboard/DashboardHero'
@@ -87,3 +88,4 @@ export default function Dashboard() {
     </div>
   )
 }
+
