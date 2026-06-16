@@ -10,6 +10,7 @@ import {
   useDeleteAttachment,
 } from '../../hooks/useAttachments'
 import type { AttachmentResponseDto } from '@orchest/shared'
+import { AiDescriptionGenerator } from '../../components/AI'
 
 export default function TaskDetailsPage() {
   const { projectId, taskId } = useParams<{ projectId: string; taskId: string }>()
@@ -339,14 +340,13 @@ export default function TaskDetailsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
-                  Description
-                </label>
-                <textarea
+                <AiDescriptionGenerator
                   value={editedDescription}
-                  onChange={(e) => setEditedDescription(e.target.value)}
+                  onChange={setEditedDescription}
+                  context={editedTitle}
+                  type="task"
+                  label="Description"
                   rows={5}
-                  className="w-full bg-surface-container-lowest text-on-surface border border-white/10 rounded-xl p-3 focus:outline-none focus:border-electric-blue/50 text-sm resize-none transition-all custom-scrollbar"
                 />
               </div>
 
