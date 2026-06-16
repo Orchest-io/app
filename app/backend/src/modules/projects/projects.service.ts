@@ -11,21 +11,20 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Project, ProjectMember, Milestone, ProjectStoryPointConfig } from "./entities";
 import { Task } from "../tasks/entities/task.entity";
 import {
-	CreateProjectDto,
-	UpdateProjectDto,
-	AddProjectMemberDto,
-	CreateMilestoneDto,
-	UpdateMilestoneDto,
-	AssignTasksToMilestoneDto,
-	ProjectMemberRole,
-	MilestoneStatus,
-	TaskStatus,
-	ActivityAction,
-	EntityType,
-	NotificationType,
-	ReferenceType,
-	ProjectAnalyticsDto,
-	UpdateStoryPointConfigDto,
+  CreateProjectDto,
+  UpdateProjectDto,
+  AddProjectMemberDto,
+  CreateMilestoneDto,
+  UpdateMilestoneDto,
+  AssignTasksToMilestoneDto,
+  ProjectMemberRole,
+  MilestoneStatus,
+  TaskStatus,
+  ActivityAction,
+  EntityType,
+  NotificationType,
+  ReferenceType,
+  UpdateStoryPointConfigDto,
 } from "@orchest/shared";
 import { ActivityLogService } from "../analytics/activity-log.service";
 import { NotificationService } from "../analytics/notification.service";
@@ -628,127 +627,6 @@ export class ProjectsService {
 
 		await this.tasksRepository.update({ id: taskId }, { milestoneId: null });
 		await this.recalculateMilestoneProgress(milestoneId, userId);
-	}
-
-	// --- Analytics ---
-
-	async getProjectAnalytics(
-		projectId: string,
-		userId: string,
-	): Promise<ProjectAnalyticsDto> {
-		await this.requireMember(projectId, userId);
-
-		const tasks = await this.tasksRepository.find({
-			where: { projectId },
-			relations: ["assignees", "assignees.user"],
-		});
-
-		let totalStoryPoints = 0;
-		let completedStoryPoints = 0;
-		let totalEstimatedHours = 0;
-		let totalActualHours = 0;
-		let remainingHoursEstimate = 0;
-
-		let todoCount = 0;
-		let inProgressCount = 0;
-		let doneCount = 0;
-
-		const timeBleedTasks: ProjectAnalyticsDto["timeBleedTasks"] = [];
-		const workloadMap = new Map<
-			string,
-			{
-				name: string;
-				avatarUrl?: string;
-				hoursLogged: number;
-				pointsAssigned: number;
-			}
-		>();
-
-		for (const task of tasks) {
-			const sp = task.storyPoints ? Number(task.storyPoints) : 0;
-			const est = task.estimatedHours ? Number(task.estimatedHours) : 0;
-			const act = task.actualHours ? Number(task.actualHours) : 0;
-
-			totalStoryPoints += sp;
-			totalEstimatedHours += est;
-			totalActualHours += act;
-
-			if (task.status === TaskStatus.DONE || task.status === "done") {
-				completedStoryPoints += sp;
-				doneCount++;
-			} else {
-				remainingHoursEstimate += est;
-				if (
-					task.status === TaskStatus.IN_PROGRESS ||
-					task.status === "in-progress"
-				) {
-					inProgressCount++;
-				} else {
-					todoCount++;
-				}
-			}
-
-			if (act > est && est > 0) {
-				timeBleedTasks.push({
-					id: task.id,
-					title: task.title,
-					estimatedHours: est,
-					actualHours: act,
-					overrunHours: act - est,
-				});
-			}
-
-			if (task.assignees && task.assignees.length > 0) {
-				for (const assignee of task.assignees) {
-					if (!assignee.user) continue;
-					const uId = assignee.userId;
-					if (!workloadMap.has(uId)) {
-						workloadMap.set(uId, {
-							name: assignee.user.fullName || "Unknown",
-							avatarUrl: assignee.user.avatarUrl || undefined,
-							hoursLogged: 0,
-							pointsAssigned: 0,
-						});
-					}
-					const wl = workloadMap.get(uId)!;
-					const assigneesCount = task.assignees.length;
-					wl.hoursLogged += act / assigneesCount;
-					wl.pointsAssigned += sp / assigneesCount;
-				}
-			}
-		}
-
-		const completionPercentage =
-			totalStoryPoints > 0 ? (completedStoryPoints / totalStoryPoints) * 100 : 0;
-
-		const teamWorkload = Array.from(workloadMap.entries()).map(
-			([uId, data]) => ({
-				userId: uId,
-				...data,
-				hoursLogged: Math.round(data.hoursLogged * 100) / 100,
-				pointsAssigned: Math.round(data.pointsAssigned * 100) / 100,
-			}),
-		);
-
-		return {
-			summary: {
-				totalStoryPoints,
-				completedStoryPoints,
-				completionPercentage: Math.round(completionPercentage * 100) / 100,
-				totalEstimatedHours: Math.round(totalEstimatedHours * 100) / 100,
-				totalActualHours: Math.round(totalActualHours * 100) / 100,
-				remainingHoursEstimate: Math.round(remainingHoursEstimate * 100) / 100,
-			},
-			statusBreakdown: {
-				todoCount,
-				inProgressCount,
-				doneCount,
-			},
-			teamWorkload,
-			timeBleedTasks: timeBleedTasks.sort(
-				(a, b) => b.overrunHours - a.overrunHours,
-			),
-		};
 	}
 
 	// --- Story Point Calibration ---

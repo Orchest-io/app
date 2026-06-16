@@ -69,11 +69,6 @@ export class ProjectsController {
     return this.projectsService.removeMember(id, memberUserId, user.id);
   }
 
-  @Get(':id/analytics')
-  getProjectAnalytics(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
-    return this.projectsService.getProjectAnalytics(id, user.id);
-  }
-
   @Get(':id/story-points/config')
   async getStoryPointConfig(
     @Param('id') id: string,
