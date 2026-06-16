@@ -1,5 +1,8 @@
 import { useNavigate } from 'react-router-dom'
+<<<<<<< HEAD
 import { useTranslation } from 'react-i18next'
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 import Card from '../ui/Card/Card'
 import ProjectItem from './ProjectItem'
 import type { ProjectListItemDto } from '../../pages/Dashboard/dashboard.types'
@@ -31,7 +34,10 @@ export default function ActiveProjectsCard({
   isError,
 }: ActiveProjectsCardProps) {
   const navigate = useNavigate()
+<<<<<<< HEAD
   const { t } = useTranslation()
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 
   const activeProjects = projects.filter(
     (p) =>
@@ -52,13 +58,21 @@ export default function ActiveProjectsCard({
           >
             tactic
           </span>
+<<<<<<< HEAD
           {t('dashboard.activeProjects')}
+=======
+          Active Projects
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
         </h3>
         <button
           className="text-[11px] font-semibold text-electric-blue hover:text-primary transition-colors cursor-pointer uppercase tracking-wider"
           onClick={() => navigate('/projects')}
         >
+<<<<<<< HEAD
           {t('dashboard.viewAll')}
+=======
+          View All
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
         </button>
       </div>
 
@@ -74,7 +88,11 @@ export default function ActiveProjectsCard({
             <span className="material-symbols-outlined text-[32px] text-error/60 mb-2 block">
               error
             </span>
+<<<<<<< HEAD
             <p className="text-sm text-on-surface-variant">{t('dashboard.failedLoadProjects')}</p>
+=======
+            <p className="text-sm text-on-surface-variant">Failed to load projects</p>
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
           </div>
         ) : activeProjects.length === 0 ? (
           <div className="text-center py-8">
@@ -84,9 +102,15 @@ export default function ActiveProjectsCard({
             >
               tactic
             </span>
+<<<<<<< HEAD
             <p className="text-sm text-on-surface-variant font-medium">{t('dashboard.noActiveProjectsCard')}</p>
             <p className="text-xs text-on-surface-variant/60 mt-1">
               {t('dashboard.createProjectToStart')}
+=======
+            <p className="text-sm text-on-surface-variant font-medium">No active projects</p>
+            <p className="text-xs text-on-surface-variant/60 mt-1">
+              Create a project to get started
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
             </p>
           </div>
         ) : (

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { useDashboard } from '../../hooks/useDashboard'
 import { useMe } from '../../hooks/useSettings'
@@ -7,6 +8,16 @@ import TeamVelocityCard from '../../components/dashboard/TeamVelocityCard'
 import RecentActivityCard from '../../components/dashboard/RecentActivityCard'
 import AiCopilotPanel from '../../components/dashboard/AiCopilotPanel'
 
+=======
+import { useDashboard } from '../../hooks/useDashboard'
+import { useMe } from '../../hooks/useSettings'
+import DashboardHero from '../../components/dashboard/DashboardHero'
+import ActiveProjectsCard from '../../components/dashboard/ActiveProjectsCard'
+import TeamVelocityCard from '../../components/dashboard/TeamVelocityCard'
+import RecentActivityCard from '../../components/dashboard/RecentActivityCard'
+import AiCopilotPanel from '../../components/dashboard/AiCopilotPanel'
+
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 /**
  * Main Dashboard page.
  *

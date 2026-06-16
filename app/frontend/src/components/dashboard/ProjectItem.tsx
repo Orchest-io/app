@@ -1,5 +1,8 @@
 import { useNavigate } from 'react-router-dom'
+<<<<<<< HEAD
 import { useTranslation } from 'react-i18next'
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 import ProgressBar from '../ui/ProgressBar/ProgressBar'
 import type { ProjectListItemDto } from '../../pages/Dashboard/dashboard.types'
 
@@ -19,7 +22,10 @@ const STATUS_ICON: Record<string, string> = {
 
 export default function ProjectItem({ project }: ProjectItemProps) {
   const navigate = useNavigate()
+<<<<<<< HEAD
   const { t } = useTranslation()
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 
   const iconName = STATUS_ICON[project.status] ?? 'tactic'
 
@@ -32,6 +38,7 @@ export default function ProjectItem({ project }: ProjectItemProps) {
       )
     : null
 
+<<<<<<< HEAD
   const getDueLabel = () => {
     if (daysRemaining === null) return t('projects.noDueDate')
     if (daysRemaining > 0) return t('projects.dueIn', { count: daysRemaining })
@@ -39,6 +46,8 @@ export default function ProjectItem({ project }: ProjectItemProps) {
     return t('projects.overdueBy', { count: Math.abs(daysRemaining) })
   }
 
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
   return (
     <button
       className="w-full text-left p-4 rounded-lg bg-surface-container-low border border-border-low hover:border-electric-blue/30 hover:bg-surface-container transition-all duration-200 cursor-pointer group"
@@ -67,8 +76,19 @@ export default function ProjectItem({ project }: ProjectItemProps) {
           </div>
 
           <p className="text-[11px] text-on-surface-variant mb-3">
+<<<<<<< HEAD
             {getDueLabel()}
             {memberCount > 0 && ` · ${t('projects.activeMember', { count: memberCount })}`}
+=======
+            {daysRemaining !== null
+              ? daysRemaining > 0
+                ? `Due in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}`
+                : daysRemaining === 0
+                  ? 'Due today'
+                  : `Overdue by ${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''}`
+              : 'No due date'}
+            {memberCount > 0 && ` · ${memberCount} Active member${memberCount !== 1 ? 's' : ''}`}
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
           </p>
 
           <ProgressBar value={project.progress ?? 0} glow />

@@ -1,5 +1,8 @@
 import { useNavigate } from 'react-router-dom'
+<<<<<<< HEAD
 import { useTranslation } from 'react-i18next'
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 import Button from '../ui/Button/Button'
 import type { DashboardStats, DashboardStatsDto } from '../../pages/Dashboard/dashboard.types'
 
@@ -19,7 +22,10 @@ export default function DashboardHero({
   isLoading,
 }: DashboardHeroProps) {
   const navigate = useNavigate()
+<<<<<<< HEAD
   const { t } = useTranslation()
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 
   // Prefer server stats when available, fall back to client-derived
   const avgProgress = apiStats?.averageProgress ?? stats.averageProgress
@@ -30,6 +36,7 @@ export default function DashboardHero({
 
   const systemStatus =
     avgProgress >= 80
+<<<<<<< HEAD
       ? t('dashboard.systemOptimal')
       : avgProgress >= 50
         ? t('dashboard.onTrack')
@@ -46,6 +53,24 @@ export default function DashboardHero({
       return t('dashboard.activeProjectsMsg', { count: activeCount })
     }
     return t('dashboard.noActiveProjects')
+=======
+      ? 'System Optimal'
+      : avgProgress >= 50
+        ? 'On Track'
+        : 'Needs Attention'
+
+  const heroMessage = (() => {
+    if (overdueTasks > 0) {
+      return `You have ${overdueTasks} overdue task${overdueTasks !== 1 ? 's' : ''} that need attention. Review and reassign to keep your projects on track.`
+    }
+    if (avgProgress >= 80) {
+      return `Your team has completed ${completedTasks} of ${totalTasks} tasks. AI suggests shifting focus to high-priority items for maximum velocity.`
+    }
+    if (activeCount > 0) {
+      return `You have ${activeCount} active project${activeCount !== 1 ? 's' : ''} in progress. Keep your momentum going.`
+    }
+    return `No active projects yet. Start a new project to unlock full workspace intelligence.`
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
   })()
 
   return (
@@ -79,7 +104,11 @@ export default function DashboardHero({
             </div>
 
             <h2 className="font-heading text-[28px] md:text-[34px] font-bold text-on-surface mb-2 leading-tight">
+<<<<<<< HEAD
               {t('dashboard.welcomeBack', { name: userName })}
+=======
+              Welcome back, {userName}.
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
             </h2>
 
             <p className="text-sm text-on-surface-variant max-w-[540px] leading-relaxed mb-5">
@@ -91,27 +120,43 @@ export default function DashboardHero({
               <div className="flex flex-wrap gap-3 mb-6">
                 <StatPill
                   icon="tactic"
+<<<<<<< HEAD
                   label={t('dashboard.statProjects')}
+=======
+                  label="Projects"
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
                   value={String(apiStats.totalProjects)}
                   color="text-electric-blue"
                 />
                 <StatPill
                   icon="task_alt"
+<<<<<<< HEAD
                   label={t('dashboard.statTasksDone')}
+=======
+                  label="Tasks done"
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
                   value={`${apiStats.completedTasks}/${apiStats.totalTasks}`}
                   color="text-emerald-400"
                 />
                 {apiStats.overdueTasks > 0 && (
                   <StatPill
                     icon="schedule"
+<<<<<<< HEAD
                     label={t('dashboard.statOverdue')}
+=======
+                    label="Overdue"
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
                     value={String(apiStats.overdueTasks)}
                     color="text-error"
                   />
                 )}
                 <StatPill
                   icon="monitoring"
+<<<<<<< HEAD
                   label={t('dashboard.statAvgProgress')}
+=======
+                  label="Avg progress"
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
                   value={`${apiStats.averageProgress}%`}
                   color="text-peri-purple"
                 />
@@ -120,14 +165,22 @@ export default function DashboardHero({
 
             <div className="flex items-center gap-3 flex-wrap">
               <Button icon="auto_awesome" onClick={() => navigate('/projects')}>
+<<<<<<< HEAD
                 {t('dashboard.optimizeWorkflow')}
+=======
+                Optimize Workflow
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
               </Button>
               <Button
                 variant="secondary"
                 icon="warning"
                 onClick={() => navigate('/projects')}
               >
+<<<<<<< HEAD
                 {t('dashboard.reviewBlockers')}
+=======
+                Review Blockers
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
               </Button>
             </div>
           </>

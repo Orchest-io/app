@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import { useTranslation } from 'react-i18next'
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 import Card from '../ui/Card/Card'
 import type { ProjectListItemDto } from '../../pages/Dashboard/dashboard.types'
 
@@ -13,8 +16,11 @@ interface TeamVelocityCardProps {
  * distributed over a 5×7 grid (35 units = one work-week of output slots).
  */
 export default function TeamVelocityCard({ projects, isLoading }: TeamVelocityCardProps) {
+<<<<<<< HEAD
   const { t } = useTranslation()
 
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
   const activeProjects = projects.filter(
     (p) =>
       p.status === 'active' ||
@@ -64,7 +70,11 @@ export default function TeamVelocityCard({ projects, isLoading }: TeamVelocityCa
           >
             insights
           </span>
+<<<<<<< HEAD
           {t('dashboard.teamVelocity')}
+=======
+          Team Velocity
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
         </h3>
         <button
           className="p-1.5 rounded-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-glass transition-colors cursor-pointer"
@@ -76,7 +86,11 @@ export default function TeamVelocityCard({ projects, isLoading }: TeamVelocityCa
 
       {/* Subtitle */}
       <p className="text-[11px] text-on-surface-variant/60 mb-4 leading-snug">
+<<<<<<< HEAD
         {t('dashboard.velocitySubtitle')}
+=======
+        Progress intensity across active projects — brighter = higher throughput
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
       </p>
 
       {isLoading ? (
@@ -105,7 +119,11 @@ export default function TeamVelocityCard({ projects, isLoading }: TeamVelocityCa
             ))}
           </div>
           <p className="text-xs text-on-surface-variant/60 text-center leading-relaxed">
+<<<<<<< HEAD
             {t('dashboard.velocityNoData')}
+=======
+            Velocity data will populate as your projects gain progress.
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
           </p>
         </div>
       ) : (
@@ -132,7 +150,11 @@ export default function TeamVelocityCard({ projects, isLoading }: TeamVelocityCa
           <div className="flex items-end justify-between mt-auto">
             <div>
               <p className="text-[10px] text-on-surface-variant uppercase tracking-wider mb-0.5">
+<<<<<<< HEAD
                 {t('dashboard.peakHour')}
+=======
+                Peak Hour
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
               </p>
               <p className="font-heading text-[26px] font-bold text-on-surface leading-none">
                 {peakTime}
@@ -141,7 +163,11 @@ export default function TeamVelocityCard({ projects, isLoading }: TeamVelocityCa
             </div>
             <div className="text-right">
               <p className="text-[10px] text-on-surface-variant uppercase tracking-wider mb-0.5">
+<<<<<<< HEAD
                 {t('dashboard.avgProgress')}
+=======
+                Avg Progress
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
               </p>
               <p className="font-heading text-[26px] font-bold text-on-surface leading-none">
                 {avgProgress}

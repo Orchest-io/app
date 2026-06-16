@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
+<<<<<<< HEAD
 import { useTranslation } from 'react-i18next'
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 
 /**
  * Focus Insight card — tracks focus state locally.
@@ -7,7 +10,10 @@ import { useTranslation } from 'react-i18next'
  * notifications contextually (purely UI state, no backend call needed).
  */
 export default function FocusInsightCard() {
+<<<<<<< HEAD
   const { t } = useTranslation()
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
   const [focusMinutes, setFocusMinutes] = useState<number | null>(null)
   const [remaining, setRemaining] = useState(0)
 
@@ -37,13 +43,21 @@ export default function FocusInsightCard() {
   return (
     <div className="p-4 rounded-xl bg-peri-purple/5 border border-peri-purple/15">
       <p className="text-[10px] font-heading font-bold uppercase tracking-widest text-peri-purple mb-2">
+<<<<<<< HEAD
         {t('dashboard.focusInsight')}
+=======
+        Focus Insight
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
       </p>
 
       {focusMinutes === null ? (
         <>
           <p className="text-sm text-on-surface leading-relaxed mb-3">
+<<<<<<< HEAD
             {t('dashboard.focusInsightDesc')}
+=======
+            Activate focus mode to mute non-urgent notifications and maximise deep work.
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
           </p>
           <div className="flex gap-2">
             {DURATIONS.map((min) => (
@@ -60,8 +74,13 @@ export default function FocusInsightCard() {
       ) : (
         <>
           <p className="text-sm text-on-surface leading-relaxed mb-3">
+<<<<<<< HEAD
             {t('dashboard.flowStateActive')}{' '}
             <span className="text-peri-purple font-semibold">{focusMinutes} {t('dashboard.minutes')}</span>.
+=======
+            You've reached your flow state. Non-urgent notifications muted for{' '}
+            <span className="text-peri-purple font-semibold">{focusMinutes} minutes</span>.
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
           </p>
 
           {/* Progress bar */}
@@ -80,7 +99,11 @@ export default function FocusInsightCard() {
               onClick={() => setFocusMinutes(null)}
               className="text-[11px] text-on-surface-variant hover:text-error transition-colors cursor-pointer"
             >
+<<<<<<< HEAD
               {t('wizard.cancel')}
+=======
+              Cancel
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
             </button>
           </div>
         </>

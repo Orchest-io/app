@@ -13,7 +13,10 @@ import { TasksModule } from "./modules/tasks/tasks.module";
 import { AiModule } from "./modules/ai/ai.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
+<<<<<<< HEAD
 import { SubscriptionModule } from "./modules/subscription/subscription.module";
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 
 @Module({
 	imports: [
@@ -37,7 +40,10 @@ import { SubscriptionModule } from "./modules/subscription/subscription.module";
 		AiModule,
 		AnalyticsModule,
 		DashboardModule,
+<<<<<<< HEAD
 		SubscriptionModule,
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 	],
 })
 export class AppModule {}

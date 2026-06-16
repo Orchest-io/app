@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import { useTranslation } from 'react-i18next'
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 import Card from '../ui/Card/Card'
 import { formatRelativeTime } from '../../utils/formatRelativeTime'
 import type { ActivityLog } from '../../pages/Dashboard/dashboard.types'
@@ -61,8 +64,11 @@ export default function RecentActivityCard({
   isLoading,
   isError,
 }: RecentActivityCardProps) {
+<<<<<<< HEAD
   const { t } = useTranslation()
 
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
   return (
     <Card padding="md">
       {/* Header */}
@@ -73,7 +79,11 @@ export default function RecentActivityCard({
         >
           history
         </span>
+<<<<<<< HEAD
         {t('dashboard.recentActivity')}
+=======
+        Recent Activity
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
       </h3>
 
       {isLoading ? (
@@ -85,7 +95,11 @@ export default function RecentActivityCard({
       ) : isError ? (
         <div className="py-6 text-center">
           <span className="material-symbols-outlined text-[32px] text-error/60 mb-2 block">error</span>
+<<<<<<< HEAD
           <p className="text-sm text-on-surface-variant">{t('dashboard.failedLoadActivity')}</p>
+=======
+          <p className="text-sm text-on-surface-variant">Failed to load activity</p>
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
         </div>
       ) : logs.length === 0 ? (
         <div className="py-8 text-center">
@@ -95,9 +109,15 @@ export default function RecentActivityCard({
           >
             history_toggle_off
           </span>
+<<<<<<< HEAD
           <p className="text-sm text-on-surface-variant font-medium">{t('dashboard.noRecentActivity')}</p>
           <p className="text-xs text-on-surface-variant/60 mt-1 leading-relaxed">
             {t('dashboard.activityWillAppear')}
+=======
+          <p className="text-sm text-on-surface-variant font-medium">No recent activity</p>
+          <p className="text-xs text-on-surface-variant/60 mt-1 leading-relaxed">
+            Activity will appear here as your team works.
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
           </p>
         </div>
       ) : (

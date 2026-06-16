@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
+<<<<<<< HEAD
 import { useTranslation } from 'react-i18next'
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
 import type { ConversationMessage } from '../../pages/Dashboard/dashboard.types'
 
 interface ConversationCardProps {
@@ -13,7 +16,10 @@ export default function ConversationCard({
   onSend,
   isThinking,
 }: ConversationCardProps) {
+<<<<<<< HEAD
   const { t } = useTranslation()
+=======
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
   const [input, setInput] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -103,7 +109,11 @@ export default function ConversationCard({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
+<<<<<<< HEAD
           placeholder={t('dashboard.askAI')}
+=======
+          placeholder="Ask AI anything..."
+>>>>>>> c4de3810ef7844afb12cec71b8f19dc97aa60bd7
           aria-label="Chat with AI"
           className="flex-1 resize-none bg-surface-container border border-border-low rounded-lg px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-electric-blue/50 focus:shadow-[0_0_0_2px_rgba(0,123,255,0.12)] transition-all leading-relaxed max-h-[80px] overflow-y-auto"
           style={{ fieldSizing: 'content' } as React.CSSProperties}
