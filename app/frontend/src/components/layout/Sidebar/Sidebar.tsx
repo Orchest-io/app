@@ -26,8 +26,6 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
   const navItems = getNavItems()
 
-  const navItems = getNavItems()
-
   const handleLogout = async () => {
     await logoutUser()
     navigate('/', { replace: true })

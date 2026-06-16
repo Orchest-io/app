@@ -1,19 +1,19 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { getProjectContextualAnalytics } from '../../api/projects.api'
+import { getProjectContextualAnalytics } from '../../../api/projects.api'
 import type { ContextualAnalyticsDto } from '@orchest/shared'
+import { Card } from '../../../components/ui'
 
-export default function ProjectAnalytics() {
-  const { projectId } = useParams<{ projectId: string }>()
-  const navigate = useNavigate()
+type AnalyticsTabProps = {
+  projectId: string
+}
+
+export default function AnalyticsTab({ projectId }: AnalyticsTabProps) {
   const [data, setData] = useState<ContextualAnalyticsDto | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!projectId) return
-
       try {
         const analytics = await getProjectContextualAnalytics(projectId)
         setData(analytics)
@@ -34,110 +34,59 @@ export default function ProjectAnalytics() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-surface p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header Skeleton */}
-          <div className="mb-8">
-            <div className="h-6 w-32 bg-surface-container animate-pulse rounded mb-4" />
-            <div className="flex items-center justify-between">
-              <div className="h-8 w-64 bg-surface-container animate-pulse rounded" />
-              <div className="h-8 w-24 bg-surface-container animate-pulse rounded" />
-            </div>
-          </div>
-
-          {/* Cards Skeleton */}
-          <div className="space-y-6">
-            <div className="bg-surface-container rounded-lg border border-white/5 p-6 animate-pulse">
-              <div className="h-6 w-48 bg-surface-container-high rounded mb-4" />
-              <div className="h-32 bg-surface-container-high rounded" />
-            </div>
-            <div className="bg-surface-container rounded-lg border border-white/5 p-6 animate-pulse">
-              <div className="h-6 w-48 bg-surface-container-high rounded mb-4" />
-              <div className="h-48 bg-surface-container-high rounded" />
-            </div>
-          </div>
-        </div>
+      <div className="space-y-6">
+        <Card>
+          <div className="h-6 w-48 bg-surface-container-high animate-pulse rounded mb-4" />
+          <div className="h-32 bg-surface-container-high animate-pulse rounded" />
+        </Card>
+        <Card>
+          <div className="h-6 w-48 bg-surface-container-high animate-pulse rounded mb-4" />
+          <div className="h-48 bg-surface-container-high animate-pulse rounded" />
+        </Card>
       </div>
     )
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-surface p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-            <div className="w-16 h-16 rounded-full bg-error-container/10 flex items-center justify-center text-error mb-4">
-              <span className="material-symbols-outlined text-[32px]">error</span>
-            </div>
-            <h2 className="font-heading text-2xl font-bold text-on-surface mb-2">
-              {error ? 'Access Denied' : 'Error Loading Analytics'}
-            </h2>
-            <p className="text-sm text-on-surface-variant max-w-md mb-6">
-              {error || 'Unable to load analytics data.'}
-            </p>
-            <button
-              onClick={() => navigate('/analytics')}
-              className="px-4 py-2 bg-electric-blue text-white rounded-md hover:opacity-90 transition-opacity"
-            >
-              Back to Analytics Hub
-            </button>
+      <Card>
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-16 h-16 rounded-full bg-error-container/10 flex items-center justify-center text-error mb-4">
+            <span className="material-symbols-outlined text-[32px]">error</span>
           </div>
+          <h3 className="font-heading text-lg font-bold text-on-surface mb-2">
+            {error ? 'Access Denied' : 'Error Loading Analytics'}
+          </h3>
+          <p className="text-sm text-on-surface-variant max-w-md">
+            {error || 'Unable to load analytics data.'}
+          </p>
         </div>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div className="min-h-screen bg-surface p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Region */}
-        <HeaderRegion data={data} projectId={projectId!} navigate={navigate} />
-
-        {/* Conditional View */}
-        {data.userRole === 'PM' ? <PMView data={data} /> : <MemberView data={data} />}
-      </div>
-    </div>
-  )
-}
-
-// ─── Header Region (All Users) ──────────────────────────────────────
-type HeaderRegionProps = {
-  data: ContextualAnalyticsDto
-  projectId: string
-  navigate: (path: string) => void
-}
-
-function HeaderRegion({ data, projectId, navigate }: HeaderRegionProps) {
-  return (
-    <div className="mb-8">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(`/projects/${projectId}/board`)}
-        className="flex items-center gap-2 text-sm text-on-surface-variant hover:text-on-surface transition-colors mb-4 group"
-      >
-        <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">
-          arrow_back
-        </span>
-        <span>Back to Board</span>
-      </button>
-
-      {/* Title and Role Badge */}
-      <div className="flex items-center justify-between">
-        <h1 className="font-heading text-3xl font-bold text-on-surface">
-          Project Metrics Overview
-        </h1>
+    <div className="space-y-6">
+      {/* Role Badge Header */}
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-heading text-xl font-semibold text-on-surface">
+          Story Points Analytics
+        </h3>
         {data.userRole === 'PM' ? (
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-blue-900 text-blue-200 border border-blue-700/50">
             <span className="material-symbols-outlined text-[16px]">badge</span>
-            Project Manager
+            Project Manager View
           </span>
         ) : (
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-neutral-800 text-neutral-300 border border-neutral-600/50">
             <span className="material-symbols-outlined text-[16px]">person</span>
-            Team Member
+            Team Member View
           </span>
         )}
       </div>
+
+      {/* Conditional Render Based on Role */}
+      {data.userRole === 'PM' ? <PMView data={data} /> : <MemberView data={data} />}
     </div>
   )
 }
@@ -151,13 +100,13 @@ function PMView({ data }: PMViewProps) {
   const { projectSummary, teamWorkload } = data
 
   return (
-    <div className="space-y-6">
+    <>
       {/* Project Scope Completion Card */}
-      <div className="bg-surface-container rounded-lg border border-white/5 p-6">
-        <h2 className="font-heading text-xl font-semibold text-on-surface mb-4 flex items-center gap-2">
+      <Card>
+        <h3 className="font-heading text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
           <span className="material-symbols-outlined text-electric-blue">analytics</span>
           Project Scope Completion
-        </h2>
+        </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Progress Stats */}
@@ -197,15 +146,15 @@ function PMView({ data }: PMViewProps) {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Team Workload Matrix */}
       {teamWorkload && teamWorkload.length > 0 && (
-        <div className="bg-surface-container rounded-lg border border-white/5 p-6">
-          <h2 className="font-heading text-xl font-semibold text-on-surface mb-4 flex items-center gap-2">
+        <Card>
+          <h3 className="font-heading text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-electric-blue">groups</span>
             Team Workload Distribution
-          </h2>
+          </h3>
 
           <div className="space-y-3">
             {teamWorkload.map((member) => (
@@ -257,9 +206,9 @@ function PMView({ data }: PMViewProps) {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
-    </div>
+    </>
   )
 }
 
@@ -272,13 +221,13 @@ function MemberView({ data }: MemberViewProps) {
   const { personalSummary, projectSummary } = data
 
   return (
-    <div className="space-y-6">
+    <>
       {/* Personal Contribution Progress Card */}
-      <div className="bg-surface-container rounded-lg border border-white/5 p-6">
-        <h2 className="font-heading text-xl font-semibold text-on-surface mb-4 flex items-center gap-2">
+      <Card>
+        <h3 className="font-heading text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
           <span className="material-symbols-outlined text-electric-blue">person</span>
           My Contribution Progress
-        </h2>
+        </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Progress Stats */}
@@ -318,16 +267,16 @@ function MemberView({ data }: MemberViewProps) {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Project Overview (Read-only) */}
-      <div className="bg-surface-container rounded-lg border border-white/5 p-6">
-        <h2 className="font-heading text-xl font-semibold text-on-surface mb-4 flex items-center gap-2">
+      <Card>
+        <h3 className="font-heading text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
           <span className="material-symbols-outlined text-electric-blue">info</span>
           Project Overview
-        </h2>
+        </h3>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-surface-container-high rounded-lg p-4 border border-white/5">
             <div className="text-xs text-on-surface-variant mb-1">Total Points</div>
             <div className="text-2xl font-bold text-on-surface">
@@ -346,14 +295,8 @@ function MemberView({ data }: MemberViewProps) {
               {projectSummary.remainingPoints} SP
             </div>
           </div>
-          <div className="bg-surface-container-high rounded-lg p-4 border border-white/5">
-            <div className="text-xs text-on-surface-variant mb-1">Progress</div>
-            <div className="text-2xl font-bold text-electric-blue">
-              {projectSummary.completionPercentage.toFixed(0)}%
-            </div>
-          </div>
         </div>
-      </div>
-    </div>
+      </Card>
+    </>
   )
 }
