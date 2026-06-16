@@ -33,6 +33,9 @@ export class UserSession {
   @Column({ name: 'ip_address', type: 'varchar', length: 45, nullable: true })
   ipAddress: string;
 
+  @Column({ name: 'token_hash', type: 'varchar', nullable:true })
+  tokenHash: string | null;
+  
   @Column({ name: 'location', type: 'varchar', nullable: true })
   location: string;
 

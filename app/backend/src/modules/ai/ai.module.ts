@@ -54,6 +54,6 @@ import { TasksModule } from '../tasks/tasks.module';
     AiRagService,
     AiAssistantService,
   ],
-  exports: [AiService, AiRagService],
+  exports: [AiService, AiRagService, AiUsageService],
 })
 export class AiModule {}

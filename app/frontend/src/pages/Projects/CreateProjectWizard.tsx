@@ -8,6 +8,7 @@ import { useStartGeneration, useJobProgress, useJobStatus, useAcceptPlan } from 
 import { useUsers } from '../../hooks/useUsers'
 import type { GenerateProjectPlanDto } from '@orchest/shared'
 import apiClient from '../../api/client'
+import { AiDescriptionGenerator, AiUpgradeModal } from '../../components/AI'
 
 type ProjectMode = 'ai' | 'manual' | null
 type ProjectType = 'team' | 'individual' | null
@@ -24,6 +25,7 @@ export default function CreateProjectWizard() {
   const [step, setStep] = useState(1)
   const [projectMode, setProjectMode] = useState<ProjectMode>(null)
   const [projectType, setProjectType] = useState<ProjectType>(null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   // AI state
   const [aiJobId, setAiJobId] = useState<string | null>(null)
@@ -616,12 +618,12 @@ export default function CreateProjectWizard() {
                   required
                 />
 
-                <TextArea
-                  label={t('wizard.description')}
-                  placeholder={t('wizard.descriptionPlaceholder')}
+                <AiDescriptionGenerator
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  required
+                  onChange={(val) => setFormData({ ...formData, description: val })}
+                  context={formData.name}
+                  type="project"
+                  label="Description"
                   rows={4}
                 />
 
@@ -1200,7 +1202,13 @@ export default function CreateProjectWizard() {
         setStep(3) // Go to progress step
         toast.success(t('wizard.aiAnalyzing'))
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || t('wizard.generationFailed'))
+        const status = error.response?.status
+        const data = error.response?.data
+        if (status === 403 && data?.code === 'AI_LIMIT_REACHED') {
+          setShowUpgradeModal(true)
+        } else {
+          toast.error(error?.response?.data?.message || 'Failed to start generation')
+        }
       }
     }
 
@@ -1888,6 +1896,12 @@ export default function CreateProjectWizard() {
       {step === 3 && projectMode === 'ai' && renderAiProgress()}
       {step === 4 && projectMode === 'manual' && renderPlanningDetails()}
       {step === 4 && projectMode === 'ai' && renderAiPreview()}
+
+      <AiUpgradeModal
+        open={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        feature="project_planning"
+      />
 
       {/* Add Milestone Modal */}
       {isMilestoneModalOpen && (

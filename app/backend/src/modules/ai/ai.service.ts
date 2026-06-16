@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 
@@ -162,8 +162,16 @@ export class AiService {
     );
 
     if (!limitCheck.canUse) {
-      throw new ForbiddenException(
-        `Monthly AI usage limit exceeded (${limitCheck.used}/${limitCheck.limit}). Resets on ${limitCheck.resetsAt.toLocaleDateString()}.`,
+      throw new HttpException(
+        {
+          statusCode: 403,
+          code: 'AI_LIMIT_REACHED',
+          tier: limitCheck.tier,
+          used: limitCheck.used,
+          limit: limitCheck.limit,
+          message: `Monthly AI usage limit exceeded (${limitCheck.used}/${limitCheck.limit}).`,
+        },
+        403,
       );
     }
 

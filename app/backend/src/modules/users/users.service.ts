@@ -395,4 +395,21 @@ export class UsersService {
 
     return newUser as User;
   }
+
+  async updateSubscription(
+    userId: string,
+    data: Partial<Pick<User, 'subscriptionTier' | 'stripeCustomerId' | 'stripeSubscriptionId' | 'subscriptionExpiresAt' | 'subscribedAt'>>,
+  ): Promise<User> {
+    const user = await this.findOne(userId);
+    Object.assign(user, data);
+    return this.userRepository.save(user);
+  }
+
+  async findByStripeCustomerId(stripeCustomerId: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { stripeCustomerId } });
+  }
+
+  async findByStripeSubscriptionId(stripeSubscriptionId: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { stripeSubscriptionId } });
+  }
 }
