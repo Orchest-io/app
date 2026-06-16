@@ -26,8 +26,8 @@ export class UserSession {
   @Column({ name: 'ip_address', type: 'varchar', nullable: true })
   ipAddress: string;
 
-  @Column({ name: 'token_hash', type: 'varchar' })
-  tokenHash: string;
+  @Column({ name: 'token_hash', type: 'varchar', nullable:true })
+  tokenHash: string | null;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;

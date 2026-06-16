@@ -14,9 +14,10 @@ export class StripeService {
 				"STRIPE_SECRET_KEY is not defined in environment variables.",
 			);
 		}
-		this.stripe = new Stripe(apiKey || "", {
-			apiVersion: "2025-02-18-preview" as any, // standard version
-		});
+		this.stripe = new Stripe(apiKey || "")
+		// , {
+		// 	apiVersion: "2025-02-18-preview" as any, // standard version
+		// });
 	}
 
 	async createCheckoutSession(

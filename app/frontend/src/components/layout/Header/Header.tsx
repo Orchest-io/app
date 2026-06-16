@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logoutUser } from '../../../api/users.api'
 import NotificationPanel from '../../ui/NotificationPanel/NotificationPanel'
@@ -38,6 +38,7 @@ export default function Header({ collapsed = false }: HeaderProps) {
   }, [])
 
   return (
+    <Fragment>
     <header
       className="fixed top-0 right-0 h-header-h bg-[#131313]/80 backdrop-blur-md border-b border-border-low flex items-center justify-between px-6 z-40 transition-[width] duration-300"
       style={{ width: `calc(100% - ${collapsed ? 'var(--spacing-sidebar-c)' : 'var(--spacing-sidebar-w)'})` }}
@@ -174,11 +175,12 @@ export default function Header({ collapsed = false }: HeaderProps) {
           )}
         </div>
       </div>
-      <AiUpgradeModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        feature={modalFeature}
-      />
     </header>
+    <AiUpgradeModal
+      open={modalOpen}
+      onClose={() => setModalOpen(false)}
+      feature={modalFeature}
+    />
+    </Fragment>
   )
 }
