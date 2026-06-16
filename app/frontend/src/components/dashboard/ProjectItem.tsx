@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import ProgressBar from '../ui/ProgressBar/ProgressBar'
 import type { ProjectListItemDto } from '../../pages/Dashboard/dashboard.types'
 
@@ -18,6 +19,7 @@ const STATUS_ICON: Record<string, string> = {
 
 export default function ProjectItem({ project }: ProjectItemProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const iconName = STATUS_ICON[project.status] ?? 'tactic'
 
@@ -29,6 +31,13 @@ export default function ProjectItem({ project }: ProjectItemProps) {
         (new Date(project.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
       )
     : null
+
+  const getDueLabel = () => {
+    if (daysRemaining === null) return t('projects.noDueDate')
+    if (daysRemaining > 0) return t('projects.dueIn', { count: daysRemaining })
+    if (daysRemaining === 0) return t('projects.dueToday')
+    return t('projects.overdueBy', { count: Math.abs(daysRemaining) })
+  }
 
   return (
     <button
@@ -58,14 +67,8 @@ export default function ProjectItem({ project }: ProjectItemProps) {
           </div>
 
           <p className="text-[11px] text-on-surface-variant mb-3">
-            {daysRemaining !== null
-              ? daysRemaining > 0
-                ? `Due in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}`
-                : daysRemaining === 0
-                  ? 'Due today'
-                  : `Overdue by ${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''}`
-              : 'No due date'}
-            {memberCount > 0 && ` · ${memberCount} Active member${memberCount !== 1 ? 's' : ''}`}
+            {getDueLabel()}
+            {memberCount > 0 && ` · ${t('projects.activeMember', { count: memberCount })}`}
           </p>
 
           <ProgressBar value={project.progress ?? 0} glow />

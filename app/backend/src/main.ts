@@ -6,6 +6,7 @@ import { apiReference } from "@scalar/nestjs-api-reference";
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
+
 	//api docs
 	const config = new DocumentBuilder()
 		.setTitle("Orchest docs")

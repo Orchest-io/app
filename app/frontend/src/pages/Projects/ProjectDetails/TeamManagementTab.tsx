@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Card, Button, Input, Select, TextArea } from '../../../components/ui'
 import { useAddMember, useRemoveMember } from '../../../hooks/useProjectMutations'
@@ -24,6 +25,7 @@ interface TeamManagementTabProps {
 }
 
 export default function TeamManagementTab({ projectId, members, isOwner }: TeamManagementTabProps) {
+  const { t } = useTranslation()
   const addMemberMutation = useAddMember()
   const removeMemberMutation = useRemoveMember()
 
@@ -41,11 +43,11 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
     e.preventDefault()
     
     if (!formData.email.trim()) {
-      toast.warning('Please enter an email address')
+      toast.warning(t('projectDetails.pleaseEnterEmail'))
       return
     }
     if (!formData.jobTitle.trim()) {
-      toast.warning('Please enter a job title/role')
+      toast.warning(t('projectDetails.pleaseEnterJobTitle'))
       return
     }
 
@@ -62,7 +64,7 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
       },
       {
         onSuccess: () => {
-          toast.success('Team member added successfully!')
+          toast.success(t('projectDetails.memberAddedSuccess'))
           setIsAddMemberOpen(false)
           setFormData({
             email: '',
@@ -73,7 +75,7 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
           })
         },
         onError: (err: any) => {
-          toast.error('Failed to add member: ' + (err?.response?.data?.message ?? err.message))
+          toast.error(t('projectDetails.failedAddMember') + ': ' + (err?.response?.data?.message ?? err.message))
         },
       }
     )
@@ -83,9 +85,9 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
     removeMemberMutation.mutate(
       { projectId, userId },
       {
-        onSuccess: () => toast.success('Member removed'),
+        onSuccess: () => toast.success(t('projectDetails.memberRemovedSuccess')),
         onError: (err: any) => {
-          toast.error('Failed to remove member: ' + (err?.response?.data?.message ?? err.message))
+          toast.error(t('projectDetails.failedRemoveMember') + ': ' + (err?.response?.data?.message ?? err.message))
         },
       }
     )
@@ -117,6 +119,19 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
     }
   }
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'available':
+        return t('projectDetails.statusAvailable')
+      case 'busy':
+        return t('projectDetails.statusBusy')
+      case 'on-leave':
+        return t('projectDetails.statusOnLeave')
+      default:
+        return status
+    }
+  }
+
   const availableCount = members.filter((m) => m.status === 'available').length
   const busyCount = members.filter((m) => m.status === 'busy' || m.status === 'on-leave').length
 
@@ -126,7 +141,7 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <p className="text-[12px] text-on-surface-variant mb-2 font-medium uppercase tracking-wider">
-            Total Members
+            {t('projectDetails.totalMembers')}
           </p>
           <p className="text-[28px] font-bold font-heading text-on-surface">
             {members.length}
@@ -135,7 +150,7 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
 
         <Card>
           <p className="text-[12px] text-on-surface-variant mb-2 font-medium uppercase tracking-wider">
-            Available Now
+            {t('projectDetails.availableNow')}
           </p>
           <p className="text-[28px] font-bold font-heading text-emerald-400">
             {availableCount}
@@ -144,7 +159,7 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
 
         <Card>
           <p className="text-[12px] text-on-surface-variant mb-2 font-medium uppercase tracking-wider">
-            Busy / On Leave
+            {t('projectDetails.busyOnLeave')}
           </p>
           <p className="text-[28px] font-bold font-heading text-amber-400">
             {busyCount}
@@ -156,14 +171,14 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
       <Card>
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h3 className="font-heading text-lg font-semibold text-on-surface">Team Members</h3>
+            <h3 className="font-heading text-lg font-semibold text-on-surface">{t('projectDetails.teamMembersTitle')}</h3>
             <p className="text-xs text-on-surface-variant mt-0.5">
-              Manage team roles, skills, and availability
+              {t('projectDetails.manageTeamDesc')}
             </p>
           </div>
           {isOwner && (
             <Button icon="person_add" onClick={() => setIsAddMemberOpen(true)}>
-              Add Member
+              {t('projectDetails.addMemberBtn')}
             </Button>
           )}
         </div>
@@ -173,16 +188,16 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
             <div className="w-16 h-16 rounded-full bg-surface-glass border border-border-low flex items-center justify-center text-on-surface-variant mx-auto mb-4">
               <span className="material-symbols-outlined text-[32px]">group</span>
             </div>
-            <h3 className="font-heading text-xl font-bold mb-2">No team members added yet</h3>
+            <h3 className="font-heading text-xl font-bold mb-2">{t('projectDetails.noTeamMembersYet')}</h3>
             <p className="text-sm text-on-surface-variant max-w-sm mx-auto mb-6 leading-relaxed">
-              Click "Add Member" above to start building your team.
+              {t('projectDetails.addMemberHint')}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {members.map((member) => {
               // Generate initials from name
-              const fullName = member.user?.fullName || 'Unknown User'
+              const fullName = member.user?.fullName || t('projectDetails.unknownUser')
               const initials = fullName
                 .split(' ')
                 .map((n) => n[0])
@@ -216,7 +231,7 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
                         {fullName}
                       </h4>
                       <p className="text-sm text-on-surface-variant mb-2">
-                        {member.jobTitle || 'No title'}
+                        {member.jobTitle || t('projectDetails.noTitleLabel')}
                       </p>
 
                       {/* Status Badge */}
@@ -226,7 +241,7 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
                         <span className="material-symbols-outlined text-[12px]">
                           {getStatusIcon(member.status)}
                         </span>
-                        {member.status.replace('-', ' ')}
+                        {getStatusLabel(member.status)}
                       </span>
                     </div>
                   </div>
@@ -240,7 +255,7 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
                   {/* Skills */}
                   <div className="mb-4">
                     <p className="text-xs text-on-surface-variant font-semibold uppercase tracking-wider mb-2">
-                      Skills
+                      {t('projectDetails.skillsLabel')}
                     </p>
                     {member.skills ? (
                       <div className="flex flex-wrap gap-2">
@@ -259,14 +274,14 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
                         )}
                       </div>
                     ) : (
-                      <p className="text-xs text-on-surface-variant/60 italic">No skills listed</p>
+                      <p className="text-xs text-on-surface-variant/60 italic">{t('projectDetails.noSkillsListed')}</p>
                     )}
                   </div>
 
                   {/* Task Completion */}
                   <div className="mb-3">
                     <div className="flex justify-between items-center text-xs text-on-surface-variant mb-1.5">
-                      <span className="font-semibold">Task Completion</span>
+                      <span className="font-semibold">{t('projectDetails.taskCompletion')}</span>
                       <span className="font-bold text-on-surface">
                         {tasksCompleted}/{totalTasks}
                       </span>
@@ -282,7 +297,7 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
                   {/* Workload */}
                   <div className="mb-4">
                     <div className="flex justify-between items-center text-xs text-on-surface-variant mb-1.5">
-                      <span className="font-semibold">Workload</span>
+                      <span className="font-semibold">{t('projectDetails.workloadLabel')}</span>
                       <span className="font-bold text-on-surface">{workload}%</span>
                     </div>
                     <div className="w-full h-2 bg-surface-container-low rounded-full overflow-hidden">
@@ -303,16 +318,16 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
                   <div className="flex gap-2 pt-4 border-t border-border-low">
                     <button
                       className="flex-1 py-2.5 px-4 rounded-lg bg-electric-blue/10 border border-electric-blue/30 hover:bg-electric-blue/20 transition-all text-electric-blue font-medium text-sm flex items-center justify-center gap-2"
-                      title="Send message"
+                      title={t('projectDetails.messageBtn')}
                     >
                       <span className="material-symbols-outlined text-[18px]">chat_bubble</span>
-                      Message
+                      {t('projectDetails.messageBtn')}
                     </button>
                     <button
                       className="flex-1 py-2.5 px-4 rounded-lg bg-surface-container-low border border-border-low hover:bg-surface-container transition-all text-on-surface font-medium text-sm flex items-center justify-center gap-2"
-                      title="View profile"
+                      title={t('projectDetails.viewProfileBtn')}
                     >
-                      View Profile
+                      {t('projectDetails.viewProfileBtn')}
                     </button>
                   </div>
 
@@ -321,7 +336,7 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
                     <button
                       onClick={() => handleRemoveMember(member.userId)}
                       className="absolute top-3 right-3 text-red-400 hover:text-red-300 transition-colors cursor-pointer p-1.5 rounded-lg hover:bg-red-400/10"
-                      title="Remove member"
+                      title={t('projectDetails.failedRemoveMember')}
                     >
                       <span className="material-symbols-outlined text-[18px]">person_remove</span>
                     </button>
@@ -331,7 +346,7 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
                   {member.role === 'owner' && (
                     <div className="absolute top-3 right-3">
                       <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-purple-400/20 text-purple-400 border border-purple-400/30">
-                        Owner
+                        {t('projectDetails.ownerBadge')}
                       </span>
                     </div>
                   )}
@@ -347,7 +362,7 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-lg w-full" padding="lg">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-heading text-xl font-semibold text-on-surface">Add Team Member</h3>
+              <h3 className="font-heading text-xl font-semibold text-on-surface">{t('projectDetails.addTeamMemberModal')}</h3>
               <button
                 className="text-on-surface-variant hover:text-on-surface cursor-pointer"
                 onClick={() => setIsAddMemberOpen(false)}
@@ -358,9 +373,9 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
 
             <form onSubmit={handleAddMember} className="flex flex-col gap-4">
               <Input
-                label="Email Address"
+                label={t('projectDetails.emailAddressLabel')}
                 type="email"
-                placeholder="teammate@example.com"
+                placeholder={t('projectDetails.emailPlaceholder')}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
@@ -368,41 +383,41 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
 
               <div>
                 <TextArea
-                  label="Skills"
-                  placeholder="e.g. React, Node.js, TypeScript, UI/UX Design"
+                  label={t('projectDetails.skillsFieldLabel')}
+                  placeholder={t('projectDetails.skillsPlaceholder')}
                   value={formData.skills}
                   onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
                   rows={3}
                 />
-                <p className="text-xs text-on-surface-variant mt-1">Comma-separated list of skills</p>
+                <p className="text-xs text-on-surface-variant mt-1">{t('projectDetails.commaSeparated')}</p>
               </div>
 
               <Select
-                label="Role"
+                label={t('projectDetails.roleSelectLabel')}
                 value={formData.jobTitle}
                 onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
                 options={[
-                  { value: '', label: 'Select Position' },
-                  { value: 'Full Stack Engineer', label: 'Full Stack Engineer' },
-                  { value: 'AI Specialist', label: 'AI Specialist' },
-                  { value: 'Product Designer', label: 'Product Designer' },
-                  { value: 'QA Engineer', label: 'QA Engineer' },
-                  { value: 'Backend Developer', label: 'Backend Developer' },
-                  { value: 'Frontend Developer', label: 'Frontend Developer' },
-                  { value: 'DevOps Engineer', label: 'DevOps Engineer' },
-                  { value: 'Project Manager', label: 'Project Manager' },
+                  { value: '', label: t('projectDetails.selectPosition') },
+                  { value: 'Full Stack Engineer', label: t('projectDetails.roleFullStack') },
+                  { value: 'AI Specialist', label: t('projectDetails.roleAI') },
+                  { value: 'Product Designer', label: t('projectDetails.roleDesigner') },
+                  { value: 'QA Engineer', label: t('projectDetails.roleQA') },
+                  { value: 'Backend Developer', label: t('projectDetails.roleBackend') },
+                  { value: 'Frontend Developer', label: t('projectDetails.roleFrontend') },
+                  { value: 'DevOps Engineer', label: t('projectDetails.roleDevOps') },
+                  { value: 'Project Manager', label: t('projectDetails.rolePM') },
                 ]}
                 required
               />
 
               <Select
-                label="Status"
+                label={t('projectDetails.statusSelectLabel')}
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                 options={[
-                  { value: 'available', label: 'Available' },
-                  { value: 'busy', label: 'Busy' },
-                  { value: 'on-leave', label: 'On Leave' },
+                  { value: 'available', label: t('projectDetails.statusAvailable') },
+                  { value: 'busy', label: t('projectDetails.statusBusy') },
+                  { value: 'on-leave', label: t('projectDetails.statusOnLeave') },
                 ]}
                 required
               />
@@ -414,10 +429,10 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
                   onClick={() => setIsAddMemberOpen(false)}
                   disabled={addMemberMutation.isPending}
                 >
-                  Cancel
+                  {t('projectDetails.cancel')}
                 </Button>
                 <Button type="submit" disabled={addMemberMutation.isPending}>
-                  {addMemberMutation.isPending ? 'Adding...' : 'Save Member'}
+                  {addMemberMutation.isPending ? t('projectDetails.addingMember') : t('projectDetails.saveMemberBtn')}
                 </Button>
               </div>
             </form>

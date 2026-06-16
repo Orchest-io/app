@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import Card from '../ui/Card/Card'
 import { formatRelativeTime } from '../../utils/formatRelativeTime'
 import type { ActivityLog } from '../../pages/Dashboard/dashboard.types'
@@ -60,6 +61,8 @@ export default function RecentActivityCard({
   isLoading,
   isError,
 }: RecentActivityCardProps) {
+  const { t } = useTranslation()
+
   return (
     <Card padding="md">
       {/* Header */}
@@ -70,7 +73,7 @@ export default function RecentActivityCard({
         >
           history
         </span>
-        Recent Activity
+        {t('dashboard.recentActivity')}
       </h3>
 
       {isLoading ? (
@@ -82,7 +85,7 @@ export default function RecentActivityCard({
       ) : isError ? (
         <div className="py-6 text-center">
           <span className="material-symbols-outlined text-[32px] text-error/60 mb-2 block">error</span>
-          <p className="text-sm text-on-surface-variant">Failed to load activity</p>
+          <p className="text-sm text-on-surface-variant">{t('dashboard.failedLoadActivity')}</p>
         </div>
       ) : logs.length === 0 ? (
         <div className="py-8 text-center">
@@ -92,9 +95,9 @@ export default function RecentActivityCard({
           >
             history_toggle_off
           </span>
-          <p className="text-sm text-on-surface-variant font-medium">No recent activity</p>
+          <p className="text-sm text-on-surface-variant font-medium">{t('dashboard.noRecentActivity')}</p>
           <p className="text-xs text-on-surface-variant/60 mt-1 leading-relaxed">
-            Activity will appear here as your team works.
+            {t('dashboard.activityWillAppear')}
           </p>
         </div>
       ) : (

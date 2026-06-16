@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { DragDropContext, DropResult } from '@hello-pangea/dnd'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import type { Task, Column, BoardState, FilterState, TaskPriority } from './types/kanban.types'
 import TaskFilters from './components/TaskFilters'
@@ -39,6 +40,7 @@ interface Milestone {
 export default function KanbanPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   // State Management
   const [board, setBoard] = useState<BoardState>({
@@ -149,10 +151,10 @@ export default function KanbanPage() {
       } catch (error: any) {
         console.error('Failed to fetch tasks:', error)
         if (error?.response?.status === 401) {
-          toast.error('Authentication required')
+          toast.error(t('kanban.authRequired'))
           navigate('/login')
         } else {
-          toast.error('Failed to load tasks')
+          toast.error(t('kanban.failedLoad'))
         }
       } finally {
         setLoading(false)
@@ -171,7 +173,7 @@ export default function KanbanPage() {
     fetchTasks()
     fetchProjectMembers()
     fetchMilestones()
-  }, [projectId, navigate, buildBoardFromTasks, fetchMilestones])
+  }, [projectId, navigate, buildBoardFromTasks, fetchMilestones, t])
 
   // Re-filter board when milestone selection changes
   useEffect(() => {
@@ -225,14 +227,13 @@ export default function KanbanPage() {
 
     try {
       await apiClient.patch(`/tasks/${draggableId}`, { status: destination.droppableId })
-      toast.success('Task moved successfully')
+      toast.success(t('kanban.taskMoved'))
     } catch (error) {
       console.error('Failed to update task:', error)
-      toast.error('Failed to move task')
+      toast.error(t('kanban.failedMove'))
       setBoard(board)
     }
   }
-
 
   // Trigger Add Task Dialog
   const handleOpenAddTask = (columnId: string) => {
@@ -256,7 +257,7 @@ export default function KanbanPage() {
 
     const userId = localStorage.getItem('orchest_user_id')
     if (!userId) {
-      toast.error('User not authenticated')
+      toast.error(t('kanban.userNotAuth'))
       return
     }
 
@@ -282,7 +283,7 @@ export default function KanbanPage() {
           })
         } catch (assignError) {
           console.error('Failed to assign task:', assignError)
-          toast.warning('Task created but assignment failed')
+          toast.warning(t('kanban.assignFailed'))
         }
       }
 
@@ -332,12 +333,12 @@ export default function KanbanPage() {
 
       setRawTasks((prev) => [...prev, createdTaskWithRelation])
       setIsAddModalOpen(false)
-      toast.success('Task created successfully')
+      toast.success(t('kanban.taskCreated'))
       fetchMilestones()
     } catch (error: any) {
       console.error('Failed to create task:', error)
       const msg = error.response?.data?.message || error.message
-      toast.error('Failed to create task: ' + (Array.isArray(msg) ? msg.join(', ') : msg))
+      toast.error(t('kanban.failedCreate') + ': ' + (Array.isArray(msg) ? msg.join(', ') : msg))
     }
   }
 
@@ -363,7 +364,7 @@ export default function KanbanPage() {
       <div className="flex items-center justify-center h-[calc(100vh-100px)]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-electric-blue mx-auto mb-4"></div>
-          <p className="text-on-surface-variant">Loading tasks...</p>
+          <p className="text-on-surface-variant">{t('kanban.loadingTasks')}</p>
         </div>
       </div>
     )
@@ -379,9 +380,9 @@ export default function KanbanPage() {
             className="flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-on-surface mb-2 transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[14px]">arrow_back</span>
-            Back to Project Details
+            {t('kanban.backToDetails')}
           </button>
-          <h2 className="font-heading text-2xl font-semibold text-on-surface">Task Board</h2>
+          <h2 className="font-heading text-2xl font-semibold text-on-surface">{t('kanban.boardTitle')}</h2>
         </div>
       </div>
 
@@ -389,7 +390,7 @@ export default function KanbanPage() {
       {milestones.length > 0 && (
         <div className="mb-4">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            <span className="text-xs text-on-surface-variant font-medium shrink-0 mr-1">Filter by milestone:</span>
+            <span className="text-xs text-on-surface-variant font-medium shrink-0 mr-1">{t('kanban.filterByMilestone')}</span>
 
             {/* All Tasks chip */}
             <button
@@ -401,7 +402,7 @@ export default function KanbanPage() {
               }`}
             >
               <span className="material-symbols-outlined text-[13px]">table_rows</span>
-              All Tasks
+              {t('kanban.allTasks')}
             </button>
 
             {/* No Milestone chip */}
@@ -414,7 +415,7 @@ export default function KanbanPage() {
               }`}
             >
               <span className="material-symbols-outlined text-[13px]">inbox</span>
-              No Milestone
+              {t('kanban.noMilestone')}
             </button>
 
             {/* Milestone chips */}
@@ -475,7 +476,7 @@ export default function KanbanPage() {
                 </div>
                 {active.targetDate && (
                   <span className="text-xs text-on-surface-variant">
-                    Due {new Date(active.targetDate).toLocaleDateString()}
+                    {t('kanban.dueText')} {new Date(active.targetDate).toLocaleDateString()}
                   </span>
                 )}
               </div>
@@ -493,7 +494,7 @@ export default function KanbanPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-electric-blue/10 text-electric-blue border border-electric-blue/20 hover:bg-electric-blue hover:text-white transition-all font-semibold text-sm shadow-sm"
         >
           <span className="material-symbols-outlined text-[18px]">insights</span>
-          Project Analytics
+          {t('kanban.projectAnalytics')}
         </button>
       </div>
 
@@ -520,21 +521,20 @@ export default function KanbanPage() {
         </DragDropContext>
       </div>
 
-
       {/* Add Task Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-surface border border-white/10 rounded-xl max-w-md w-full p-6 shadow-2xl relative">
-            <h3 className="font-heading text-lg font-semibold text-on-surface mb-4">Add New Task</h3>
+            <h3 className="font-heading text-lg font-semibold text-on-surface mb-4">{t('kanban.addNewTask')}</h3>
             <form onSubmit={handleCreateTask} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                  Title
+                  {t('kanban.taskTitleLabel')}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Task title..."
+                  placeholder={t('kanban.taskTitlePlaceholder') || "Task title..."}
                   value={newTaskData.title}
                   onChange={(e) => setNewTaskData({ ...newTaskData, title: e.target.value })}
                   className="w-full bg-surface-container-low text-on-surface border border-white/10 rounded-lg p-2.5 focus:outline-none focus:border-electric-blue/50 text-sm"
@@ -543,10 +543,10 @@ export default function KanbanPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                  Description
+                  {t('kanban.taskDescLabel')}
                 </label>
                 <textarea
-                  placeholder="Task description..."
+                  placeholder={t('kanban.taskDescPlaceholder') || "Task description..."}
                   value={newTaskData.description}
                   onChange={(e) => setNewTaskData({ ...newTaskData, description: e.target.value })}
                   rows={3}
@@ -557,22 +557,22 @@ export default function KanbanPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                    Priority
+                    {t('kanban.taskPriorityLabel')}
                   </label>
                   <select
                     value={newTaskData.priority}
                     onChange={(e) => setNewTaskData({ ...newTaskData, priority: e.target.value as TaskPriority })}
                     className="w-full bg-surface-container-low text-on-surface border border-white/10 rounded-lg p-2.5 focus:outline-none focus:border-electric-blue/50 text-sm"
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
+                    <option value="low">{t('projects.priorityLow')}</option>
+                    <option value="medium">{t('projects.priorityMedium')}</option>
+                    <option value="high">{t('projects.priorityHigh')}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                    Due Date
+                    {t('kanban.taskDueDateLabel')}
                   </label>
                   <input
                     type="date"
@@ -584,14 +584,14 @@ export default function KanbanPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                    Story Points
+                    {t('kanban.taskStoryPointsLabel')}
                   </label>
                   <select
                     value={newTaskData.storyPoints}
                     onChange={(e) => setNewTaskData({ ...newTaskData, storyPoints: e.target.value ? Number(e.target.value) : '' })}
                     className="w-full bg-surface-container-low text-on-surface border border-white/10 rounded-lg p-2.5 focus:outline-none focus:border-electric-blue/50 text-sm"
                   >
-                    <option value="">None</option>
+                    <option value="">{t('kanban.noneOption')}</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
                     <option value="3">3</option>
@@ -604,14 +604,14 @@ export default function KanbanPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                  Assign To
+                  {t('kanban.assignToLabel')}
                 </label>
                 <select
                   value={newTaskData.assigneeId}
                   onChange={(e) => setNewTaskData({ ...newTaskData, assigneeId: e.target.value })}
                   className="w-full bg-surface-container-low text-on-surface border border-white/10 rounded-lg p-2.5 focus:outline-none focus:border-electric-blue/50 text-sm"
                 >
-                  <option value="">Unassigned</option>
+                  <option value="">{t('kanban.unassignedOption')}</option>
                   {projectMembers.map((member) => (
                     <option key={member.userId} value={member.userId}>
                       {member.user?.fullName || 'Unknown'} ({member.role})
@@ -623,15 +623,15 @@ export default function KanbanPage() {
               {milestones.length > 0 && (
                 <div>
                   <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                    Milestone
-                    <span className="ml-1 font-normal normal-case text-on-surface-variant/60">(optional)</span>
+                    {t('kanban.milestoneLabel')}{' '}
+                    <span className="ml-1 font-normal normal-case text-on-surface-variant/60">{t('kanban.optionalText')}</span>
                   </label>
                   <select
                     value={newTaskData.milestoneId}
                     onChange={(e) => setNewTaskData({ ...newTaskData, milestoneId: e.target.value })}
                     className="w-full bg-surface-container-low text-on-surface border border-white/10 rounded-lg p-2.5 focus:outline-none focus:border-electric-blue/50 text-sm"
                   >
-                    <option value="">No Milestone (Backlog)</option>
+                    <option value="">{t('kanban.noMilestoneBacklog')}</option>
                     {milestones.map((ms) => (
                       <option key={ms.id} value={ms.id}>
                         {ms.title}
@@ -647,13 +647,13 @@ export default function KanbanPage() {
                   onClick={() => setIsAddModalOpen(false)}
                   className="bg-white/5 border border-white/10 hover:bg-white/10 text-on-surface text-xs font-semibold px-4 py-2.5 rounded-lg transition-all"
                 >
-                  Cancel
+                  {t('kanban.cancelBtn')}
                 </button>
                 <button
                   type="submit"
                   className="bg-electric-blue text-white text-xs font-semibold px-5 py-2.5 rounded-lg hover:opacity-90 active:scale-95 transition-all"
                 >
-                  Create Task
+                  {t('kanban.createTaskBtn')}
                 </button>
               </div>
             </form>

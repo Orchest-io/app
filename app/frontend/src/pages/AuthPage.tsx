@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Button, Card } from '../components/ui'
 import { useLoginUser, useRegisterUser, useGoogleAuth } from '../hooks/useAuthMutations'
@@ -69,7 +70,7 @@ const initialForm: FormState = {
   confirmPassword: '',
 }
 
-function getErrorMessage(error: unknown) {
+function getErrorMessage(error: unknown, fallback: string) {
   if (typeof error === 'object' && error && 'response' in error) {
     const response = (error as { response?: { data?: { message?: string | string[] } } }).response
     const message = response?.data?.message
@@ -78,7 +79,7 @@ function getErrorMessage(error: unknown) {
   }
 
   if (error instanceof Error) return error.message
-  return 'Something went wrong. Please try again.'
+  return fallback
 }
 
 function AuthField({
@@ -130,6 +131,7 @@ function AuthField({
 }
 
 function AuthLogo() {
+  const { t } = useTranslation()
   return (
     <div className="flex items-center gap-4">
       <div className="flex h-[42px] w-[42px] items-center justify-center rounded-[10px] bg-[#4b8fff] text-[#05101f] shadow-[0_12px_35px_rgba(0,123,255,0.22)]">
@@ -141,13 +143,14 @@ function AuthLogo() {
         </span>
       </div>
       <h1 className="font-heading text-[24px] font-bold tracking-[-0.03em] text-on-surface">
-        AI Smart Team Planner
+        {t('auth.appName')}
       </h1>
     </div>
   )
 }
 
 function MarketingScene() {
+  const { t } = useTranslation()
   return (
     <section className="relative min-h-[620px] overflow-hidden bg-[#08101a] lg:min-h-screen">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(0,123,255,0.23),transparent_34%),radial-gradient(circle_at_53%_45%,rgba(124,233,255,0.13),transparent_31%),linear-gradient(140deg,#071018_0%,#0b2031_45%,#030608_100%)]" />
@@ -182,10 +185,10 @@ function MarketingScene() {
           <span className="h-2.5 w-2.5 rounded-full bg-[#33404a]" />
         </div>
         <h2 className="max-w-[470px] font-heading text-[31px] font-extrabold leading-[1.18] tracking-[-0.04em] text-white drop-shadow-[0_2px_0_rgba(0,0,0,0.55)] md:text-[38px]">
-          Manage projects with AI-powered insights.
+          {t('auth.marketingTitle')}
         </h2>
         <p className="mt-6 max-w-[520px] text-[16px] leading-[1.55] text-[#d7dee8] md:text-[18px]">
-          Track tasks, coordinate teams, and deliver projects on time. Get intelligent estimates and progress analytics.
+          {t('auth.marketingDesc')}
         </p>
         <div className="mt-7 flex items-center gap-4 rounded-[16px] border border-white/10 bg-white/7 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#5a647c] text-white">
@@ -193,10 +196,10 @@ function MarketingScene() {
           </div>
           <div>
             <p className="font-heading text-[12px] font-bold uppercase tracking-[0.15em] text-[#d8dcff]">
-              AI Insight
+              {t('auth.aiInsight')}
             </p>
             <p className="mt-1 text-[15px] leading-snug text-white">
-              "Backend milestone is on track. Frontend needs 2 more days."
+              {t('auth.aiInsightDesc')}
             </p>
           </div>
         </div>
@@ -207,6 +210,7 @@ function MarketingScene() {
 
 export default function AuthPage({ mode }: AuthPageProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const loginMutation = useLoginUser()
   const registerMutation = useRegisterUser()
   const googleMutation = useGoogleAuth()
@@ -222,20 +226,20 @@ export default function AuthPage({ mode }: AuthPageProps) {
     () =>
       isRegister
         ? {
-            subtitle: 'Create your intelligent workspace in minutes.',
-            primaryAction: 'Start Free Trial',
-            footerLead: 'Already have a workspace?',
-            footerAction: 'Sign in',
+            subtitle: t('auth.registerSubtitle'),
+            primaryAction: t('auth.registerAction'),
+            footerLead: t('auth.registerFooterLead'),
+            footerAction: t('auth.registerFooterAction'),
             footerPath: '/login',
           }
         : {
-            subtitle: 'The intelligence layer for high-performance teams.',
-            primaryAction: 'Sign In to Workspace',
-            footerLead: 'New to Smart Team?',
-            footerAction: 'Start free trial',
+            subtitle: t('auth.loginSubtitle'),
+            primaryAction: t('auth.loginAction'),
+            footerLead: t('auth.loginFooterLead'),
+            footerAction: t('auth.loginFooterAction'),
             footerPath: '/register',
           },
-    [isRegister],
+    [isRegister, t],
   )
 
   // ── Google Identity Services ──────────────────────────────────────
@@ -244,7 +248,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
     const { email, name, picture, sub } = payload
 
     if (!email || !name || !sub) {
-      toast.error('Google sign-in failed. Missing profile data.')
+      toast.error(t('auth.googleFailed'))
       return
     }
 
@@ -252,10 +256,10 @@ export default function AuthPage({ mode }: AuthPageProps) {
       { email, fullName: name, avatarUrl: picture, authProviderId: sub },
       {
         onSuccess: () => {
-          toast.success('Signed in with Google.')
+          toast.success(t('auth.googleSuccess'))
           navigate('/projects')
         },
-        onError: (error) => toast.error(getErrorMessage(error)),
+        onError: (error) => toast.error(getErrorMessage(error, t('auth.somethingWrong'))),
       },
     )
   }
@@ -302,23 +306,23 @@ export default function AuthPage({ mode }: AuthPageProps) {
     const email = form.email.trim()
 
     if (isRegister && !form.fullName.trim()) {
-      nextErrors.fullName = 'Full name is required.'
+      nextErrors.fullName = t('auth.nameRequired')
     }
 
     if (!email) {
-      nextErrors.email = 'Workspace email is required.'
+      nextErrors.email = t('auth.emailRequired')
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      nextErrors.email = 'Enter a valid workspace email.'
+      nextErrors.email = t('auth.emailInvalid')
     }
 
     if (!form.password) {
-      nextErrors.password = 'Password is required.'
+      nextErrors.password = t('auth.passwordRequired')
     } else if (isRegister && form.password.length < 8) {
-      nextErrors.password = 'Use at least 8 characters.'
+      nextErrors.password = t('auth.passwordMinLength')
     }
 
     if (isRegister && form.confirmPassword !== form.password) {
-      nextErrors.confirmPassword = 'Passwords do not match.'
+      nextErrors.confirmPassword = t('auth.passwordsNoMatch')
     }
 
     return nextErrors
@@ -340,10 +344,10 @@ export default function AuthPage({ mode }: AuthPageProps) {
         },
         {
           onSuccess: () => {
-            toast.success('Account created successfully.')
+            toast.success(t('auth.accountCreated'))
             navigate('/projects')
           },
-          onError: (error) => toast.error(getErrorMessage(error)),
+          onError: (error) => toast.error(getErrorMessage(error, t('auth.somethingWrong'))),
         },
       )
       return
@@ -353,10 +357,10 @@ export default function AuthPage({ mode }: AuthPageProps) {
       { email: form.email.trim().toLowerCase(), password: form.password },
       {
         onSuccess: () => {
-          toast.success('Signed in successfully.')
+          toast.success(t('auth.signInSuccess'))
           navigate('/projects')
         },
-        onError: (error) => toast.error(getErrorMessage(error)),
+        onError: (error) => toast.error(getErrorMessage(error, t('auth.somethingWrong'))),
       },
     )
   }
@@ -365,12 +369,12 @@ export default function AuthPage({ mode }: AuthPageProps) {
     const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
 
     if (!GOOGLE_CLIENT_ID) {
-      toast.info('Google sign-in is not configured yet. Add VITE_GOOGLE_CLIENT_ID to your .env file.')
+      toast.info(t('auth.googleNotConfigured'))
       return
     }
 
     if (!window.google?.accounts?.id) {
-      toast.error('Google Sign-In script is still loading. Please try again in a moment.')
+      toast.error(t('auth.googleLoading'))
       return
     }
 
@@ -387,7 +391,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
           <div className="relative z-10 mx-auto w-full max-w-[420px]">
             <AuthLogo />
             <p className="mt-4 text-[16px] leading-relaxed text-[#d0d4de]">
-              Smart project planning for modern teams.
+              {t('auth.smartPlanning')}
             </p>
 
             <form className="mt-12 flex flex-col gap-4" noValidate onSubmit={handleSubmit}>
@@ -397,7 +401,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                   autoComplete="name"
                   disabled={isSubmitting}
                   error={errors.fullName}
-                  label="Full Name"
+                  label={t('auth.fullNameLabel')}
                   placeholder="Alex Morgan"
                   type="text"
                   value={form.fullName}
@@ -410,7 +414,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                 autoComplete="email"
                 disabled={isSubmitting}
                 error={errors.email}
-                label="Workspace Email"
+                label={t('auth.emailLabel')}
                 placeholder="name@company.com"
                 type="email"
                 value={form.email}
@@ -422,15 +426,15 @@ export default function AuthPage({ mode }: AuthPageProps) {
                 autoComplete={isRegister ? 'new-password' : 'current-password'}
                 disabled={isSubmitting}
                 error={errors.password}
-                label="Password"
+                label={t('auth.passwordLabel')}
                 labelAction={
                   !isRegister ? (
                     <button
                       className="text-[12px] font-semibold tracking-[0.08em] text-electric-blue transition-colors hover:text-primary"
                       type="button"
-                      onClick={() => toast.info('Password recovery is not connected yet.')}
+                      onClick={() => toast.info(t('auth.forgotNotConnected'))}
                     >
-                      Forgot?
+                      {t('auth.forgotBtn')}
                     </button>
                   ) : undefined
                 }
@@ -446,7 +450,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                   autoComplete="new-password"
                   disabled={isSubmitting}
                   error={errors.confirmPassword}
-                  label="Confirm Password"
+                  label={t('auth.confirmPasswordLabel')}
                   placeholder="••••••••"
                   type="password"
                   value={form.confirmPassword}
@@ -460,7 +464,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                 type="submit"
                 variant="ghost"
               >
-                <span>{isSubmitting ? 'Working...' : copy.primaryAction}</span>
+                <span>{isSubmitting ? t('auth.working') : copy.primaryAction}</span>
                 <span className="material-symbols-outlined text-[24px]">arrow_forward</span>
               </Button>
             </form>
@@ -468,7 +472,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
             <div className="my-6 flex items-center gap-4">
               <span className="h-px flex-1 bg-white/12" />
               <span className="font-heading text-[11px] font-semibold uppercase tracking-[0.12em] text-[#687184]">
-                Or Continue With
+                {t('auth.continueWith')}
               </span>
               <span className="h-px flex-1 bg-white/12" />
             </div>
@@ -491,7 +495,7 @@ export default function AuthPage({ mode }: AuthPageProps) {
                 className="h-[54px] rounded-xl border-white/12 !bg-white/[0.035] !text-white hover:!bg-white/[0.06]"
                 type="button"
                 variant="secondary"
-                onClick={() => toast.info('Enterprise SSO is available for Business plans.')}
+                onClick={() => toast.info(t('auth.ssoTooltip'))}
               >
                 <span className="material-symbols-outlined text-[20px]">corporate_fare</span>
                 <span className="text-[16px] font-medium">Enterprise SSO</span>

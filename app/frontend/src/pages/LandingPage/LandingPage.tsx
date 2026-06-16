@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button, Card } from '../../components/ui'
 import { toast } from 'sonner'
 
@@ -79,9 +80,10 @@ function Counter({ to, suffix = '', duration = 1800 }: { to: number; suffix?: st
 }
 
 // ─── Typing effect ───────────────────────────────────────────────────
-const WORDS = ['Team Productivity', 'Engineering Velocity', 'Sprint Clarity', 'Delivery Precision']
-
 function TypingWord() {
+  const { t } = useTranslation()
+  const WORDS = [t('landing.typingWord1'), t('landing.typingWord2'), t('landing.typingWord3'), t('landing.typingWord4')]
+
   const [wordIdx, setWordIdx] = useState(0)
   const [displayed, setDisplayed] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -112,68 +114,10 @@ function TypingWord() {
   )
 }
 
-// ─── Testimonials data ───────────────────────────────────────────────
-const TESTIMONIALS = [
-  {
-    name: 'Sarah Chen',
-    role: 'VP Engineering · Veritas Labs',
-    avatar: 'SC',
-    color: 'from-blue-500 to-indigo-500',
-    quote: 'Orchist cut our sprint planning time by 60%. The AI suggestions are eerily accurate — it flagged a dependency issue before our leads even noticed.',
-  },
-  {
-    name: 'Marcus Okafor',
-    role: 'CTO · Nexus Digital',
-    avatar: 'MO',
-    color: 'from-purple-500 to-pink-500',
-    quote: "We went from 3 hours of weekly standups to a 20-minute async review. The AI briefings are that good. It's like having a senior PM on the team 24/7.",
-  },
-  {
-    name: 'Lena Hoffman',
-    role: 'Head of Product · Stackline',
-    avatar: 'LH',
-    color: 'from-emerald-500 to-teal-500',
-    quote: 'The risk prediction saved our Q3 release. It detected a bottleneck two weeks before our deadline and auto-rebalanced the workload across the team.',
-  },
-]
-
-// ─── Pricing data ────────────────────────────────────────────────────
-const PLANS = [
-  {
-    name: 'Starter',
-    price: 0,
-    desc: 'Perfect for small teams getting started.',
-    color: 'border-border-low',
-    badge: null,
-    features: ['Up to 5 members', '3 active projects', 'Basic AI suggestions', 'Community support'],
-    cta: 'Start Free',
-    highlight: false,
-  },
-  {
-    name: 'Pro',
-    price: 29,
-    desc: 'For growing teams that need full AI power.',
-    color: 'border-electric-blue/50',
-    badge: 'Most Popular',
-    features: ['Up to 25 members', 'Unlimited projects', 'Full AI copilot', 'Risk prediction', 'Priority support'],
-    cta: 'Start Pro Trial',
-    highlight: true,
-  },
-  {
-    name: 'Enterprise',
-    price: null,
-    desc: 'Custom deployment for large organisations.',
-    color: 'border-peri-purple/40',
-    badge: null,
-    features: ['Unlimited members', 'Private cloud', 'SSO & SAML', 'SLA guarantee', 'Dedicated CSM'],
-    cta: 'Contact Sales',
-    highlight: false,
-  },
-]
-
 // ────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const isLoggedIn = !!localStorage.getItem('orchest_user_id')
   const startPath = isLoggedIn ? '/dashboard' : '/register'
 
@@ -200,6 +144,79 @@ export default function LandingPage() {
     return () => observers.forEach((o) => o?.disconnect())
   }, [])
 
+  // Testimonials data
+  const TESTIMONIALS = [
+    {
+      name: t('landing.testimonial1Name'),
+      role: t('landing.testimonial1Role'),
+      avatar: 'SC',
+      color: 'from-blue-500 to-indigo-500',
+      quote: t('landing.testimonial1Quote'),
+    },
+    {
+      name: t('landing.testimonial2Name'),
+      role: t('landing.testimonial2Role'),
+      avatar: 'MO',
+      color: 'from-purple-500 to-pink-500',
+      quote: t('landing.testimonial2Quote'),
+    },
+    {
+      name: t('landing.testimonial3Name'),
+      role: t('landing.testimonial3Role'),
+      avatar: 'LH',
+      color: 'from-emerald-500 to-teal-500',
+      quote: t('landing.testimonial3Quote'),
+    },
+  ]
+
+  // Pricing data
+  const PLANS = [
+    {
+      name: t('landing.starter'),
+      price: 0,
+      desc: t('landing.starterDesc'),
+      color: 'border-border-low',
+      badge: null,
+      features: [t('landing.starterFeature1'), t('landing.starterFeature2'), t('landing.starterFeature3'), t('landing.starterFeature4')],
+      cta: t('landing.startFreeBtn'),
+      highlight: false,
+    },
+    {
+      name: t('landing.pro'),
+      price: 29,
+      desc: t('landing.proDesc'),
+      color: 'border-electric-blue/50',
+      badge: t('landing.mostPopular'),
+      features: [t('landing.proFeature1'), t('landing.proFeature2'), t('landing.proFeature3'), t('landing.proFeature4'), t('landing.proFeature5')],
+      cta: t('landing.startProTrial'),
+      highlight: true,
+    },
+    {
+      name: t('landing.enterprise'),
+      price: null,
+      desc: t('landing.enterpriseDesc'),
+      color: 'border-peri-purple/40',
+      badge: null,
+      features: [t('landing.enterpriseFeature1'), t('landing.enterpriseFeature2'), t('landing.enterpriseFeature3'), t('landing.enterpriseFeature4'), t('landing.enterpriseFeature5')],
+      cta: t('landing.contactSales'),
+      highlight: false,
+    },
+  ]
+
+  // Product features
+  const FEATURES = [
+    { icon: 'neurology', color: 'electric-blue', bg: 'bg-electric-blue/10 group-hover:bg-electric-blue/20', title: t('landing.selfHealing'), desc: t('landing.selfHealingDesc') },
+    { icon: 'smart_toy', color: 'peri-purple', bg: 'bg-peri-purple/10 group-hover:bg-peri-purple/20', title: t('landing.contextualBriefings'), desc: t('landing.contextualBriefingsDesc') },
+    { icon: 'verified_user', color: 'on-surface', bg: 'bg-on-surface/10 group-hover:bg-on-surface/20', title: t('landing.riskPrediction'), desc: t('landing.riskPredictionDesc') },
+  ]
+
+  // Feature split
+  const SPLIT_FEATURES = [
+    { title: t('landing.dynamicResourceMapping'), desc: t('landing.dynamicResourceMappingDesc') },
+    { title: t('landing.universalConnector'), desc: t('landing.universalConnectorDesc') },
+    { title: t('landing.enterpriseSecurity'), desc: t('landing.enterpriseSecurityDesc') },
+  ]
+
   return (
     <div className="bg-mesh min-h-screen text-on-surface font-body selection:bg-electric-blue/30 selection:text-white">
 
@@ -210,15 +227,15 @@ export default function LandingPage() {
             tactic
           </span>
           <span className="font-heading text-lg md:text-xl font-bold text-on-surface tracking-tight">
-            AI Smart Team Planner
+            {t('landing.appName')}
           </span>
         </div>
 
         <div className="hidden md:flex items-center gap-8 font-heading text-xs uppercase tracking-widest font-semibold">
           {[
-            { label: 'Product', id: 'product' },
-            { label: 'Testimonials', id: 'testimonials' },
-            { label: 'Pricing', id: 'pricing' },
+            { label: t('landing.product'), id: 'product' },
+            { label: t('landing.testimonials'), id: 'testimonials' },
+            { label: t('landing.pricing'), id: 'pricing' },
           ].map(({ label, id }) => (
             <button
               key={id}
@@ -239,14 +256,14 @@ export default function LandingPage() {
             className="px-4 py-2 rounded-full font-heading text-xs uppercase tracking-wider font-semibold text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
             onClick={() => navigate(isLoggedIn ? '/dashboard' : '/login')}
           >
-            {isLoggedIn ? 'Dashboard' : 'Login'}
+            {isLoggedIn ? t('landing.dashboard') : t('landing.login')}
           </button>
           <Button
             size="sm"
             className="rounded-full px-5 py-2 uppercase text-xs tracking-wider font-semibold"
             onClick={() => navigate(startPath)}
           >
-            {isLoggedIn ? 'Go to Dashboard' : 'Get Started'}
+            {isLoggedIn ? t('landing.goToDashboard') : t('landing.getStarted')}
           </Button>
         </div>
       </nav>
@@ -264,7 +281,7 @@ export default function LandingPage() {
                 auto_awesome
               </span>
               <span className="font-heading text-[10px] text-peri-purple uppercase tracking-widest font-semibold">
-                New: GPT-4o Integration Live
+                {t('landing.newBadge')}
               </span>
             </div>
           </Reveal>
@@ -272,7 +289,7 @@ export default function LandingPage() {
           {/* Heading with typing effect */}
           <Reveal delay={100}>
             <h1 className="font-heading text-4xl md:text-6xl font-extrabold text-on-surface mb-6 leading-tight max-w-4xl mx-auto tracking-tight min-h-[4rem] md:min-h-[7rem]">
-              The AI Operating System for{' '}
+              {t('landing.heroTitle')}{' '}
               <br className="hidden md:block" />
               <TypingWord />
             </h1>
@@ -280,7 +297,7 @@ export default function LandingPage() {
 
           <Reveal delay={200}>
             <p className="font-body text-sm md:text-base text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed">
-              Synchronize your enterprise workflow with a silent, proactive AI partner. Eliminate manual task mapping and let neural logic drive your roadmap.
+              {t('landing.heroDesc')}
             </p>
           </Reveal>
 
@@ -291,14 +308,14 @@ export default function LandingPage() {
                 className="px-8 py-3.5 bg-gradient-to-r from-electric-blue to-blue-600 rounded-full font-heading text-sm text-white font-bold electric-glow transition-transform hover:scale-105 active:scale-95 cursor-pointer"
                 onClick={() => navigate(startPath)}
               >
-                {isLoggedIn ? 'Go to Dashboard' : 'Start Free — No Card Needed'}
+                {isLoggedIn ? t('landing.goToDashboard') : t('landing.startFree')}
               </button>
               <button
                 className="px-8 py-3.5 glass-card rounded-full font-heading text-sm text-on-surface font-bold hover:bg-surface-glass transition-all active:scale-95 cursor-pointer flex items-center gap-2"
-                onClick={() => toast.success('Demo booking requested! Our team will contact you.')}
+                onClick={() => toast.success(t('landing.demoRequested'))}
               >
                 <span className="material-symbols-outlined text-[18px]">play_circle</span>
-                Watch Demo
+                {t('landing.watchDemo')}
               </button>
             </div>
           </Reveal>
@@ -306,7 +323,7 @@ export default function LandingPage() {
           {/* Social proof micro-line */}
           <Reveal delay={400}>
             <p className="text-[11px] text-on-surface-variant mb-16 tracking-wide">
-              Trusted by <span className="text-on-surface font-semibold">2,400+</span> engineering teams worldwide
+              {t('landing.trustedBy')} <span className="text-on-surface font-semibold">2,400+</span> {t('landing.teamsWorldwide')}
             </p>
           </Reveal>
 
@@ -324,21 +341,21 @@ export default function LandingPage() {
                 <div className="absolute top-8 right-8 w-64 glass-card p-5 rounded-2xl border border-white/20 peri-glow hidden lg:block text-left z-20 animate-[float_4s_ease-in-out_infinite]">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="material-symbols-outlined text-peri-purple text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>insights</span>
-                    <span className="font-heading text-[10px] text-on-surface uppercase tracking-wider font-semibold">AI Insight</span>
+                    <span className="font-heading text-[10px] text-on-surface uppercase tracking-wider font-semibold">{t('landing.aiInsight')}</span>
                   </div>
                   <p className="font-body text-xs text-on-surface-variant leading-relaxed">
-                    "Team velocity has increased by 14%. Recommend shifting Q3 targets."
+                    {t('landing.aiInsightText')}
                   </p>
                   <div className="mt-4 pt-3 border-t border-white/5 flex gap-2">
-                    <button className="px-3 py-1 bg-peri-purple/20 text-peri-purple rounded-md font-heading text-[10px] font-semibold hover:bg-peri-purple/35 transition-colors cursor-pointer" onClick={() => toast.success('Insight suggestion accepted!')}>Accept</button>
-                    <button className="px-3 py-1 glass-card text-on-surface-variant rounded-md font-heading text-[10px] hover:text-on-surface transition-colors cursor-pointer" onClick={() => toast.info('Insight dismissed.')}>Ignore</button>
+                    <button className="px-3 py-1 bg-peri-purple/20 text-peri-purple rounded-md font-heading text-[10px] font-semibold hover:bg-peri-purple/35 transition-colors cursor-pointer" onClick={() => toast.success(t('landing.insightAccepted'))}>{t('landing.accept')}</button>
+                    <button className="px-3 py-1 glass-card text-on-surface-variant rounded-md font-heading text-[10px] hover:text-on-surface transition-colors cursor-pointer" onClick={() => toast.info(t('landing.insightDismissed'))}>{t('landing.ignore')}</button>
                   </div>
                 </div>
 
                 {/* Floating Sprint Card */}
                 <div className="absolute -bottom-6 -left-6 w-72 glass-card p-5 rounded-2xl border border-white/20 electric-glow hidden lg:block text-left z-20 animate-[float_4s_ease-in-out_1s_infinite]">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="font-heading text-xs font-bold text-electric-blue uppercase tracking-wider">Active Sprint</span>
+                    <span className="font-heading text-xs font-bold text-electric-blue uppercase tracking-wider">{t('landing.activeSprint')}</span>
                     <span className="material-symbols-outlined text-on-surface-variant text-md">more_horiz</span>
                   </div>
                   <div className="space-y-4">
@@ -353,7 +370,7 @@ export default function LandingPage() {
                           </div>
                         ))}
                       </div>
-                      <span className="font-heading text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">75% Complete</span>
+                      <span className="font-heading text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">{t('landing.sprintComplete')}</span>
                     </div>
                   </div>
                 </div>
@@ -361,7 +378,7 @@ export default function LandingPage() {
 
               {/* Scroll indicator */}
               <div className="flex flex-col items-center gap-2 mt-12 text-on-surface-variant animate-bounce">
-                <span className="text-[11px] font-heading uppercase tracking-widest">Scroll to explore</span>
+                <span className="text-[11px] font-heading uppercase tracking-widest">{t('landing.scrollToExplore')}</span>
                 <span className="material-symbols-outlined text-[20px]">expand_more</span>
               </div>
             </div>
@@ -373,20 +390,16 @@ export default function LandingPage() {
           <Reveal>
             <div className="text-center mb-16">
               <h2 className="font-heading text-3xl font-bold text-on-surface tracking-tight mb-4">
-                Autonomous Workflows
+                {t('landing.autonomousWorkflows')}
               </h2>
               <p className="font-body text-sm text-on-surface-variant max-w-md mx-auto">
-                Neural engines that learn your team's rhythm and automate alignment.
+                {t('landing.autonomousDesc')}
               </p>
             </div>
           </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: 'neurology', color: 'electric-blue', bg: 'bg-electric-blue/10 group-hover:bg-electric-blue/20', title: 'Self-Healing Backlogs', desc: 'The AI identifies stalled tickets and automatically reassigns them based on team capacity and skill set.' },
-              { icon: 'smart_toy', color: 'peri-purple', bg: 'bg-peri-purple/10 group-hover:bg-peri-purple/20', title: 'Contextual Briefings', desc: 'Start your day with a hyper-personalized briefing generated from your project updates and workspace logs.' },
-              { icon: 'verified_user', color: 'on-surface', bg: 'bg-on-surface/10 group-hover:bg-on-surface/20', title: 'Risk Prediction', desc: 'Identify roadmap delays before they happen. AI monitors external dependencies and alerts you in real-time.' },
-            ].map(({ icon, color, bg, title, desc }, i) => (
+            {FEATURES.map(({ icon, color, bg, title, desc }, i) => (
               <Reveal key={title} delay={i * 120} direction="up">
                 <Card hoverable className={`p-8 group border border-border-low transition-all duration-300 hover:-translate-y-2 hover:border-${color}/30 h-full`}>
                   <div className={`w-12 h-12 rounded-xl ${bg} flex items-center justify-center mb-6 text-${color} transition-colors`}>
@@ -409,16 +422,12 @@ export default function LandingPage() {
               <Reveal direction="left">
                 <div>
                   <h2 className="font-heading text-2xl md:text-4xl font-extrabold text-on-surface mb-8 leading-tight tracking-tight">
-                    Master Complexity with <br />
-                    <span className="text-peri-purple">Predictive Intelligence</span>
+                    {t('landing.masterComplexity')} <br />
+                    <span className="text-peri-purple">{t('landing.predictiveIntelligence')}</span>
                   </h2>
 
                   <ul className="space-y-6">
-                    {[
-                      { title: 'Dynamic Resource Mapping', desc: 'Balance workloads instantly with drag-and-drop AI rebalancing and real-time skill alignment.' },
-                      { title: 'Universal Connector', desc: 'Sync with Jira, GitHub, Notion, and Slack in a single unified enterprise workspace thread.' },
-                      { title: 'Enterprise-Grade Security', desc: 'SOC2 Type II compliant with dedicated private cloud instances and end-to-end data encryption.' },
-                    ].map(({ title, desc }) => (
+                    {SPLIT_FEATURES.map(({ title, desc }) => (
                       <li key={title} className="flex items-start gap-4 group">
                         <span className="material-symbols-outlined text-electric-blue mt-0.5 text-xl transition-transform group-hover:scale-110">check_circle</span>
                         <div>
@@ -457,13 +466,13 @@ export default function LandingPage() {
             <Reveal direction="up" delay={0} className="md:col-span-2">
               <Card className="p-10 flex flex-col justify-between border border-border-low h-full">
                 <h3 className="font-heading text-2xl md:text-3xl font-bold leading-tight text-on-surface mb-6">
-                  Global Scale <br /> Performance
+                  {t('landing.globalScale')} <br />{t('landing.performance')}
                 </h3>
                 <div className="flex items-end justify-between mt-auto">
                   <span className="font-heading text-5xl font-extrabold text-electric-blue leading-none">
                     <Counter to={99} suffix=".9%" duration={1600} />
                   </span>
-                  <span className="font-heading text-[10px] uppercase tracking-widest text-on-surface-variant font-bold pb-1">Uptime SLA</span>
+                  <span className="font-heading text-[10px] uppercase tracking-widest text-on-surface-variant font-bold pb-1">{t('landing.uptimeSLA')}</span>
                 </div>
               </Card>
             </Reveal>
@@ -473,7 +482,7 @@ export default function LandingPage() {
                 <span className="material-symbols-outlined text-peri-purple text-4xl mb-6 self-start">language</span>
                 <div className="mt-auto">
                   <h4 className="font-heading text-2xl font-bold text-on-surface mb-1">24/7</h4>
-                  <p className="font-heading text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">Global Concierge Support</p>
+                  <p className="font-heading text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">{t('landing.globalSupport')}</p>
                 </div>
               </Card>
             </Reveal>
@@ -485,7 +494,7 @@ export default function LandingPage() {
                   <h4 className="font-heading text-2xl font-bold text-on-surface mb-1">
                     &lt;<Counter to={50} suffix="ms" duration={1200} />
                   </h4>
-                  <p className="font-heading text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">Action Latency</p>
+                  <p className="font-heading text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">{t('landing.actionLatency')}</p>
                 </div>
               </Card>
             </Reveal>
@@ -494,9 +503,9 @@ export default function LandingPage() {
           {/* Extra stat row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
             {[
-              { icon: 'group', color: 'text-electric-blue', value: <><Counter to={2400} suffix="+" duration={2000} /></>, label: 'Teams Worldwide' },
-              { icon: 'task_alt', color: 'text-peri-purple', value: <><Counter to={18} suffix="M+" duration={1800} /></>, label: 'Tasks Orchestrated' },
-              { icon: 'speed', color: 'text-emerald-400', value: <><Counter to={60} suffix="%" duration={1500} /></>, label: 'Avg. Planning Time Saved' },
+              { icon: 'group', color: 'text-electric-blue', value: <><Counter to={2400} suffix="+" duration={2000} /></>, label: t('landing.teamsLabel') },
+              { icon: 'task_alt', color: 'text-peri-purple', value: <><Counter to={18} suffix="M+" duration={1800} /></>, label: t('landing.tasksOrchestrated') },
+              { icon: 'speed', color: 'text-emerald-400', value: <><Counter to={60} suffix="%" duration={1500} /></>, label: t('landing.avgTimeSaved') },
             ].map(({ icon, color, value, label }, i) => (
               <Reveal key={label} direction="up" delay={i * 100}>
                 <Card className="p-8 flex items-center gap-6 border border-border-low">
@@ -516,10 +525,10 @@ export default function LandingPage() {
           <Reveal>
             <div className="text-center mb-16">
               <h2 className="font-heading text-3xl font-bold text-on-surface tracking-tight mb-4">
-                Loved by Engineering Leaders
+                {t('landing.lovedByLeaders')}
               </h2>
               <p className="font-body text-sm text-on-surface-variant max-w-md mx-auto">
-                Teams that switched to Orchist report measurable gains within the first sprint.
+                {t('landing.lovedByDesc')}
               </p>
             </div>
           </Reveal>
@@ -559,10 +568,10 @@ export default function LandingPage() {
           <Reveal>
             <div className="text-center mb-16">
               <h2 className="font-heading text-3xl font-bold text-on-surface tracking-tight mb-4">
-                Simple, Transparent Pricing
+                {t('landing.simplePricing')}
               </h2>
               <p className="font-body text-sm text-on-surface-variant max-w-md mx-auto">
-                Start free. Scale when you're ready. No hidden fees.
+                {t('landing.pricingDesc')}
               </p>
             </div>
           </Reveal>
@@ -586,10 +595,10 @@ export default function LandingPage() {
                     {price !== null ? (
                       <div className="flex items-end gap-1">
                         <span className="font-heading text-5xl font-extrabold text-on-surface">${price}</span>
-                        <span className="font-body text-sm text-on-surface-variant mb-1">/mo per user</span>
+                        <span className="font-body text-sm text-on-surface-variant mb-1">{t('landing.perMonth')}</span>
                       </div>
                     ) : (
-                      <span className="font-heading text-4xl font-extrabold text-on-surface">Custom</span>
+                      <span className="font-heading text-4xl font-extrabold text-on-surface">{t('landing.custom')}</span>
                     )}
                   </div>
 
@@ -608,7 +617,7 @@ export default function LandingPage() {
                         ? 'bg-electric-blue text-white hover:bg-primary shadow-[0_4px_20px_rgba(0,123,255,0.3)]'
                         : 'glass-card border border-border-low text-on-surface hover:border-white/20'
                     }`}
-                    onClick={() => name === 'Enterprise' ? toast.info('Contact us at sales@orchist.ai') : navigate(startPath)}
+                    onClick={() => name === t('landing.enterprise') ? toast.info(t('landing.contactSalesMsg')) : navigate(startPath)}
                   >
                     {cta}
                   </button>
@@ -627,26 +636,26 @@ export default function LandingPage() {
                 rocket_launch
               </span>
               <h2 className="font-heading text-3xl md:text-4xl font-extrabold text-on-surface mb-4 tracking-tight">
-                Ready to move at AI speed?
+                {t('landing.readyToMove')}
               </h2>
               <p className="font-body text-sm text-on-surface-variant max-w-md mx-auto mb-8 leading-relaxed">
-                Join thousands of teams who've replaced spreadsheet chaos with intelligent, autonomous project orchestration.
+                {t('landing.readyDesc')}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button
                   className="px-10 py-4 bg-gradient-to-r from-electric-blue to-blue-600 rounded-full font-heading text-sm text-white font-bold electric-glow transition-transform hover:scale-105 active:scale-95 cursor-pointer"
                   onClick={() => navigate(startPath)}
                 >
-                  {isLoggedIn ? 'Go to Dashboard' : 'Start Free Today'}
+                  {isLoggedIn ? t('landing.goToDashboard') : t('landing.startFreeToday')}
                 </button>
                 <button
                   className="px-10 py-4 glass-card rounded-full font-heading text-sm text-on-surface font-bold border border-border-low hover:border-white/20 transition-all active:scale-95 cursor-pointer"
                   onClick={() => navigate('/login')}
                 >
-                  {isLoggedIn ? 'View Projects' : 'Sign In'}
+                  {isLoggedIn ? t('landing.viewProjects') : t('landing.signIn')}
                 </button>
               </div>
-              <p className="mt-6 text-[11px] text-on-surface-variant">No credit card required · Free up to 5 members · Cancel anytime</p>
+              <p className="mt-6 text-[11px] text-on-surface-variant">{t('landing.noCreditCard')}</p>
             </div>
           </Reveal>
         </section>
@@ -660,10 +669,10 @@ export default function LandingPage() {
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-6">
                 <span className="material-symbols-outlined text-electric-blue text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>tactic</span>
-                <span className="font-heading text-lg font-bold text-on-surface">AI Smart Team Planner</span>
+                <span className="font-heading text-lg font-bold text-on-surface">{t('landing.appName')}</span>
               </div>
               <p className="font-body text-xs text-on-surface-variant max-w-xs leading-relaxed">
-                Redefining the architecture of modern enterprise productivity through sovereign AI and proactive orchestration.
+                {t('landing.footerDesc')}
               </p>
               {/* Newsletter */}
               <div className="mt-6 flex gap-2">
@@ -674,33 +683,33 @@ export default function LandingPage() {
                 />
                 <button
                   className="px-4 py-2 bg-electric-blue text-white rounded-lg font-heading text-xs font-semibold hover:bg-primary transition-colors cursor-pointer"
-                  onClick={() => toast.success('Subscribed to updates!')}
+                  onClick={() => toast.success(t('landing.subscribed'))}
                 >
-                  Subscribe
+                  {t('landing.subscribe')}
                 </button>
               </div>
             </div>
 
             <div>
-              <h5 className="font-heading text-[10px] uppercase tracking-widest text-on-surface font-bold mb-6">Company</h5>
+              <h5 className="font-heading text-[10px] uppercase tracking-widest text-on-surface font-bold mb-6">{t('landing.company')}</h5>
               <ul className="space-y-4 font-body text-xs text-on-surface-variant">
-                {['About', 'Careers', 'Manifesto', 'Contact'].map((l) => (
+                {[t('landing.about'), t('landing.careers'), t('landing.manifesto'), t('landing.contact')].map((l) => (
                   <li key={l}><a className="hover:text-electric-blue transition-colors cursor-pointer">{l}</a></li>
                 ))}
               </ul>
             </div>
 
             <div>
-              <h5 className="font-heading text-[10px] uppercase tracking-widest text-on-surface font-bold mb-6">Resources</h5>
+              <h5 className="font-heading text-[10px] uppercase tracking-widest text-on-surface font-bold mb-6">{t('landing.resources')}</h5>
               <ul className="space-y-4 font-body text-xs text-on-surface-variant">
-                {['Documentation', 'API Status', 'Community', 'Trust Center'].map((l) => (
+                {[t('landing.documentation'), t('landing.apiStatus'), t('landing.community'), t('landing.trustCenter')].map((l) => (
                   <li key={l}><a className="hover:text-electric-blue transition-colors cursor-pointer">{l}</a></li>
                 ))}
               </ul>
             </div>
 
             <div>
-              <h5 className="font-heading text-[10px] uppercase tracking-widest text-on-surface font-bold mb-6">Social</h5>
+              <h5 className="font-heading text-[10px] uppercase tracking-widest text-on-surface font-bold mb-6">{t('landing.social')}</h5>
               <ul className="space-y-4 font-body text-xs text-on-surface-variant">
                 {['X / Twitter', 'LinkedIn', 'GitHub', 'Discord'].map((l) => (
                   <li key={l}><a className="hover:text-electric-blue transition-colors cursor-pointer">{l}</a></li>
@@ -710,9 +719,9 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col md:flex-row items-center justify-between pt-10 border-t border-border-low font-heading text-[10px] text-on-surface-variant tracking-wider uppercase font-semibold">
-            <p>© 2026 AI Smart Team Planner. All rights reserved.</p>
+            <p>{t('landing.copyright')}</p>
             <div className="flex gap-8 mt-6 md:mt-0">
-              {['Privacy Policy', 'Terms of Service', 'Cookie Settings'].map((l) => (
+              {[t('landing.privacyPolicy'), t('landing.termsOfService'), t('landing.cookieSettings')].map((l) => (
                 <a key={l} className="hover:text-on-surface transition-colors cursor-pointer">{l}</a>
               ))}
             </div>

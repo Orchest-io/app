@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import Card from '../ui/Card/Card'
 import type { ProjectListItemDto } from '../../pages/Dashboard/dashboard.types'
 
@@ -12,6 +13,8 @@ interface TeamVelocityCardProps {
  * distributed over a 5×7 grid (35 units = one work-week of output slots).
  */
 export default function TeamVelocityCard({ projects, isLoading }: TeamVelocityCardProps) {
+  const { t } = useTranslation()
+
   const activeProjects = projects.filter(
     (p) =>
       p.status === 'active' ||
@@ -61,7 +64,7 @@ export default function TeamVelocityCard({ projects, isLoading }: TeamVelocityCa
           >
             insights
           </span>
-          Team Velocity
+          {t('dashboard.teamVelocity')}
         </h3>
         <button
           className="p-1.5 rounded-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-glass transition-colors cursor-pointer"
@@ -73,7 +76,7 @@ export default function TeamVelocityCard({ projects, isLoading }: TeamVelocityCa
 
       {/* Subtitle */}
       <p className="text-[11px] text-on-surface-variant/60 mb-4 leading-snug">
-        Progress intensity across active projects — brighter = higher throughput
+        {t('dashboard.velocitySubtitle')}
       </p>
 
       {isLoading ? (
@@ -102,7 +105,7 @@ export default function TeamVelocityCard({ projects, isLoading }: TeamVelocityCa
             ))}
           </div>
           <p className="text-xs text-on-surface-variant/60 text-center leading-relaxed">
-            Velocity data will populate as your projects gain progress.
+            {t('dashboard.velocityNoData')}
           </p>
         </div>
       ) : (
@@ -129,7 +132,7 @@ export default function TeamVelocityCard({ projects, isLoading }: TeamVelocityCa
           <div className="flex items-end justify-between mt-auto">
             <div>
               <p className="text-[10px] text-on-surface-variant uppercase tracking-wider mb-0.5">
-                Peak Hour
+                {t('dashboard.peakHour')}
               </p>
               <p className="font-heading text-[26px] font-bold text-on-surface leading-none">
                 {peakTime}
@@ -138,7 +141,7 @@ export default function TeamVelocityCard({ projects, isLoading }: TeamVelocityCa
             </div>
             <div className="text-right">
               <p className="text-[10px] text-on-surface-variant uppercase tracking-wider mb-0.5">
-                Avg Progress
+                {t('dashboard.avgProgress')}
               </p>
               <p className="font-heading text-[26px] font-bold text-on-surface leading-none">
                 {avgProgress}

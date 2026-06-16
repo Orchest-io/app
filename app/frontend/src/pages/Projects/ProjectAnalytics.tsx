@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import apiClient from '../../api/client';
 import { ProjectAnalyticsDto } from '@orchest/shared';
 import { toast } from 'sonner';
@@ -7,6 +8,7 @@ import { toast } from 'sonner';
 export default function ProjectAnalytics() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [data, setData] = useState<ProjectAnalyticsDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -18,13 +20,13 @@ export default function ProjectAnalytics() {
         setData(res.data);
       } catch (error) {
         console.error('Failed to fetch project analytics', error);
-        toast.error('Failed to load project analytics');
+        toast.error(t('analytics.failedLoad'));
       } finally {
         setIsLoading(false);
       }
     };
     fetchAnalytics();
-  }, [projectId]);
+  }, [projectId, t]);
 
   if (isLoading || !data) {
     return (
@@ -57,10 +59,10 @@ export default function ProjectAnalytics() {
             className="flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-white transition-colors w-fit"
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            Back to Board
+            {t('analytics.backToBoard')}
           </button>
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-white tracking-tight">Project Analytics & Velocity Insights</h1>
+            <h1 className="text-3xl font-bold text-white tracking-tight">{t('analytics.title')}</h1>
           </div>
         </div>
 
@@ -70,7 +72,7 @@ export default function ProjectAnalytics() {
           <div className="bg-surface-container border border-white/5 p-6 rounded-2xl shadow-sm flex flex-col gap-4">
             <div className="flex items-center gap-2 text-on-surface-variant">
               <span className="material-symbols-outlined">track_changes</span>
-              <span className="font-semibold text-sm tracking-wide">Scope Completion</span>
+              <span className="font-semibold text-sm tracking-wide">{t('analytics.scopeCompletion')}</span>
             </div>
             <div>
               <div className="text-4xl font-black text-white mb-1">
@@ -83,7 +85,7 @@ export default function ProjectAnalytics() {
                 />
               </div>
               <div className="text-right text-xs text-on-surface-variant mt-1.5 font-bold">
-                {summary.completionPercentage}% Complete
+                {t('analytics.percentComplete', { percent: summary.completionPercentage })}
               </div>
             </div>
           </div>
@@ -92,13 +94,13 @@ export default function ProjectAnalytics() {
           <div className="bg-surface-container border border-white/5 p-6 rounded-2xl shadow-sm flex flex-col gap-4">
             <div className="flex items-center gap-2 text-on-surface-variant">
               <span className="material-symbols-outlined">schedule</span>
-              <span className="font-semibold text-sm tracking-wide">Logged Labor</span>
+              <span className="font-semibold text-sm tracking-wide">{t('analytics.loggedLabor')}</span>
             </div>
             <div className="mt-auto">
               <div className="text-4xl font-black text-white">
                 {summary.totalActualHours} <span className="text-xl text-on-surface-variant font-medium">hrs</span>
               </div>
-              <div className="text-sm text-on-surface-variant mt-1">Total time spent on tasks</div>
+              <div className="text-sm text-on-surface-variant mt-1">{t('analytics.totalTimeSpent')}</div>
             </div>
           </div>
 
@@ -107,26 +109,26 @@ export default function ProjectAnalytics() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-on-surface-variant">
                 <span className="material-symbols-outlined">account_balance_wallet</span>
-                <span className="font-semibold text-sm tracking-wide">Budget Variance</span>
+                <span className="font-semibold text-sm tracking-wide">{t('analytics.budgetVariance')}</span>
               </div>
               <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                 isBudgetOverrun 
                   ? 'bg-red-500/10 text-red-400 border border-red-500/20' 
                   : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
               }`}>
-                {isBudgetOverrun ? 'OVER BUDGET' : 'ON TRACK'}
+                {isBudgetOverrun ? t('analytics.overBudget') : t('analytics.onTrack')}
               </span>
             </div>
             <div className="flex items-end gap-3 mt-auto">
               <div>
-                <div className="text-xs text-on-surface-variant mb-1 uppercase tracking-wider font-semibold">Actual</div>
+                <div className="text-xs text-on-surface-variant mb-1 uppercase tracking-wider font-semibold">{t('analytics.actual')}</div>
                 <div className={`text-2xl font-black ${isBudgetOverrun ? 'text-red-400' : 'text-emerald-400'}`}>
                   {summary.totalActualHours}h
                 </div>
               </div>
               <div className="text-xl text-white/20 mb-1">/</div>
               <div>
-                <div className="text-xs text-on-surface-variant mb-1 uppercase tracking-wider font-semibold">Estimate</div>
+                <div className="text-xs text-on-surface-variant mb-1 uppercase tracking-wider font-semibold">{t('analytics.estimate')}</div>
                 <div className="text-2xl font-black text-white">
                   {summary.totalEstimatedHours}h
                 </div>
@@ -138,13 +140,13 @@ export default function ProjectAnalytics() {
           <div className="bg-surface-container border border-white/5 p-6 rounded-2xl shadow-sm flex flex-col gap-4">
             <div className="flex items-center gap-2 text-on-surface-variant">
               <span className="material-symbols-outlined">hourglass_empty</span>
-              <span className="font-semibold text-sm tracking-wide">Remaining Effort</span>
+              <span className="font-semibold text-sm tracking-wide">{t('analytics.remainingEffort')}</span>
             </div>
             <div className="mt-auto">
               <div className="text-4xl font-black text-white">
                 {summary.remainingHoursEstimate} <span className="text-xl text-on-surface-variant font-medium">hrs</span>
               </div>
-              <div className="text-sm text-on-surface-variant mt-1">Estimated hours on active tasks</div>
+              <div className="text-sm text-on-surface-variant mt-1">{t('analytics.remainingEffortDesc')}</div>
             </div>
           </div>
         </div>
@@ -156,7 +158,7 @@ export default function ProjectAnalytics() {
           <div className="bg-surface-container border border-white/5 p-6 rounded-2xl flex flex-col">
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-electric-blue">speed</span>
-              Task Velocity Pipeline
+              {t('analytics.velocityPipeline')}
             </h3>
             
             <div className="space-y-6">
@@ -164,9 +166,9 @@ export default function ProjectAnalytics() {
               <div>
                 <div className="flex justify-between text-sm font-medium mb-2">
                   <span className="text-on-surface-variant flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-sm bg-white/20" /> To Do
+                    <div className="w-3 h-3 rounded-sm bg-white/20" /> {t('wizard.statusTodo')}
                   </span>
-                  <span className="text-white font-bold">{statusBreakdown.todoCount} Tasks</span>
+                  <span className="text-white font-bold">{statusBreakdown.todoCount} {t('wizard.tasks')}</span>
                 </div>
                 <div className="w-full bg-surface-container-highest rounded-full h-3">
                   <div 
@@ -180,9 +182,9 @@ export default function ProjectAnalytics() {
               <div>
                 <div className="flex justify-between text-sm font-medium mb-2">
                   <span className="text-on-surface-variant flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-sm bg-amber-500/80" /> In Progress
+                    <div className="w-3 h-3 rounded-sm bg-amber-500/80" /> {t('wizard.statusInProgress')}
                   </span>
-                  <span className="text-white font-bold">{statusBreakdown.inProgressCount} Tasks</span>
+                  <span className="text-white font-bold">{statusBreakdown.inProgressCount} {t('wizard.tasks')}</span>
                 </div>
                 <div className="w-full bg-surface-container-highest rounded-full h-3">
                   <div 
@@ -196,9 +198,9 @@ export default function ProjectAnalytics() {
               <div>
                 <div className="flex justify-between text-sm font-medium mb-2">
                   <span className="text-on-surface-variant flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-sm bg-emerald-500/80" /> Done
+                    <div className="w-3 h-3 rounded-sm bg-emerald-500/80" /> {t('wizard.statusDone')}
                   </span>
-                  <span className="text-white font-bold">{statusBreakdown.doneCount} Tasks</span>
+                  <span className="text-white font-bold">{statusBreakdown.doneCount} {t('wizard.tasks')}</span>
                 </div>
                 <div className="w-full bg-surface-container-highest rounded-full h-3">
                   <div 
@@ -214,12 +216,12 @@ export default function ProjectAnalytics() {
           <div className="bg-surface-container border border-white/5 p-6 rounded-2xl flex flex-col">
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-electric-blue">groups</span>
-              Team Workload & Allocation
+              {t('analytics.teamWorkload')}
             </h3>
             
             {teamWorkload.length === 0 ? (
               <div className="flex items-center justify-center h-48 text-on-surface-variant italic">
-                No active task assignments found.
+                {t('analytics.noAssignments')}
               </div>
             ) : (
               <div className="flex flex-col gap-4 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
@@ -235,16 +237,16 @@ export default function ProjectAnalytics() {
                       )}
                       <div>
                         <div className="text-sm font-bold text-white">{member.name}</div>
-                        <div className="text-xs text-on-surface-variant mt-0.5">Active Assignment</div>
+                        <div className="text-xs text-on-surface-variant mt-0.5">{t('analytics.activeAssignment')}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-6 text-right">
                       <div>
-                        <div className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Hours</div>
+                        <div className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">{t('analytics.hours')}</div>
                         <div className="text-base font-black text-white">{member.hoursLogged}h</div>
                       </div>
                       <div>
-                        <div className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Points</div>
+                        <div className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">{t('analytics.points')}</div>
                         <div className="text-base font-black text-electric-blue">{member.pointsAssigned} SP</div>
                       </div>
                     </div>
@@ -259,24 +261,24 @@ export default function ProjectAnalytics() {
         <div className="bg-surface-container border border-white/5 p-6 rounded-2xl">
           <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
             <span className="material-symbols-outlined text-amber-500">warning</span>
-            Budget Overruns & High-Risk Tasks
+            {t('analytics.riskTasks')}
           </h3>
           
           {timeBleedTasks.length === 0 ? (
             <div className="text-center py-12 border-2 border-dashed border-white/10 rounded-xl">
               <span className="material-symbols-outlined text-4xl text-emerald-500 mb-3 block">verified</span>
-              <p className="text-white font-medium">All clear!</p>
-              <p className="text-sm text-on-surface-variant mt-1">No tasks have exceeded their estimated hours.</p>
+              <p className="text-white font-medium">{t('analytics.allClear')}</p>
+              <p className="text-sm text-on-surface-variant mt-1">{t('analytics.noTasksExceeded')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-white/10">
-                    <th className="py-4 px-4 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Task Title</th>
-                    <th className="py-4 px-4 text-xs font-semibold text-on-surface-variant uppercase tracking-wider text-right">Estimated</th>
-                    <th className="py-4 px-4 text-xs font-semibold text-on-surface-variant uppercase tracking-wider text-right">Actual</th>
-                    <th className="py-4 px-4 text-xs font-semibold text-on-surface-variant uppercase tracking-wider text-right">Overrun Variance</th>
+                    <th className="py-4 px-4 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t('analytics.taskTitle')}</th>
+                    <th className="py-4 px-4 text-xs font-semibold text-on-surface-variant uppercase tracking-wider text-right">{t('analytics.estimated')}</th>
+                    <th className="py-4 px-4 text-xs font-semibold text-on-surface-variant uppercase tracking-wider text-right">{t('analytics.actualCol')}</th>
+                    <th className="py-4 px-4 text-xs font-semibold text-on-surface-variant uppercase tracking-wider text-right">{t('analytics.overrunVariance')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">

@@ -1,4 +1,5 @@
 import { Draggable } from '@hello-pangea/dnd'
+import { useTranslation } from 'react-i18next'
 import type { Task, TaskPriority } from '../types/kanban.types'
 
 const MILESTONE_COLORS = [
@@ -15,6 +16,8 @@ interface KanbanCardProps {
 }
 
 export default function KanbanCard({ task, index, onClick, milestones = [], milestoneColors = MILESTONE_COLORS }: KanbanCardProps) {
+  const { t } = useTranslation()
+
   const getPriorityColor = (priority: TaskPriority) => {
     switch (priority) {
       case 'high':
@@ -23,6 +26,14 @@ export default function KanbanCard({ task, index, onClick, milestones = [], mile
         return 'text-amber-400 bg-amber-400/10 border-amber-400/20'
       default:
         return 'text-blue-400 bg-blue-400/10 border-blue-400/20'
+    }
+  }
+
+  const getPriorityLabel = (priority: TaskPriority) => {
+    switch (priority) {
+      case 'high': return t('projects.priorityHigh')
+      case 'medium': return t('projects.priorityMedium')
+      default: return t('projects.priorityLow')
     }
   }
 
@@ -69,7 +80,7 @@ export default function KanbanCard({ task, index, onClick, milestones = [], mile
           {/* Card Badges row */}
           <div className="flex flex-wrap gap-2 items-center">
             <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${getPriorityColor(task.priority)}`}>
-              {task.priority}
+              {getPriorityLabel(task.priority)}
             </span>
 
             {/* Milestone badge */}
