@@ -223,12 +223,11 @@ export default function LandingPage() {
       {/* ── Fixed Nav ─────────────────────────────────────────────── */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 md:px-10 h-20 backdrop-blur-md border-b border-border-low bg-bg-deep/75">
         <div className="flex items-center gap-2 cursor-pointer select-none" onClick={() => navigate('/')}>
-          <span className="material-symbols-outlined text-electric-blue text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-            tactic
-          </span>
-          <span className="font-heading text-lg md:text-xl font-bold text-on-surface tracking-tight">
-            {t('landing.appName')}
-          </span>
+          <img 
+            src="/orkest-logo.png" 
+            alt="Orkest" 
+            className="h-16 w-auto"
+          />
         </div>
 
         <div className="hidden md:flex items-center gap-8 font-heading text-xs uppercase tracking-widest font-semibold">
@@ -668,8 +667,11 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-20">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-6">
-                <span className="material-symbols-outlined text-electric-blue text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>tactic</span>
-                <span className="font-heading text-lg font-bold text-on-surface">{t('landing.appName')}</span>
+                <img 
+                  src="/orkest-logo.png" 
+                  alt="Orkest" 
+                  className="h-10 w-auto"
+                />
               </div>
               <p className="font-body text-xs text-on-surface-variant max-w-xs leading-relaxed">
                 {t('landing.footerDesc')}

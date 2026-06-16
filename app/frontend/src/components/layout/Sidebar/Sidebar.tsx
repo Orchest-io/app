@@ -38,28 +38,29 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen bg-surface-container-low border-r border-border-low flex flex-col p-4 z-50 transition-[width] duration-300 overflow-hidden ${
+      className={`fixed top-0 h-screen bg-surface-container-low flex flex-col p-4 z-50 transition-[width] duration-300 overflow-hidden ${
         collapsed ? 'w-sidebar-c items-center' : 'w-sidebar-w'
-      }`}
+      } ltr:left-0 ltr:border-r rtl:right-0 rtl:border-l border-border-low`}
     >
       {/* Logo */}
       <div
         className="flex items-center gap-3 px-2 mb-8 w-full cursor-pointer hover:opacity-90 select-none"
         onClick={() => navigate('/')}
       >
-        <div className="w-10 h-10 rounded-md bg-electric-blue flex items-center justify-center text-white shadow-[0_0_15px_rgba(0,123,255,0.4)] shrink-0">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
-            tactic
-          </span>
-        </div>
-        {!collapsed && (
-          <div>
-            <h1 className="font-heading text-lg font-bold leading-none text-on-surface">Orchist</h1>
-            <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mt-0.5">{t('sidebar.logoSubtitle')}</p>
-          </div>
+        {collapsed ? (
+          <img 
+            src="/orkest-icon.png" 
+            alt="Orkest" 
+            className="w-22 h-22 shrink-0"
+          />
+        ) : (
+          <img 
+            src="/orkest-logo.png" 
+            alt="Orkest - Intelligent Team Orchestration Platform" 
+            className="h-18 w-auto"
+          /> 
         )}
       </div>
-
       {/* New Project button */}
       <button
         className={`w-full bg-gradient-to-br from-electric-blue to-primary-container text-white rounded-md font-semibold text-sm flex items-center justify-center gap-2 mb-6 shadow-[0_4px_15px_rgba(0,123,255,0.2)] active:scale-95 cursor-pointer ${

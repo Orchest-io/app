@@ -36,20 +36,22 @@ export default function Header({ collapsed = false }: HeaderProps) {
 
   return (
     <header
-      className="fixed top-0 right-0 h-header-h bg-surface/80 backdrop-blur-md border-b border-border-low flex items-center justify-between px-6 z-40 transition-[width] duration-300"
-      style={{ width: `calc(100% - ${collapsed ? 'var(--spacing-sidebar-c)' : 'var(--spacing-sidebar-w)'})` }}
+      className="fixed top-0 h-header-h bg-surface/80 backdrop-blur-md border-b border-border-low flex items-center justify-between px-6 z-40 transition-all duration-300 ltr:right-0 rtl:left-0"
+      style={{
+        width: `calc(100% - ${collapsed ? 'var(--spacing-sidebar-c)' : 'var(--spacing-sidebar-w)'})`
+      }}
     >
       {/* Search */}
       <div className="relative w-full max-w-[420px]">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant material-symbols-outlined">
+        <span className="absolute top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant material-symbols-outlined ltr:left-3 rtl:right-3">
           search
         </span>
         <input
-          className="w-full py-2 pl-10 pr-[60px] bg-surface-container-low border border-border-low rounded-md text-sm text-on-surface transition-colors duration-150 placeholder:text-on-surface-variant/60 focus:border-electric-blue/50 focus:shadow-[0_0_0_2px_rgba(0,123,255,0.15)] outline-none"
+          className="w-full py-2 bg-surface-container-low border border-border-low rounded-md text-sm text-on-surface transition-colors duration-150 placeholder:text-on-surface-variant/60 focus:border-electric-blue/50 focus:shadow-[0_0_0_2px_rgba(0,123,255,0.15)] outline-none ltr:pl-10 ltr:pr-[60px] rtl:pr-10 rtl:pl-[60px]"
           placeholder="Search tasks, teams, or AI insights..."
           type="text"
         />
-        <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-on-surface-variant bg-surface-container py-0.5 px-1.5 rounded border border-border-low font-mono">
+        <kbd className="absolute top-1/2 -translate-y-1/2 text-[11px] text-on-surface-variant bg-surface-container py-0.5 px-1.5 rounded border border-border-low font-mono ltr:right-2.5 rtl:left-2.5">
           ⌘K
         </kbd>
       </div>
@@ -104,7 +106,7 @@ export default function Header({ collapsed = false }: HeaderProps) {
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-11 w-52 bg-surface-container-low border border-border-low rounded-xl shadow-2xl overflow-hidden z-50">
+            <div className="absolute top-11 w-52 bg-surface-container-low border border-border-low rounded-xl shadow-2xl overflow-hidden z-50 ltr:right-0 rtl:left-0">
               {/* User info */}
               <div className="px-4 py-3 border-b border-border-low">
                 <p className="text-sm font-heading font-semibold text-on-surface truncate">

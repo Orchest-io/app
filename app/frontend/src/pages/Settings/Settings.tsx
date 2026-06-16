@@ -10,26 +10,23 @@ import { useUploadAvatar } from '../../hooks/useAttachments'
 
 // ─── Section IDs ──────────────────────────────────────────────────
 type SectionId =
-  | 'profile'
-  | 'workspace'
-  | 'notifications'
-  | 'ai'
-  | 'security'
-  | 'billing'
-  | 'activity'
+	| "profile"
+	| "workspace"
+	| "notifications"
+	| "ai"
+	| "security"
+	| "billing"
+	| "activity";
 
 const NAV_ITEMS: { id: SectionId; label: string; icon: string }[] = [
-  { id: 'profile',       label: 'Profile',            icon: 'person'            },
-  { id: 'workspace',     label: 'Workspace',          icon: 'table_chart'       },
-  { id: 'notifications', label: 'Notifications',      icon: 'notifications'     },
-  { id: 'ai',            label: 'AI Preferences',     icon: 'auto_awesome'      },
-  { id: 'security',      label: 'Security & Sessions',icon: 'theme_key_source'  }, // changed to match standard icons or keep original
-  { id: 'billing',       label: 'Billing',            icon: 'credit_card'       },
-  { id: 'activity',      label: 'Activity Logs',      icon: 'history'           },
-]
-
-// Note: keep original icons for consistency
-NAV_ITEMS[4].icon = 'shield'
+	{ id: "profile", label: "Profile", icon: "person" },
+	{ id: "workspace", label: "Workspace", icon: "table_chart" },
+	{ id: "notifications", label: "Notifications", icon: "notifications" },
+	{ id: "ai", label: "AI Preferences", icon: "auto_awesome" },
+	{ id: "security", label: "Security & Sessions", icon: "shield" },
+	{ id: "billing", label: "Billing", icon: "credit_card" },
+	{ id: "activity", label: "Activity Logs", icon: "history" },
+];
 
 // ─── Shared section header ─────────────────────────────────────────
 function SectionHeader({ title, desc }: { title: string; desc: string }) {
@@ -211,26 +208,26 @@ function WorkspaceSection() {
           ]}
         />
 
-        <Select
-          label={t('settings.language')}
-          value={settings?.language ?? 'en'}
-          onChange={(e) => {
-            const newLang = e.target.value
-            i18n.changeLanguage(newLang)
-            localStorage.setItem('language', newLang)
-            updateSettings.mutate(
-              { language: newLang },
-              { onSuccess: () => toast.success(t('settings.languageUpdated')) },
-            )
-          }}
-          options={[
-            { value: 'en', label: t('settings.langEN') },
-            { value: 'ar', label: t('settings.langAR') },
-          ]}
-        />
-      </Card>
-    </div>
-  )
+				<Select
+					label={t("settings.language")}
+					value={settings?.language ?? "en"}
+					onChange={(e) => {
+						const newLang = e.target.value;
+						i18n.changeLanguage(newLang);
+						localStorage.setItem("language", newLang);
+						updateSettings.mutate(
+							{ language: newLang },
+							{ onSuccess: () => toast.success(t("settings.languageUpdated")) },
+						);
+					}}
+					options={[
+						{ value: "en", label: t("settings.langEN") },
+						{ value: "ar", label: t("settings.langAR") },
+					]}
+				/>
+			</Card>
+		</div>
+	);
 }
 
 // ─── Notifications Section ────────────────────────────────────────
@@ -754,85 +751,90 @@ function SecuritySection() {
 // ─── Billing Section ──────────────────────────────────────────────
 function BillingSection() {
   const { t } = useTranslation()
+  
+  // Static for now - will be dynamic when subscription system is ready
+  const isPro = false
+  const isLoading = false
+
+  const FREE_FEATURES = [
+    t("settings.freeMembers"),
+    t("settings.freeProjects"),
+    t("settings.freeAI"),
+    t("settings.freeSupport"),
+  ]
+
   return (
     <div>
       <SectionHeader title={t('settings.billingTitle')} desc={t('settings.billingDesc')} />
 
-      {/* Current plan */}
-      <Card className="mb-6 relative overflow-hidden border-electric-blue/25 bg-electric-blue/5">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-electric-blue/10 blur-[60px] pointer-events-none" />
+      {/* Current plan card */}
+      <Card className="mb-6 relative overflow-hidden border-border-low">
         <div className="flex items-start justify-between">
           <div>
-            <span className="px-2.5 py-0.5 rounded-full bg-electric-blue/20 text-electric-blue text-[10px] font-heading font-bold uppercase tracking-wider">
-              {t('settings.currentPlan')}
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-heading font-bold uppercase tracking-wider bg-surface-container-high text-on-surface-variant">
+              {t("settings.currentPlan")}
             </span>
-            <h3 className="font-heading text-2xl font-extrabold text-on-surface mt-3">{t('settings.proPlan')}</h3>
-            <p className="text-xs text-on-surface-variant mt-1">{t('settings.proPlanPrice')}</p>
+            <h3 className="font-heading text-2xl font-extrabold text-on-surface mt-3">
+              {t("settings.freePlan")}
+            </h3>
+            <p className="text-xs text-on-surface-variant mt-1">
+              {t("settings.upgradePrompt")}
+            </p>
             <ul className="mt-4 space-y-1.5">
-              {[
-                t('settings.featureMembers'),
-                t('settings.featureProjects'),
-                t('settings.featureAI'),
-                t('settings.featureRisk'),
-              ].map((f) => (
-                <li key={f} className="flex items-center gap-2 text-xs text-on-surface-variant">
-                  <span className="material-symbols-outlined text-electric-blue text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+              {FREE_FEATURES.map((f) => (
+                <li
+                  key={f}
+                  className="flex items-center gap-2 text-xs text-on-surface-variant"
+                >
+                  <span
+                    className="material-symbols-outlined text-[14px] text-on-surface-variant"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    circle
+                  </span>
                   {f}
                 </li>
               ))}
             </ul>
           </div>
-          <Button variant="secondary" onClick={() => toast.info(t('settings.managePlanSoon'))}>
-            {t('settings.managePlan')}
-          </Button>
-        </div>
-      </Card>
 
-      {/* Payment method */}
-      <Card className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-heading text-base font-semibold text-on-surface">{t('settings.paymentMethod')}</h3>
-          <Button size="sm" variant="secondary" onClick={() => toast.info(t('settings.paymentUpdateSoon'))}>
-            {t('settings.update')}
-          </Button>
-        </div>
-        <div className="flex items-center gap-4 p-4 rounded-lg bg-surface-container-low border border-border-low">
-          <div className="w-10 h-7 rounded bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center">
-            <span className="text-white text-[9px] font-heading font-bold">VISA</span>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-on-surface">•••• •••• •••• 4242</p>
-            <p className="text-xs text-on-surface-variant mt-0.5">{t('settings.expires')}</p>
+          <div className="shrink-0 ml-4">
+            <Button onClick={() => toast.info(t("settings.comingSoon"))}>
+              {t("settings.upgradeToPro")}
+            </Button>
           </div>
         </div>
       </Card>
 
-      {/* Invoices */}
-      <Card>
-        <h3 className="font-heading text-base font-semibold text-on-surface mb-4">{t('settings.recentInvoices')}</h3>
-        <div className="flex flex-col divide-y divide-border-low">
-          {[
-            { date: 'Jun 3, 2026', amount: '$29.00', status: t('settings.paid') },
-            { date: 'May 3, 2026', amount: '$29.00', status: t('settings.paid') },
-            { date: 'Apr 3, 2026', amount: '$29.00', status: t('settings.paid') },
-          ].map(({ date, amount, status }) => (
-            <div key={date} className="flex items-center justify-between py-3.5">
-              <div>
-                <p className="text-sm text-on-surface font-medium">{date}</p>
-                <p className="text-xs text-on-surface-variant mt-0.5">{amount}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-heading font-bold">
-                  {status}
-                </span>
-                <button className="text-electric-blue text-xs hover:underline cursor-pointer" onClick={() => toast.info(t('settings.invoiceDownloadSoon'))}>
-                  {t('settings.download')}
-                </button>
-              </div>
+      {/* Upgrade prompt */}
+      {!isPro && !isLoading && (
+        <Card className="mb-6 bg-peri-purple/5 border-peri-purple/20">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-peri-purple/15 flex items-center justify-center text-peri-purple shrink-0">
+              <span
+                className="material-symbols-outlined text-[22px]"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                workspace_premium
+              </span>
             </div>
-          ))}
-        </div>
-      </Card>
+            <div className="flex-1">
+              <p className="font-heading text-sm font-semibold text-on-surface">
+                {t("settings.unlockPro")}
+              </p>
+              <p className="text-xs text-on-surface-variant mt-0.5">
+                {t("settings.unlockProDesc")}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => toast.info(t("settings.comingSoon"))}
+            >
+              {t("settings.upgradePrice")}
+            </Button>
+          </div>
+        </Card>
+      )}
     </div>
   )
 }
@@ -931,14 +933,14 @@ function ActivitySection() {
 
 // ─── SECTION MAP ──────────────────────────────────────────────────
 const SECTION_MAP: Record<SectionId, React.ReactNode> = {
-  profile:       <ProfileSection />,
-  workspace:     <WorkspaceSection />,
-  notifications: <NotificationsSection />,
-  ai:            <AiSection />,
-  security:      <SecuritySection />,
-  billing:       <BillingSection />,
-  activity:      <ActivitySection />,
-}
+	profile: <ProfileSection />,
+	workspace: <WorkspaceSection />,
+	notifications: <NotificationsSection />,
+	ai: <AiSection />,
+	security: <SecuritySection />,
+	billing: <BillingSection />,
+	activity: <ActivitySection />,
+};
 
 // ─── Main Settings Page ───────────────────────────────────────────
 export default function Settings() {

@@ -131,20 +131,13 @@ function AuthField({
 }
 
 function AuthLogo() {
-  const { t } = useTranslation()
   return (
     <div className="flex items-center gap-4">
-      <div className="flex h-[42px] w-[42px] items-center justify-center rounded-[10px] bg-[#4b8fff] text-[#05101f] shadow-[0_12px_35px_rgba(0,123,255,0.22)]">
-        <span
-          className="material-symbols-outlined text-[24px]"
-          style={{ fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" }}
-        >
-          conversion_path
-        </span>
-      </div>
-      <h1 className="font-heading text-[24px] font-bold tracking-[-0.03em] text-on-surface">
-        {t('auth.appName')}
-      </h1>
+      <img 
+        src="/orkest-logo.png" 
+        alt="Orkest" 
+        className="h-14 w-auto"
+      />
     </div>
   )
 }
