@@ -851,6 +851,7 @@
 		"overrunVariance": "الانحراف عن التقدير"
 	},
 	"kanban": {
+		"allMembers":"جميع الاعضاء",
 		"addTaskToCol": "إضافة مهمة إلى العمود",
 		"noTasksHere": "لا توجد مهام هنا",
 		"createOne": "أنشئ واحدة",

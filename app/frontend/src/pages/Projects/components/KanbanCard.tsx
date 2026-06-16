@@ -58,7 +58,7 @@ export default function KanbanCard({ task, index, onClick, milestones = [], mile
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={() => onClick(task)}
-          className={`bg-surface-container-low border hover:border-white/20 rounded-xl p-4 transition-all duration-200 cursor-pointer group relative flex flex-col gap-3 shadow-md overflow-hidden ${
+          className={`bg-surface-container-low border hover:border-white/20 rounded-xl p-4 transition-all duration-200 cursor-pointer group relative flex flex-col gap-3 shadow-md overflow-hidden h-[160px] shrink-0 ${
             snapshot.isDragging
               ? 'border-electric-blue/40 shadow-xl bg-surface-container-high scale-[1.02]'
               : 'border-white/5'

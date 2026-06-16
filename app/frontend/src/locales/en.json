@@ -824,6 +824,7 @@
 		"overrunVariance": "Overrun Variance"
 	},
 	"kanban": {
+		"allMembers":"All Memebers",
 		"addTaskToCol": "Add task to column",
 		"noTasksHere": "No tasks here",
 		"createOne": "Create one",

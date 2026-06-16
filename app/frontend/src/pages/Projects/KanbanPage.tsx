@@ -71,6 +71,7 @@ export default function KanbanPage() {
 	const [filters, setFilters] = useState<FilterState>({
 		searchQuery: "",
 		priority: "all",
+		assigneeId: null,
 	});
 
 	// Add Task Modal State
@@ -274,7 +275,10 @@ export default function KanbanPage() {
 					.includes(filters.searchQuery.toLowerCase());
 				const matchesPriority =
 					filters.priority === "all" || task.priority === filters.priority;
-				return matchesSearch && matchesPriority;
+				const matchesAssignee =
+					filters.assigneeId === null ||
+					task.assignees.some((a) => a.id === filters.assigneeId);
+				return matchesSearch && matchesPriority && matchesAssignee;
 			});
 	});
 
@@ -447,7 +451,7 @@ export default function KanbanPage() {
 
 			{/* Filter Toolbar & Analytics */}
 			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-				<TaskFilters filters={filters} onFiltersChange={setFilters} />
+				<TaskFilters filters={filters} onFiltersChange={setFilters} projectMembers={projectMembers} />
 
 				<button
 					onClick={() => navigate(`/projects/${projectId}/analytics`)}
