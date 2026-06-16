@@ -30,8 +30,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
       />
       <Header collapsed={collapsed} />
       <main
-        className="pt-16 p-6 min-h-[calc(100vh-64px)] transition-[margin-left] duration-300"
-        style={{ marginLeft: collapsed ? 'var(--spacing-sidebar-c)' : 'var(--spacing-sidebar-w)' }}
+        className="pt-16 p-6 min-h-[calc(100vh-64px)] transition-all duration-300 ltr:ml-[var(--spacing-sidebar-w)] rtl:mr-[var(--spacing-sidebar-w)]"
+        style={{
+          marginInlineStart: collapsed ? 'var(--spacing-sidebar-c)' : 'var(--spacing-sidebar-w)'
+        }}
       >
         {children}
       </main>

@@ -4,10 +4,12 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AiService } from './ai.service';
 import { AiJobService } from './services/ai-job.service';
 import { AiUsageService } from './services/ai-usage.service';
+import { AiTaskGeneratorService } from './services/ai-task-generator.service';
 import {
   GenerateProjectPlanDto,
   AcceptPlanDto,
 } from '@orchest/shared';
+import { GenerateTaskRequestDto } from './dto/generate-task.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -23,6 +25,7 @@ export class AiController {
     private readonly aiService: AiService,
     private readonly aiJobService: AiJobService,
     private readonly aiUsageService: AiUsageService,
+    private readonly aiTaskGeneratorService: AiTaskGeneratorService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -40,6 +43,83 @@ export class AiController {
     @Body() dto: GenerateProjectPlanDto,
   ) {
     return await this.aiService.startProjectPlanGeneration(user.id, dto);
+  }
+
+  // ========================================
+  // AI TASK GENERATION ENDPOINT
+  // ========================================
+
+  /**
+   * POST /ai/generate-task
+   * Generate a single AI-powered task from a natural-language description
+   */
+  @Post('generate-task')
+  async generateTask(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: GenerateTaskRequestDto,
+  ) {
+    // 1. Check monthly usage limit
+    const limitCheck = await this.aiUsageService.checkMonthlyLimit(user.id, 'task_generation');
+
+    if (!limitCheck.canUse) {
+      throw new HttpException(
+        {
+          code: 'AI_LIMIT_REACHED',
+          tier: limitCheck.tier,
+          used: limitCheck.used,
+          limit: limitCheck.limit,
+        },
+        403,
+      );
+    }
+
+    // 2. Delegate to generator service, handle errors
+    let tokensUsed = 0;
+    let modelUsed = 'gpt-4o-mini';
+
+    try {
+      const result = await this.aiTaskGeneratorService.generateTask(user.id, dto);
+      tokensUsed = result.tokensUsed;
+      modelUsed = result.modelUsed;
+
+      // 3. Log usage on success
+      await this.aiUsageService.logUsage(user.id, 'task_generation', tokensUsed, modelUsed);
+
+      return result.task;
+    } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      if (error instanceof SyntaxError) {
+        // Log usage even on parse failure (Requirement 10.2)
+        await this.aiUsageService.logUsage(user.id, 'task_generation', tokensUsed, modelUsed);
+        throw new HttpException(
+          'AI returned an unexpected response. Please refine your description and try again.',
+          502,
+        );
+      }
+
+      // Network / provider errors (ECONNREFUSED, ETIMEDOUT, fetch failures, etc.)
+      if (
+        error?.code === 'ECONNREFUSED' ||
+        error?.code === 'ETIMEDOUT' ||
+        error?.code === 'ENOTFOUND' ||
+        error?.status === 503 ||
+        error?.status === 429
+      ) {
+        throw new HttpException(
+          'AI service is temporarily unavailable. Please try again later.',
+          503,
+        );
+      }
+
+      Logger.error(`generateTask failed for user ${user.id}: ${error.message}`, error.stack, 'AiController');
+      throw new HttpException(
+        'An unexpected error occurred while generating the task. Please try again later.',
+        500,
+      );
+    }
   }
 
   /**

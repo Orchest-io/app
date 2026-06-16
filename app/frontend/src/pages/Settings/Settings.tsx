@@ -31,8 +31,8 @@ type SectionId =
 	| "ai"
 	| "security"
 	| "billing"
-	| "api"
 	| "activity";
+// | "api"
 
 const NAV_ITEMS: { id: SectionId; label: string; icon: string }[] = [
 	{ id: "profile", label: "Profile", icon: "person" },
@@ -41,8 +41,8 @@ const NAV_ITEMS: { id: SectionId; label: string; icon: string }[] = [
 	{ id: "ai", label: "AI Preferences", icon: "auto_awesome" },
 	{ id: "security", label: "Security & Sessions", icon: "shield" },
 	{ id: "billing", label: "Billing", icon: "credit_card" },
-	{ id: "api", label: "API Integrations", icon: "data_object" },
 	{ id: "activity", label: "Activity Logs", icon: "history" },
+	// { id: "api", label: "API Integrations", icon: "data_object" },
 ];
 
 // ─── Shared section header ─────────────────────────────────────────
@@ -261,9 +261,6 @@ function WorkspaceSection() {
 					options={[
 						{ value: "en", label: t("settings.langEN") },
 						{ value: "ar", label: t("settings.langAR") },
-						{ value: "fr", label: t("settings.langFR") },
-						{ value: "de", label: t("settings.langDE") },
-						{ value: "es", label: t("settings.langES") },
 					]}
 				/>
 			</Card>
@@ -1148,116 +1145,116 @@ function BillingSection() {
 }
 
 // ─── API Integrations Section ─────────────────────────────────────
-function ApiSection() {
-	const INTEGRATIONS = [
-		{
-			name: "GitHub",
-			icon: "code",
-			connected: true,
-			desc: "Sync repositories and pull requests.",
-		},
-		{
-			name: "Jira",
-			icon: "view_kanban",
-			connected: false,
-			desc: "Import and sync Jira issues.",
-		},
-		{
-			name: "Slack",
-			icon: "forum",
-			connected: true,
-			desc: "Send notifications to Slack channels.",
-		},
-		{
-			name: "Notion",
-			icon: "article",
-			connected: false,
-			desc: "Link Notion pages to tasks.",
-		},
-	];
+// function ApiSection() {
+// 	const INTEGRATIONS = [
+// 		{
+// 			name: "GitHub",
+// 			icon: "code",
+// 			connected: true,
+// 			desc: "Sync repositories and pull requests.",
+// 		},
+// 		{
+// 			name: "Jira",
+// 			icon: "view_kanban",
+// 			connected: false,
+// 			desc: "Import and sync Jira issues.",
+// 		},
+// 		{
+// 			name: "Slack",
+// 			icon: "forum",
+// 			connected: true,
+// 			desc: "Send notifications to Slack channels.",
+// 		},
+// 		{
+// 			name: "Notion",
+// 			icon: "article",
+// 			connected: false,
+// 			desc: "Link Notion pages to tasks.",
+// 		},
+// 	];
 
-	return (
-		<div>
-			<SectionHeader
-				title="API Integrations"
-				desc="Connect third-party tools to your Orchist workspace."
-			/>
+// 	return (
+// 		<div>
+// 			<SectionHeader
+// 				title="API Integrations"
+// 				desc="Connect third-party tools to your Orchist workspace."
+// 			/>
 
-			{/* API Key */}
-			<Card className="mb-6">
-				<h3 className="font-heading text-base font-semibold text-on-surface mb-4">
-					Personal API Key
-				</h3>
-				<div className="flex items-center gap-3">
-					<div className="flex-1 px-4 py-2.5 bg-surface-container-low border border-border-low rounded-md font-mono text-sm text-on-surface-variant truncate">
-						sk-orchist-••••••••••••••••••••••••••••
-					</div>
-					<Button
-						size="sm"
-						variant="secondary"
-						onClick={() => toast.success("API key copied!")}
-					>
-						<span className="material-symbols-outlined text-[16px]">
-							content_copy
-						</span>
-						Copy
-					</Button>
-					<Button
-						size="sm"
-						variant="secondary"
-						onClick={() => toast.info("API key regenerated.")}
-					>
-						<span className="material-symbols-outlined text-[16px]">
-							refresh
-						</span>
-						Regenerate
-					</Button>
-				</div>
-				<p className="text-xs text-on-surface-variant mt-3">
-					Keep this key secret. It grants full API access to your workspace.
-				</p>
-			</Card>
+// 			{/* API Key */}
+// 			<Card className="mb-6">
+// 				<h3 className="font-heading text-base font-semibold text-on-surface mb-4">
+// 					Personal API Key
+// 				</h3>
+// 				<div className="flex items-center gap-3">
+// 					<div className="flex-1 px-4 py-2.5 bg-surface-container-low border border-border-low rounded-md font-mono text-sm text-on-surface-variant truncate">
+// 						sk-orchist-••••••••••••••••••••••••••••
+// 					</div>
+// 					<Button
+// 						size="sm"
+// 						variant="secondary"
+// 						onClick={() => toast.success("API key copied!")}
+// 					>
+// 						<span className="material-symbols-outlined text-[16px]">
+// 							content_copy
+// 						</span>
+// 						Copy
+// 					</Button>
+// 					<Button
+// 						size="sm"
+// 						variant="secondary"
+// 						onClick={() => toast.info("API key regenerated.")}
+// 					>
+// 						<span className="material-symbols-outlined text-[16px]">
+// 							refresh
+// 						</span>
+// 						Regenerate
+// 					</Button>
+// 				</div>
+// 				<p className="text-xs text-on-surface-variant mt-3">
+// 					Keep this key secret. It grants full API access to your workspace.
+// 				</p>
+// 			</Card>
 
-			{/* Connected apps */}
-			<Card>
-				<h3 className="font-heading text-base font-semibold text-on-surface mb-5">
-					Connected Apps
-				</h3>
-				<div className="flex flex-col gap-4">
-					{INTEGRATIONS.map(({ name, icon, connected, desc }) => (
-						<div
-							key={name}
-							className="flex items-center justify-between p-4 rounded-lg bg-surface-container-low border border-border-low"
-						>
-							<div className="flex items-center gap-4">
-								<div className="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant">
-									<span className="material-symbols-outlined text-[20px]">
-										{icon}
-									</span>
-								</div>
-								<div>
-									<p className="font-heading text-sm font-semibold text-on-surface">
-										{name}
-									</p>
-									<p className="text-xs text-on-surface-variant mt-0.5">
-										{desc}
-									</p>
-								</div>
-							</div>
-							<Button
-								size="sm"
-								variant={connected ? "secondary" : "primary"}
-								onClick={() => toast.info(`${name} integration coming soon.`)}
-							>
-								{connected ? "Disconnect" : "Connect"}
-							</Button>
-						</div>
-					))}
-				</div>
-			</Card>
-		</div>
-	);
-}
+// 			{/* Connected apps */}
+// 			<Card>
+// 				<h3 className="font-heading text-base font-semibold text-on-surface mb-5">
+// 					Connected Apps
+// 				</h3>
+// 				<div className="flex flex-col gap-4">
+// 					{INTEGRATIONS.map(({ name, icon, connected, desc }) => (
+// 						<div
+// 							key={name}
+// 							className="flex items-center justify-between p-4 rounded-lg bg-surface-container-low border border-border-low"
+// 						>
+// 							<div className="flex items-center gap-4">
+// 								<div className="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+// 									<span className="material-symbols-outlined text-[20px]">
+// 										{icon}
+// 									</span>
+// 								</div>
+// 								<div>
+// 									<p className="font-heading text-sm font-semibold text-on-surface">
+// 										{name}
+// 									</p>
+// 									<p className="text-xs text-on-surface-variant mt-0.5">
+// 										{desc}
+// 									</p>
+// 								</div>
+// 							</div>
+// 							<Button
+// 								size="sm"
+// 								variant={connected ? "secondary" : "primary"}
+// 								onClick={() => toast.info(`${name} integration coming soon.`)}
+// 							>
+// 								{connected ? "Disconnect" : "Connect"}
+// 							</Button>
+// 						</div>
+// 					))}
+// 				</div>
+// 			</Card>
+// 		</div>
+// 	);
+// }
 
 // ─── Activity Logs Section ────────────────────────────────────────
 function ActivitySection() {
@@ -1394,7 +1391,7 @@ const SECTION_MAP: Record<SectionId, React.ReactNode> = {
 	ai: <AiSection />,
 	security: <SecuritySection />,
 	billing: <BillingSection />,
-	api: <ApiSection />,
+	// api: <ApiSection />,
 	activity: <ActivitySection />,
 };
 

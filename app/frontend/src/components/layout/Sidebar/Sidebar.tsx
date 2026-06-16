@@ -136,4 +136,3 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
     </aside>
   )
 }
-
