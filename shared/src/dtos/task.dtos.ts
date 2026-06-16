@@ -51,6 +51,10 @@ export class CreateTaskDto {
   @IsDateString()
   @IsOptional()
   dueDate?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isAiSuggested?: boolean;
 }
 
 export class UpdateTaskDto {

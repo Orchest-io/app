@@ -20,6 +20,7 @@ import { AiAgentsService } from './services/ai-agents.service';
 import { AiPipelineService } from './services/ai-pipeline.service';
 import { AiRagService } from './services/ai-rag.service';
 import { AiAssistantService } from './services/ai-assistant.service';
+import { AiTaskGeneratorService } from './services/ai-task-generator.service';
 
 // Import dependencies
 import { UsersModule } from '../users/users.module';
@@ -53,6 +54,7 @@ import { TasksModule } from '../tasks/tasks.module';
     AiPipelineService,
     AiRagService,
     AiAssistantService,
+    AiTaskGeneratorService,
   ],
   exports: [AiService, AiRagService, AiUsageService],
 })
