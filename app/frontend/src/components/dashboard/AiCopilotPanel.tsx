@@ -32,7 +32,7 @@ export default function AiCopilotPanel({ projects }: AiCopilotPanelProps) {
 
       {/* Panel body */}
       <div className="flex-1 overflow-y-auto flex flex-col gap-4 p-4">
-        <SmartSuggestionCard projects={projects} />
+        
         <FocusInsightCard />
 
         {/* ── CHAT SLOT ─────────────────────────────────────────────────────────

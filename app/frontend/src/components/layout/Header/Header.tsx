@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { logoutUser } from "../../../api/users.api";
 import { useMe, useUpdateMySettings } from "../../../hooks/useSettings";
 import NotificationPanel from "../../ui/NotificationPanel/NotificationPanel";
@@ -13,6 +14,7 @@ type HeaderProps = {
 
 export default function Header({ collapsed = false }: HeaderProps) {
 	const navigate = useNavigate();
+	const { t, i18n } = useTranslation();
 	const [menuOpen, setMenuOpen] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
 
@@ -49,19 +51,40 @@ export default function Header({ collapsed = false }: HeaderProps) {
 					width: `calc(100% - ${collapsed ? "var(--spacing-sidebar-c)" : "var(--spacing-sidebar-w)"})`,
 				}}
 			>
-				{/* Search */}
-				<div className="relative w-full max-w-105">
-					<span className="absolute top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant material-symbols-outlined ltr:left-3 rtl:right-3">
-						search
-					</span>
-					<input
-						className="w-full py-2 bg-surface-container-low border border-border-low rounded-md text-sm text-on-surface transition-colors duration-150 placeholder:text-on-surface-variant/60 focus:border-electric-blue/50 focus:shadow-[0_0_0_2px_rgba(0,123,255,0.15)] outline-none ltr:pl-10 ltr:pr-15 rtl:pr-10 rtl:pl-15"
-						placeholder="Search tasks, teams, or AI insights..."
-						type="text"
-					/>
-					<kbd className="absolute top-1/2 -translate-y-1/2 text-[11px] text-on-surface-variant bg-surface-container py-0.5 px-1.5 rounded border border-border-low font-mono ltr:right-2.5 rtl:left-2.5">
-						⌘K
-					</kbd>
+				{/* Slogan */}
+				<div className="flex items-center w-full max-w-2xl">
+					<div className="flex items-center gap-4 w-full">
+						{/* Text */}
+						<div className="flex gap-2 text-lg font-light tracking-wide text-on-surface-variant whitespace-nowrap">
+							{i18n.language === 'ar' ? (
+								<>
+									<span>منصة</span>
+									<span className="font-semibold bg-gradient-to-r from-electric-blue to-primary bg-clip-text text-transparent">
+										تنسيق الفرق
+									</span>
+									<span>الذكية</span>
+								</>
+							) : (
+								<>
+									<span>Intelligent Team</span>
+									<span className="font-semibold bg-gradient-to-r from-electric-blue to-primary bg-clip-text text-transparent">
+										Orchestration
+									</span>
+									<span>Platform</span>
+								</>
+							)}
+						</div>
+						
+						{/* Right Line (Left in RTL) */}
+						<div className="relative flex-1 h-1 bg-gradient-to-r from-primary/70 via-primary/50 to-transparent ltr:block rtl:hidden">
+							<div className="absolute top-[-2px] left-0 w-24 h-[6px] rounded-full bg-electric-blue/80 blur-[5px]"></div>
+						</div>
+						
+						{/* Left Line (for RTL only) */}
+						<div className="relative flex-1 h-1 bg-gradient-to-l from-primary/70 via-primary/50 to-transparent rtl:block ltr:hidden">
+							<div className="absolute top-[-2px] right-0 w-24 h-[6px] rounded-full bg-electric-blue/80 blur-[5px]"></div>
+						</div>
+					</div>
 				</div>
 
 				{/* Actions */}
