@@ -47,4 +47,5 @@ export interface BoardState {
 export interface FilterState {
   searchQuery: string;
   priority: TaskPriority | 'all';
+  assigneeId: string | null; // null = all members
 }
