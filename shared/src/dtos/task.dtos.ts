@@ -11,7 +11,8 @@ export class CreateTaskDto {
   milestoneId?: string;
 
   @IsUUID()
-  createdBy: string;
+  @IsOptional()
+  createdBy?: string;
 
   @IsString()
   title: string;

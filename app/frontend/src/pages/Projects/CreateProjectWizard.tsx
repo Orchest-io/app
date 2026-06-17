@@ -140,6 +140,7 @@ export default function CreateProjectWizard() {
 			dueDate: string;
 			assignedTo: string;
 			status: string;
+			milestoneTitle?: string;
 		}>
 	>([]);
 	const [teamMembers, setTeamMembers] = useState<
@@ -169,6 +170,7 @@ export default function CreateProjectWizard() {
 		dueDate: "",
 		assignedTo: "",
 		status: "todo",
+		milestoneTitle: "",
 	});
 	const [memberForm, setMemberForm] = useState({
 		email: "",
@@ -380,6 +382,7 @@ export default function CreateProjectWizard() {
 			dueDate: "",
 			assignedTo: "",
 			status: "todo",
+			milestoneTitle: "",
 		});
 		setIsTaskModalOpen(false);
 		toast.success(t("wizard.taskAdded"));
@@ -827,6 +830,176 @@ export default function CreateProjectWizard() {
 		);
 	};
 
+	const loggedInUserId = localStorage.getItem("orchest_user_id");
+	const loggedInUser = allUsers.find((u: any) => u.id === loggedInUserId);
+
+	const getAssigneeOptions = () => {
+		const options: Array<{ value: string; label: string }> = [
+			{ value: "", label: t("kanban.unassignedOption", { defaultValue: "Unassigned" }) }
+		];
+
+		if (loggedInUser) {
+			options.push({
+				value: loggedInUser.id,
+				label: `${loggedInUser.fullName || loggedInUser.email} (You)`,
+			});
+		}
+
+		if (projectType === "team") {
+			teamMembers.forEach((member) => {
+				const user = allUsers.find((u: any) => u.email.toLowerCase() === member.email.toLowerCase());
+				if (user && user.id !== loggedInUserId) {
+					options.push({
+						value: user.id,
+						label: `${user.fullName || user.email} (${member.role})`,
+					});
+				} else if (!user) {
+					options.push({
+						value: member.email,
+						label: `${member.email} (${member.role})`,
+					});
+				}
+			});
+		}
+
+		return options;
+	};
+
+	const renderTeamMembersStep = () => {
+		return (
+			<div className="max-w-3xl mx-auto">
+				<div className="mb-8">
+					<h2 className="font-heading text-[28px] font-semibold text-on-surface mb-2">
+						{t("wizard.teamMembers")}
+					</h2>
+					<p className="text-sm text-on-surface-variant">
+						{t("projectDetails.manageTeamDesc", { defaultValue: "Manage team roles, skills, and availability" })}
+					</p>
+				</div>
+
+				<Card variant="glass" padding="lg" className="mb-6">
+					<div className="flex justify-between items-center mb-4">
+						<h3 className="font-heading text-base font-semibold text-on-surface flex items-center gap-2">
+							<span className="material-symbols-outlined text-[20px]">
+								group
+							</span>
+							{t("wizard.teamMembers")}
+						</h3>
+						<span className="text-xs text-on-surface-variant">
+							{t("wizard.added", { count: teamMembers.length })}
+						</span>
+					</div>
+
+					{teamMembers.length === 0 ? (
+						<div className="text-center py-8">
+							<span className="material-symbols-outlined text-[32px] text-on-surface-variant/50 mb-2">
+								group
+							</span>
+							<p className="text-xs text-on-surface-variant">
+								{t("wizard.noMembersYet")}
+							</p>
+						</div>
+					) : (
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+							{teamMembers.map((member, idx) => (
+								<div
+									key={idx}
+									className="p-3 rounded-lg bg-surface-container-low border border-border-low"
+								>
+									<div className="flex justify-between items-start">
+										<div className="flex-1 min-w-0">
+											<p className="text-sm font-medium text-on-surface truncate">
+												{member.email}
+											</p>
+											<p className="text-xs text-on-surface-variant">
+												{member.role}
+											</p>
+											{member.skills && (
+												<div className="flex flex-wrap gap-1 mt-1">
+													{member.skills
+														.split(",")
+														.slice(0, 2)
+														.map((skill, sidx) => (
+															<span
+																key={sidx}
+																className="text-[10px] px-1.5 py-0.5 rounded bg-surface-glass border border-border-low text-on-surface-variant"
+															>
+																{skill.trim()}
+															</span>
+														))}
+													{member.skills.split(",").length > 2 && (
+														<span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-glass border border-border-low text-on-surface-variant">
+															+{member.skills.split(",").length - 2}
+														</span>
+													)}
+												</div>
+											)}
+											<span
+												className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border inline-block mt-1 ${
+													member.status === "available"
+														? "text-emerald-400 bg-emerald-400/10 border-emerald-400/20"
+														: member.status === "busy"
+															? "text-amber-400 bg-amber-400/10 border-amber-400/20"
+															: "text-red-400 bg-red-400/10 border-red-400/20"
+												}`}
+											>
+												{member.status === "available"
+													? t("wizard.memberAvailable")
+													: member.status === "busy"
+														? t("wizard.memberBusy")
+														: t("wizard.memberOnLeave", {
+																defaultValue: "On Leave",
+															})}
+											</span>
+										</div>
+										<button
+											onClick={() =>
+												setTeamMembers(
+													teamMembers.filter((_, i) => i !== idx),
+												)
+											}
+											className="text-red-400 hover:text-red-300 transition-colors cursor-pointer ml-2"
+										>
+											<span className="material-symbols-outlined text-[16px]">
+												delete
+											</span>
+										</button>
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+
+					<Button
+						variant="secondary"
+						size="sm"
+						icon="add"
+						onClick={() => setIsMemberModalOpen(true)}
+						className="w-full"
+					>
+						{t("wizard.addMember")}
+					</Button>
+				</Card>
+
+				<div className="flex gap-3 justify-end mt-6">
+					<Button
+						type="button"
+						variant="ghost"
+						onClick={() => setStep(3)}
+					>
+						{t("wizard.back")}
+					</Button>
+					<Button
+						type="button"
+						onClick={() => setStep(5)}
+					>
+						{t("wizard.continuePlanning")}
+					</Button>
+				</div>
+			</div>
+		);
+	};
+
 	// Step 4: Planning Details (Optional)
 	const renderPlanningDetails = () => {
 		const handleFinalCreate = async () => {
@@ -853,6 +1026,7 @@ export default function CreateProjectWizard() {
 				toast.success(t("wizard.projectCreated"));
 
 				// 2. Add milestones (if any)
+				const milestoneNameToIdMap: Record<string, string> = {};
 				if (milestones.length > 0) {
 					toast.info(
 						t("wizard.addingMilestones", { count: milestones.length }),
@@ -864,11 +1038,15 @@ export default function CreateProjectWizard() {
 								? new Date(milestone.targetDate).toISOString()
 								: undefined;
 
-							await apiClient.post(`/projects/${projectId}/milestones`, {
+							const response = await apiClient.post(`/projects/${projectId}/milestones`, {
 								title: milestone.title,
 								description: milestone.description,
 								targetDate,
 							});
+
+							if (response.data && response.data.id) {
+								milestoneNameToIdMap[milestone.title] = response.data.id;
+							}
 						} catch (err: any) {
 							console.error("Failed to add milestone:", err);
 							const errorMsg = err?.response?.data?.message || "Unknown error";
@@ -883,15 +1061,33 @@ export default function CreateProjectWizard() {
 					toast.info(t("wizard.addingTasks", { count: tasks.length }));
 					for (const task of tasks) {
 						try {
-							await apiClient.post(`/tasks`, {
+							const milestoneId = task.milestoneTitle
+								? milestoneNameToIdMap[task.milestoneTitle]
+								: undefined;
+
+							const assigneeUser = allUsers.find(
+								(u: any) => u.id === task.assignedTo || u.email.toLowerCase() === task.assignedTo.toLowerCase()
+							);
+
+							const taskResponse = await apiClient.post(`/tasks`, {
 								projectId,
 								title: task.title,
 								description: task.description,
 								priority: task.priority,
 								status: task.status,
 								dueDate: task.dueDate || undefined,
-								assignedTo: task.assignedTo || undefined,
+								milestoneId: milestoneId || undefined,
 							});
+
+							if (assigneeUser && taskResponse.data && taskResponse.data.id) {
+								try {
+									await apiClient.post(`/tasks/${taskResponse.data.id}/assignees`, {
+										userId: assigneeUser.id,
+									});
+								} catch (assignErr: any) {
+									console.error("Failed to assign user to task:", assignErr);
+								}
+							}
 						} catch (err: any) {
 							console.error("Failed to add task:", err);
 							const errorMsg = err?.response?.data?.message || "Unknown error";
@@ -1166,7 +1362,15 @@ export default function CreateProjectWizard() {
 															<span className="material-symbols-outlined text-[12px]">
 																person
 															</span>
-															{task.assignedTo}
+															{allUsers.find((u: any) => u.id === task.assignedTo || u.email.toLowerCase() === task.assignedTo.toLowerCase())?.fullName || task.assignedTo}
+														</span>
+													)}
+													{task.milestoneTitle && (
+														<span className="flex items-center gap-1 text-electric-blue">
+															<span className="material-symbols-outlined text-[12px]">
+																flag
+															</span>
+															{task.milestoneTitle}
 														</span>
 													)}
 												</div>
@@ -1198,110 +1402,6 @@ export default function CreateProjectWizard() {
 						</Button>
 					</Card>
 
-					{/* Team Members */}
-					<Card variant="glass" padding="lg" className="md:col-span-2">
-						<div className="flex justify-between items-center mb-4">
-							<h3 className="font-heading text-base font-semibold text-on-surface flex items-center gap-2">
-								<span className="material-symbols-outlined text-[20px]">
-									group
-								</span>
-								{t("wizard.teamMembers")}
-							</h3>
-							<span className="text-xs text-on-surface-variant">
-								{t("wizard.added", { count: teamMembers.length })}
-							</span>
-						</div>
-
-						{teamMembers.length === 0 ? (
-							<div className="text-center py-8">
-								<span className="material-symbols-outlined text-[32px] text-on-surface-variant/50 mb-2">
-									group
-								</span>
-								<p className="text-xs text-on-surface-variant">
-									{t("wizard.noMembersYet")}
-								</p>
-							</div>
-						) : (
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-								{teamMembers.map((member, idx) => (
-									<div
-										key={idx}
-										className="p-3 rounded-lg bg-surface-container-low border border-border-low"
-									>
-										<div className="flex justify-between items-start">
-											<div className="flex-1 min-w-0">
-												<p className="text-sm font-medium text-on-surface truncate">
-													{member.email}
-												</p>
-												<p className="text-xs text-on-surface-variant">
-													{member.role}
-												</p>
-												{member.skills && (
-													<div className="flex flex-wrap gap-1 mt-1">
-														{member.skills
-															.split(",")
-															.slice(0, 2)
-															.map((skill, sidx) => (
-																<span
-																	key={sidx}
-																	className="text-[10px] px-1.5 py-0.5 rounded bg-surface-glass border border-border-low text-on-surface-variant"
-																>
-																	{skill.trim()}
-																</span>
-															))}
-														{member.skills.split(",").length > 2 && (
-															<span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-glass border border-border-low text-on-surface-variant">
-																+{member.skills.split(",").length - 2}
-															</span>
-														)}
-													</div>
-												)}
-												<span
-													className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border inline-block mt-1 ${
-														member.status === "available"
-															? "text-emerald-400 bg-emerald-400/10 border-emerald-400/20"
-															: member.status === "busy"
-																? "text-amber-400 bg-amber-400/10 border-amber-400/20"
-																: "text-red-400 bg-red-400/10 border-red-400/20"
-													}`}
-												>
-													{member.status === "available"
-														? t("wizard.memberAvailable")
-														: member.status === "busy"
-															? t("wizard.memberBusy")
-															: t("wizard.memberOnLeave", {
-																	defaultValue: "On Leave",
-																})}
-												</span>
-											</div>
-											<button
-												onClick={() =>
-													setTeamMembers(
-														teamMembers.filter((_, i) => i !== idx),
-													)
-												}
-												className="text-red-400 hover:text-red-300 transition-colors cursor-pointer ml-2"
-											>
-												<span className="material-symbols-outlined text-[16px]">
-													delete
-												</span>
-											</button>
-										</div>
-									</div>
-								))}
-							</div>
-						)}
-
-						<Button
-							variant="secondary"
-							size="sm"
-							icon="add"
-							onClick={() => setIsMemberModalOpen(true)}
-							className="w-full"
-						>
-							{t("wizard.addMember")}
-						</Button>
-					</Card>
 				</div>
 
 				{/* Final Actions */}
@@ -1322,7 +1422,7 @@ export default function CreateProjectWizard() {
 						<Button
 							type="button"
 							variant="ghost"
-							onClick={() => setStep(3)}
+							onClick={() => setStep(projectType === "team" ? 4 : 3)}
 							disabled={submitting}
 						>
 							{t("wizard.back")}
@@ -2153,11 +2253,17 @@ export default function CreateProjectWizard() {
 			{ num: 3, label: t("wizard.stepGenerating") },
 			{ num: 4, label: t("wizard.stepReview") },
 		];
-		const manualSteps = [
+		const manualSteps = projectType === "individual" ? [
 			{ num: 1, label: t("wizard.stepMode") },
 			{ num: 2, label: t("wizard.stepType") },
 			{ num: 3, label: t("wizard.stepDetails") },
 			{ num: 4, label: t("wizard.stepPlan") },
+		] : [
+			{ num: 1, label: t("wizard.stepMode") },
+			{ num: 2, label: t("wizard.stepType") },
+			{ num: 3, label: t("wizard.stepDetails") },
+			{ num: 4, label: t("wizard.stepMembers") },
+			{ num: 5, label: t("wizard.stepPlan") },
 		];
 		const steps = isAi ? aiSteps : manualSteps;
 
@@ -2217,7 +2323,8 @@ export default function CreateProjectWizard() {
 			{step === 2 && projectMode === "ai" && renderAiInputForm()}
 			{step === 3 && projectMode === "manual" && renderBasicInfoForm()}
 			{step === 3 && projectMode === "ai" && renderAiProgress()}
-			{step === 4 && projectMode === "manual" && renderPlanningDetails()}
+			{step === 4 && projectMode === "manual" && (projectType === "individual" ? renderPlanningDetails() : renderTeamMembersStep())}
+			{step === 5 && projectMode === "manual" && projectType === "team" && renderPlanningDetails()}
 			{step === 4 && projectMode === "ai" && renderAiPreview()}
 
 			<AiUpgradeModal
@@ -2586,15 +2693,28 @@ export default function CreateProjectWizard() {
 								required
 							/>
 
-							<Input
+							<Select
 								label={t("wizard.taskAssignTo")}
-								type="email"
-								placeholder="teammate@example.com"
 								value={taskForm.assignedTo}
 								onChange={(e) =>
 									setTaskForm({ ...taskForm, assignedTo: e.target.value })
 								}
-								helperText={t("wizard.assignLaterHelper")}
+								options={getAssigneeOptions()}
+							/>
+
+							<Select
+								label={t("wizard.projectMilestones")}
+								value={taskForm.milestoneTitle}
+								onChange={(e) =>
+									setTaskForm({ ...taskForm, milestoneTitle: e.target.value })
+								}
+								options={[
+									{ value: "", label: t("wizard.noMilestoneOption", { defaultValue: "Without Milestone" }) },
+									...milestones.map((ms) => ({
+										value: ms.title,
+										label: ms.title,
+									})),
+								]}
 							/>
 
 							<div className="flex gap-3 justify-end mt-4">
