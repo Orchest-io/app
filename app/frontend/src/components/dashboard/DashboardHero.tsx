@@ -56,7 +56,12 @@ export default function DashboardHero({
 
       {/* Background icon watermark */}
       <div className="absolute top-4 right-8 opacity-5 pointer-events-none select-none">
-        <span className="material-symbols-outlined text-[160px]">tactic</span>
+        <span 
+          className="material-symbols-outlined" 
+          style={{ fontSize: '240px', fontVariationSettings: "'FILL' 0" }}
+        >
+          tactic
+        </span>
       </div>
 
       <div className="relative">
@@ -82,13 +87,13 @@ export default function DashboardHero({
               {t('dashboard.welcomeBack', { name: userName })}
             </h2>
 
-            <p className="text-sm text-on-surface-variant max-w-[540px] leading-relaxed mb-5">
+            <p className="text-sm text-on-surface-variant max-w-[540px] leading-relaxed mb-6">
               {heroMessage}
             </p>
 
             {/* Quick stat pills — only when API stats are available */}
             {apiStats && (
-              <div className="flex flex-wrap gap-3 mb-6">
+              <div className="flex flex-wrap gap-3">
                 <StatPill
                   icon="tactic"
                   label={t('dashboard.statProjects')}
@@ -117,19 +122,6 @@ export default function DashboardHero({
                 />
               </div>
             )}
-
-            <div className="flex items-center gap-3 flex-wrap">
-              <Button icon="auto_awesome" onClick={() => navigate('/projects')}>
-                {t('dashboard.optimizeWorkflow')}
-              </Button>
-              <Button
-                variant="secondary"
-                icon="warning"
-                onClick={() => navigate('/projects')}
-              >
-                {t('dashboard.reviewBlockers')}
-              </Button>
-            </div>
           </>
         )}
       </div>

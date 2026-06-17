@@ -9,6 +9,43 @@ import {
   SubscriptionStatusResponse,
 } from '@orchest/shared';
 
+// AI Insights Types
+export interface HealthScore {
+  score: number;
+  status: 'healthy' | 'warning' | 'critical';
+  factors: {
+    progress: number;
+    velocity: number;
+    risks: number;
+    deadline: number;
+  };
+}
+
+export interface Risk {
+  type: 'deadline' | 'resource' | 'dependency' | 'technical';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
+  affectedItems: string[];
+  suggestion: string;
+}
+
+export interface Recommendation {
+  priority: 'high' | 'medium' | 'low';
+  title: string;
+  description: string;
+  action: string;
+  impact: string;
+}
+
+export interface AIInsightsResponse {
+  healthScore: HealthScore;
+  risks: Risk[];
+  recommendations: Recommendation[];
+  summary: string;
+  generatedAt: string;
+  tokensUsed: number;
+}
+
 /**
  * Start AI project plan generation
  * Returns jobId immediately, processing happens in background
@@ -91,5 +128,21 @@ export const generateDescription = async (
   type: 'task' | 'project',
 ): Promise<{ text: string }> => {
   const response = await client.post('/ai/generate-description', { context, type });
+  return response.data;
+};
+
+/**
+ * Get AI-powered insights for dashboard
+ */
+export const getAIDashboardInsights = async (): Promise<AIInsightsResponse> => {
+  const response = await client.get('/ai/dashboard-insights');
+  return response.data;
+};
+
+/**
+ * Get AI-powered insights for specific project
+ */
+export const getAIProjectInsights = async (projectId: string): Promise<AIInsightsResponse> => {
+  const response = await client.get(`/ai/project/${projectId}/insights`);
   return response.data;
 };
