@@ -5,12 +5,7 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { apiReference } from "@scalar/nestjs-api-reference";
 
 async function bootstrap() {
-<<<<<<< HEAD
-	const app = await NestFactory.create(AppModule);
-
-=======
 	const app = await NestFactory.create(AppModule, { rawBody: true });
->>>>>>> 50280fbda2c421c1dedad117a28180ea4bc6d8aa
 	//api docs
 	const config = new DocumentBuilder()
 		.setTitle("Orchest docs")
