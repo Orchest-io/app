@@ -119,6 +119,16 @@ export default function TaskCreationModal({
       return;
     }
 
+    // Due date cannot be in the past
+    if (manualValues.dueDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (new Date(manualValues.dueDate) < today) {
+        toast.warning(t("wizard.dueDateInPast"));
+        return;
+      }
+    }
+
     try {
       const response = await apiClient.post("/tasks", {
         projectId,
@@ -383,6 +393,7 @@ export default function TaskCreationModal({
                 <input
                   type="date"
                   value={manualValues.dueDate}
+                  min={new Date().toISOString().split("T")[0]}
                   onChange={(e) =>
                     setManualValues({ ...manualValues, dueDate: e.target.value })
                   }

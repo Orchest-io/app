@@ -181,6 +181,23 @@ export default function CreateProjectWizard() {
 
 	const submitting = createProjectMutation.isPending;
 
+	// ── Date validation helpers ──────────────────────────────────────────────
+	const today = new Date();
+	today.setHours(0, 0, 0, 0);
+	const todayStr = today.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
+	const validateProjectDates = (): boolean => {
+		if (formData.startDate && formData.startDate < todayStr) {
+			toast.warning(t("wizard.startDateInPast"));
+			return false;
+		}
+		if (formData.startDate && formData.endDate && formData.endDate <= formData.startDate) {
+			toast.warning(t("wizard.endDateBeforeStart"));
+			return false;
+		}
+		return true;
+	};
+
 	// AI Preview CRUD Handlers
 	const handleEditProjectName = (newName: string) => {
 		if (!editablePlan) return;
@@ -357,6 +374,14 @@ export default function CreateProjectWizard() {
 			toast.warning(t("wizard.selectTargetDate"));
 			return;
 		}
+		if (formData.startDate && milestoneForm.targetDate < formData.startDate) {
+			toast.warning(t("wizard.milestoneDateBeforeStart"));
+			return;
+		}
+		if (formData.endDate && milestoneForm.targetDate > formData.endDate) {
+			toast.warning(t("wizard.milestoneDateAfterEnd"));
+			return;
+		}
 		setMilestones([...milestones, { ...milestoneForm }]);
 		setMilestoneForm({ title: "", description: "", targetDate: "" });
 		setIsMilestoneModalOpen(false);
@@ -373,6 +398,16 @@ export default function CreateProjectWizard() {
 		if (!taskForm.description.trim()) {
 			toast.warning(t("wizard.enterTaskDesc"));
 			return;
+		}
+		if (taskForm.dueDate) {
+			if (formData.startDate && taskForm.dueDate < formData.startDate) {
+				toast.warning(t("wizard.taskDueDateBeforeStart"));
+				return;
+			}
+			if (formData.endDate && taskForm.dueDate > formData.endDate) {
+				toast.warning(t("wizard.taskDueDateAfterEnd"));
+				return;
+			}
 		}
 		setTasks([...tasks, { ...taskForm }]);
 		setTaskForm({
@@ -591,6 +626,7 @@ export default function CreateProjectWizard() {
 				toast.warning(t("wizard.selectEndDate"));
 				return;
 			}
+			if (!validateProjectDates()) return;
 
 			// Go to Step 4 (Planning)
 			setStep(4);
@@ -616,6 +652,7 @@ export default function CreateProjectWizard() {
 				toast.warning(t("wizard.selectEndDate"));
 				return;
 			}
+			if (!validateProjectDates()) return;
 
 			// Create project immediately with correct field mappings
 			const projectData = {
@@ -702,6 +739,7 @@ export default function CreateProjectWizard() {
 										onChange={(e) =>
 											setFormData({ ...formData, startDate: e.target.value })
 										}
+										min={todayStr}
 										required
 									/>
 
@@ -712,6 +750,7 @@ export default function CreateProjectWizard() {
 										onChange={(e) =>
 											setFormData({ ...formData, endDate: e.target.value })
 										}
+										min={formData.startDate || todayStr}
 										required
 									/>
 								</div>
@@ -2386,6 +2425,8 @@ export default function CreateProjectWizard() {
 										targetDate: e.target.value,
 									})
 								}
+								min={formData.startDate || todayStr}
+								max={formData.endDate || undefined}
 								required
 							/>
 
@@ -2690,7 +2731,8 @@ export default function CreateProjectWizard() {
 								onChange={(e) =>
 									setTaskForm({ ...taskForm, dueDate: e.target.value })
 								}
-								required
+								min={formData.startDate || todayStr}
+								max={formData.endDate || undefined}
 							/>
 
 							<Select
