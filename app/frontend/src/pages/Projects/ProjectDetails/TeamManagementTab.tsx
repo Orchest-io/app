@@ -46,6 +46,12 @@ export default function TeamManagementTab({ projectId, members, isOwner }: TeamM
       toast.warning(t('projectDetails.pleaseEnterEmail'))
       return
     }
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      toast.error(t('wizard.invalidEmail'))
+      return
+    }
     if (!formData.jobTitle.trim()) {
       toast.warning(t('projectDetails.pleaseEnterJobTitle'))
       return

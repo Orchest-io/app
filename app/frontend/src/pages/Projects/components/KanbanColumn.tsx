@@ -53,7 +53,7 @@ export default function KanbanColumn({ column, tasks, onCardClick, onAddTask, mi
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex-1 flex flex-col gap-3 overflow-y-auto pr-1 min-h-[150px] transition-colors duration-200 rounded-lg ${
+            className={`flex flex-col gap-3 overflow-y-auto pr-1 min-h-[150px] max-h-[calc(100vh-220px)] transition-colors duration-200 rounded-lg ${
               snapshot.isDraggingOver ? 'bg-white/[0.02]' : ''
             }`}
           >

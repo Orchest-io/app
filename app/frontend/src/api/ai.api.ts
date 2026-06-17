@@ -144,5 +144,37 @@ export const getAIDashboardInsights = async (): Promise<AIInsightsResponse> => {
  */
 export const getAIProjectInsights = async (projectId: string): Promise<AIInsightsResponse> => {
   const response = await client.get(`/ai/project/${projectId}/insights`);
+export interface SuggestedAssigneeDto {
+  userId: string;
+  fullName: string;
+  avatarUrl: string;
+}
+
+export interface GenerateTaskRequestDto {
+  projectId: string;
+  description: string;
+  scope: 'frontend-only' | 'backend-only' | 'full-stack';
+  hints?: string;
+}
+
+export interface GeneratedTaskDto {
+  title: string;
+  description: string;
+  type: 'feature' | 'bug' | 'improvement';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  estimatedHours: number;
+  storyPoints: number;
+  dueDate: string | null;
+  subtasks: string[];
+  suggestedAssignees: SuggestedAssigneeDto[];
+}
+
+/**
+ * Generate a single AI-assisted task for a project
+ */
+export const generateTask = async (
+  data: GenerateTaskRequestDto,
+): Promise<GeneratedTaskDto> => {
+  const response = await client.post('/ai/generate-task', data);
   return response.data;
 };

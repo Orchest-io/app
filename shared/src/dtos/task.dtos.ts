@@ -11,7 +11,8 @@ export class CreateTaskDto {
   milestoneId?: string;
 
   @IsUUID()
-  createdBy: string;
+  @IsOptional()
+  createdBy?: string;
 
   @IsString()
   title: string;
@@ -51,6 +52,10 @@ export class CreateTaskDto {
   @IsDateString()
   @IsOptional()
   dueDate?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isAiSuggested?: boolean;
 }
 
 export class UpdateTaskDto {
