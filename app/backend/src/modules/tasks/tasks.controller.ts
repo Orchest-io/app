@@ -7,7 +7,6 @@ import {
 	Param,
 	Delete,
 	UseGuards,
-	Request,
 } from "@nestjs/common";
 import { TasksService } from "./tasks.service";
 import {
@@ -32,8 +31,12 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.tasksService.create(createTaskDto);
+  create(
+    @Body() createTaskDto: CreateTaskDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    // Always derive createdBy from the authenticated JWT user
+    return this.tasksService.create({ ...createTaskDto, createdBy: user.id });
   }
 
   @Get()
@@ -104,12 +107,11 @@ export class TasksController {
 
   @Post(":taskId/comments")
   createComment(
-    @Request() req: any,
+    @CurrentUser() user: JwtPayload,
     @Param("taskId") taskId: string,
     @Body() createCommentDto: CreateCommentDto,
   ) {
-    const userId = req.user?.id || req.user?.userId || "00000000-0000-0000-0000-000000000000";
-    return this.tasksService.createComment(taskId, userId, createCommentDto);
+    return this.tasksService.createComment(taskId, user.id, createCommentDto);
   }
 
   @Get(":taskId/comments")
