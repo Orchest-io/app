@@ -134,6 +134,46 @@ export class AiController {
   }
 
   /**
+   * GET /ai/subscription-status
+   * Get complete subscription status and AI quotas
+   */
+  @Get('subscription-status')
+  async getSubscriptionStatus(@CurrentUser() user: JwtPayload) {
+    return await this.aiUsageService.getSubscriptionStatus(user.id);
+  }
+
+  /**
+   * POST /ai/generate-description
+   * AI Description generator infrastructure stub
+   */
+  @Post('generate-description')
+  async generateDescription(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { context: string; type: 'task' | 'project' },
+  ) {
+    const limitCheck = await this.aiUsageService.checkMonthlyLimit(
+      user.id,
+      'description_generation',
+    );
+
+    if (!limitCheck.canUse) {
+      throw new HttpException(
+        {
+          statusCode: 403,
+          code: 'AI_LIMIT_REACHED',
+          tier: limitCheck.tier,
+          used: limitCheck.used,
+          limit: limitCheck.limit,
+          message: `Monthly AI usage limit exceeded (${limitCheck.used}/${limitCheck.limit}).`,
+        },
+        403,
+      );
+    }
+
+    throw new HttpException('AI Description Generator is coming soon!', 501);
+  }
+
+  /**
    * GET /ai/my-jobs
    * Get user's AI job history
    */

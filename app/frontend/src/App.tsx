@@ -11,6 +11,7 @@ import ProjectDetailsOverview from './pages/Projects/ProjectDetails/ProjectDetai
 import KanbanPage from './pages/Projects/KanbanPage'
 import TaskDetailsPage from './pages/Projects/TaskDetailsPage'
 import ProjectAnalytics from './pages/Projects/ProjectAnalytics'
+import AnalyticsHub from './pages/Projects/AnalyticsHub'
 import Settings from './pages/Settings/Settings'
 import { useTheme } from './context/ThemeContext'
 import ThemeSync from './components/layout/ThemeSync'
@@ -71,6 +72,7 @@ export default function App() {
               <MainLayout>
                 <Routes>
                   <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="analytics" element={<AnalyticsHub />} />
                   <Route path="projects" element={<ProjectsList />} />
                   <Route path="projects/create" element={<CreateProjectWizard />} />
                   <Route path="projects/:projectId" element={<ProjectDetailsOverview />} />

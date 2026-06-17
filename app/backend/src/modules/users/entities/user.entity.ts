@@ -10,7 +10,7 @@ import {
 import { UserSession } from './user-session.entity';
 import { UserSettings } from './user-settings.entity';
 import { UserSkill } from './user-skill.entity';
-import { AuthProvider } from '@orchest/shared';
+import { AuthProvider, SubscriptionTier } from '@orchest/shared';
 
 @Entity('users')
 export class User {
@@ -54,6 +54,21 @@ export class User {
 
   @Column({ name: 'last_login_at', type: 'timestamp', nullable: true })
   lastLoginAt: Date;
+
+  @Column({ name: 'subscription_tier', type: 'varchar', default: 'free' })
+  subscriptionTier: SubscriptionTier;
+
+  @Column({ name: 'stripe_customer_id', type: 'varchar', nullable: true, unique: true })
+  stripeCustomerId: string | null;
+
+  @Column({ name: 'stripe_subscription_id', type: 'varchar', nullable: true })
+  stripeSubscriptionId: string | null;
+
+  @Column({ name: 'subscription_expires_at', type: 'timestamp', nullable: true })
+  subscriptionExpiresAt: Date | null;
+
+  @Column({ name: 'subscribed_at', type: 'timestamp', nullable: true })
+  subscribedAt: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

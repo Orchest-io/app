@@ -7,6 +7,8 @@ import type {
   CreateMilestoneDto,
   UpdateMilestoneDto,
   AssignTasksToMilestoneDto,
+  AnalyticsHubProjectDto,
+  ContextualAnalyticsDto,
 } from '@orchest/shared';
 
 export const getProjects = async (): Promise<ProjectListItemDto[]> => {
@@ -90,4 +92,16 @@ export const removeTaskFromMilestone = async (
   taskId: string
 ): Promise<void> => {
   await apiClient.delete(`/projects/milestones/${milestoneId}/tasks/${taskId}`);
+};
+
+export const getAnalyticsHub = async (): Promise<AnalyticsHubProjectDto[]> => {
+  const response = await apiClient.get<AnalyticsHubProjectDto[]>('/projects/analytics-hub');
+  return response.data;
+};
+
+export const getProjectContextualAnalytics = async (
+  projectId: string
+): Promise<ContextualAnalyticsDto> => {
+  const response = await apiClient.get<ContextualAnalyticsDto>(`/projects/${projectId}/analytics`);
+  return response.data;
 };

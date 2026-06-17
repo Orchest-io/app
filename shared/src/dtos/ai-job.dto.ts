@@ -115,3 +115,33 @@ export interface ProjectCreatedResponse {
   milestonesCreated: number;
   tasksCreated: number;
 }
+
+export type SubscriptionTier = 'free' | 'pro';
+
+export interface SubscriptionStatusResponse {
+  tier: SubscriptionTier;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  subscriptionExpiresAt?: string;
+  aiPlans: {
+    used: number;
+    limit: number;
+    canUse: boolean;
+    resetsAt: string;
+  };
+  aiDescriptions: {
+    used: number;
+    limit: number;
+    canUse: boolean;
+    resetsAt: string;
+  };
+}
+
+export interface AiLimitError {
+  code: 'AI_LIMIT_REACHED';
+  tier: SubscriptionTier;
+  feature: string;
+  used: number;
+  limit: number;
+}
+
