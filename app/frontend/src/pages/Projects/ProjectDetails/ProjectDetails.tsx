@@ -13,7 +13,6 @@ import {
 } from '../../../hooks/useProjectMutations'
 import TeamManagementTab from './TeamManagementTab'
 import ProjectAttachmentsTab from './ProjectAttachmentsTab'
-import AnalyticsTab from './AnalyticsTab'
 import type { UpdateMilestoneDto } from '@orchest/shared'
 import client from '../../../api/client'
 import { getMilestones } from '../../../api/projects.api'
@@ -401,7 +400,6 @@ export default function ProjectDetailsOverview() {
           { key: 'team', label: `${t('projectDetails.team')} (${project.members?.length || 0})`, icon: 'group' },
           { key: 'tasks', label: `${t('projectDetails.tasks')} (${taskStats.total})`, icon: 'task_alt' },
           { key: 'milestones', label: `${t('projectDetails.milestones')} (${project.milestones?.length || 0})`, icon: 'flag' },
-          { key: 'analytics', label: 'Analytics', icon: 'bar_chart' },
           { key: 'activity', label: t('projectDetails.activityLogs'), icon: 'history' },
           { key: 'attachments', label: t('projectDetails.attachments'), icon: 'attach_file' },
         ]}
@@ -726,11 +724,6 @@ export default function ProjectDetailsOverview() {
             </div>
           )}
         </Card>
-      )}
-
-      {/* ANALYTICS TAB */}
-      {activeTab === 'analytics' && projectId && (
-        <AnalyticsTab projectId={projectId} />
       )}
 
       {/* ACTIVITY LOG TAB */}
