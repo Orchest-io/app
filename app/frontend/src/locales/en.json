@@ -418,7 +418,15 @@
     "reviewPlanDesc": "Review your project plan and save to create the project",
     "selectedCount": "{{count}} selected",
     "aiTeamMembersDesc": "Select team members to help AI assign tasks based on skills",
-    "selectUserPlaceholder": "Select a user..."
+    "selectUserPlaceholder": "Select a user...",
+    "startDateInPast": "Start date cannot be in the past",
+    "endDateBeforeStart": "End date must be after start date",
+    "milestoneDateBeforeStart": "Milestone date cannot be before project start date",
+    "milestoneDateAfterEnd": "Milestone date cannot be after project end date",
+    "taskDueDateBeforeStart": "Task due date cannot be before project start date",
+    "taskDueDateAfterEnd": "Task due date cannot be after project end date",
+    "stepMembers": "Members",
+    "noMilestoneOption": "Without Milestone"
   },
   "header": {
     "lightMode": "Light Mode",

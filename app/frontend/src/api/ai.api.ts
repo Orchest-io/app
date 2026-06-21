@@ -144,6 +144,9 @@ export const getAIDashboardInsights = async (): Promise<AIInsightsResponse> => {
  */
 export const getAIProjectInsights = async (projectId: string): Promise<AIInsightsResponse> => {
   const response = await client.get(`/ai/project/${projectId}/insights`);
+  return response.data;
+};
+
 export interface SuggestedAssigneeDto {
   userId: string;
   fullName: string;

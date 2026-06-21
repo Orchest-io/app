@@ -453,7 +453,15 @@
     "reviewPlanDesc": "راجع خطة مشروعك واحفظها لإنشاء المشروع",
     "selectedCount": "تم اختيار {{count}}",
     "aiTeamMembersDesc": "اختر أعضاء الفريق لمساعدة الذكاء الاصطناعي في تعيين المهام بناءً على المهارات",
-    "selectUserPlaceholder": "اختر مستخدماً..."
+    "selectUserPlaceholder": "اختر مستخدماً...",
+    "startDateInPast": "لا يمكن أن يكون تاريخ البدء في الماضي",
+    "endDateBeforeStart": "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء",
+    "milestoneDateBeforeStart": "لا يمكن أن يكون تاريخ المرحلة قبل تاريخ بدء المشروع",
+    "milestoneDateAfterEnd": "لا يمكن أن يكون تاريخ المرحلة بعد تاريخ انتهاء المشروع",
+    "taskDueDateBeforeStart": "لا يمكن أن يكون تاريخ استحقاق المهمة قبل تاريخ بدء المشروع",
+    "taskDueDateAfterEnd": "لا يمكن أن يكون تاريخ استحقاق المهمة بعد تاريخ انتهاء المشروع",
+    "stepMembers": "الأعضاء",
+    "noMilestoneOption": "بدون مرحلة"
   },
   "header": {
     "lightMode": "الوضع الفاتح",

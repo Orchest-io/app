@@ -1,6 +1,7 @@
 import { NavLink, useNavigate, useLocation, matchPath } from 'react-router-dom'
 import { logoutUser } from '../../../api/users.api'
 import { useTranslation } from 'react-i18next'
+import { useTheme } from '../../../context/ThemeContext'
 
 type NavItem = {
   key: string
@@ -12,7 +13,7 @@ type NavItem = {
 const getNavItems = (projectId?: string): NavItem[] => [
   { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
   { key: 'projects', label: 'Projects', icon: 'tactic', path: '/projects' },
-  { key: 'analytics', label: 'Analytics', icon: 'insights', path: projectId ? `/projects/${projectId}/analytics` : '/projects' },
+  // { key: 'analytics', label: 'Analytics', icon: 'insights', path: projectId ? `/projects/${projectId}/analytics` : '/projects' },
   { key: 'settings', label: 'Settings', icon: 'settings', path: '/settings' },
 ]
 
@@ -25,6 +26,12 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const location = useLocation()
+  const { resolvedTheme } = useTheme()
+
+  // In light mode the logo/icon are light-coloured assets that become invisible.
+  // Applying invert + a small hue-rotate keeps the brand feel while ensuring
+  // visibility on both light and dark backgrounds.
+  const logoFilter = resolvedTheme === 'light' ? 'invert(1) hue-rotate(180deg)' : undefined
   
   const match = matchPath({ path: '/projects/:projectId/*' }, location.pathname)
   const projectId = match?.params.projectId
@@ -52,12 +59,14 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             src="/orkest-icon.png" 
             alt="Orkest" 
             className="w-22 h-22 shrink-0"
+            style={{ filter: logoFilter }}
           />
         ) : (
           <img 
             src="/orkest-logo.png" 
             alt="Orkest - Intelligent Team Orchestration Platform" 
             className="h-18 w-auto"
+            style={{ filter: logoFilter }}
           /> 
         )}
       </div>
