@@ -19,8 +19,8 @@ import {
 } from "../../hooks/useAiPlanning";
 import { useUsers } from "../../hooks/useUsers";
 import type { GenerateProjectPlanDto } from "@orchest/shared";
-import apiClient from "../../api/client";
 import { AiDescriptionGenerator, AiUpgradeModal } from "../../components/AI";
+import { apiClient } from "../../api/client";
 
 type ProjectMode = "ai" | "manual" | null;
 type ProjectType = "team" | "individual" | null;
@@ -1790,20 +1790,8 @@ export default function CreateProjectWizard() {
 
 	// Step 3 (AI Mode): Progress Tracking
 	const renderAiProgress = () => {
-		const stages = [
-			{ name: t("wizard.stageAnalyzing"), progress: 20, icon: "psychology" },
-			{ name: t("wizard.stageMilestones"), progress: 40, icon: "flag" },
-			{ name: t("wizard.stageTasks"), progress: 60, icon: "task_alt" },
-			{ name: t("wizard.stageAssignments"), progress: 80, icon: "person_add" },
-			{ name: t("wizard.stageValidation"), progress: 100, icon: "verified" },
-		];
-
-		const currentStageIndex = stages.findIndex((s) => aiProgress < s.progress);
-		const activeStage =
-			currentStageIndex >= 0 ? currentStageIndex : stages.length - 1;
-
 		return (
-			<div className="max-w-3xl mx-auto">
+			<div className="max-w-2xl mx-auto">
 				<div className="text-center mb-8">
 					<div className="w-20 h-20 rounded-full bg-linear-to-br from-purple-500/20 to-electric-blue/20 flex items-center justify-center mx-auto mb-4">
 						<span className="material-symbols-outlined text-[48px] text-purple-400 animate-pulse">
@@ -1824,64 +1812,21 @@ export default function CreateProjectWizard() {
 				</div>
 
 				<Card variant="glass" padding="lg">
-					{/* Overall Progress */}
-					<div className="mb-8">
-						<div className="flex justify-between items-center mb-2">
-							<span className="text-sm font-medium text-on-surface">
-								{t("wizard.overallProgress")}
-							</span>
-							<span className="text-sm font-bold text-electric-blue">
-								{Math.round(aiProgress)}%
-							</span>
-						</div>
-						<ProgressBar value={aiProgress} max={100} glow />
+					<div className="flex justify-between items-center mb-3">
+						<span className="text-sm font-medium text-on-surface">
+							{t("wizard.overallProgress")}
+						</span>
+						<span className="text-sm font-bold text-electric-blue">
+							{Math.round(aiProgress)}%
+						</span>
 					</div>
+					<ProgressBar value={aiProgress} max={100} glow />
 
-					{/* Stages */}
-					<div className="flex flex-col gap-3">
-						{stages.map((stage, idx) => {
-							const isCompleted = aiProgress >= stage.progress;
-							const isActive = idx === activeStage;
-
-							return (
-								<div
-									key={idx}
-									className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
-										isActive
-											? "bg-electric-blue/10 border border-electric-blue/30"
-											: isCompleted
-												? "bg-emerald-400/10 border border-emerald-400/20"
-												: "bg-surface-container-low border border-border-low opacity-50"
-									}`}
-								>
-									<div
-										className={`w-10 h-10 rounded-full flex items-center justify-center ${
-											isCompleted
-												? "bg-emerald-400/20 text-emerald-400"
-												: isActive
-													? "bg-electric-blue/20 text-electric-blue"
-													: "bg-surface-container text-on-surface-variant"
-										}`}
-									>
-										<span className="material-symbols-outlined text-[20px]">
-											{isCompleted ? "check_circle" : stage.icon}
-										</span>
-									</div>
-									<div className="flex-1">
-										<p className="text-sm font-medium text-on-surface">
-											{stage.name}
-										</p>
-									</div>
-									{isActive && (
-										<div className="flex items-center gap-1">
-											<div className="w-2 h-2 rounded-full bg-electric-blue animate-pulse" />
-											<div className="w-2 h-2 rounded-full bg-electric-blue animate-pulse delay-75" />
-											<div className="w-2 h-2 rounded-full bg-electric-blue animate-pulse delay-150" />
-										</div>
-									)}
-								</div>
-							);
-						})}
+					<div className="flex items-center justify-center gap-2 mt-6 text-on-surface-variant">
+						<div className="w-2 h-2 rounded-full bg-electric-blue animate-pulse" />
+						<div className="w-2 h-2 rounded-full bg-electric-blue animate-pulse delay-75" />
+						<div className="w-2 h-2 rounded-full bg-electric-blue animate-pulse delay-150" />
+						<span className="text-xs ml-1">{t("wizard.generatingTitle")}</span>
 					</div>
 				</Card>
 			</div>
