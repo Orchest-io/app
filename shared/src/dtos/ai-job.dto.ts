@@ -27,6 +27,8 @@ export interface GeneratedPlan {
   totalTasks: number;
   confidence: number;
   warnings: string[];
+  suggestions?: string[];
+  insights?: string[];
   tokensUsed?: number;
   modelUsed?: string;
 }

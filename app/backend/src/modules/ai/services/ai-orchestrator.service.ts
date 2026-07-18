@@ -2,6 +2,92 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OpenAIService } from './openai.service';
 import { AiRagService } from './ai-rag.service';
 
+// ========================================
+// Agent Response Interfaces
+// ========================================
+interface ProjectAnalysis {
+  domain: string;
+  projectType: string;
+  complexity: 'low' | 'medium' | 'high';
+  riskFactors: string[];
+  keySuccessFactors: string[];
+  similarProjects: number;
+  confidence: number;
+}
+
+interface ProjectPlan {
+  milestones: Array<{
+    title: string;
+    description: string;
+    phase: 'planning' | 'development' | 'testing' | 'deployment';
+    estimatedWeeks: number;
+    order: number;
+    criticality: 'low' | 'medium' | 'high';
+    dependencies: string[];
+    tasks?: any[];
+  }>;
+  totalDuration: string;
+  criticalPath: string[];
+  resourceNeeds: {
+    developers: number;
+    designers: number;
+    other: string[];
+  };
+}
+
+interface TaskBreakdownResult {
+  tasks: Array<{
+    title: string;
+    description: string;
+    type: 'feature' | 'bug' | 'improvement' | 'research';
+    priority: 'low' | 'medium' | 'high' | 'urgent';
+    complexity: 'simple' | 'medium' | 'complex';
+    estimatedHours: number;
+    requiredSkills: string[];
+    dependencies: string[];
+    riskLevel: 'low' | 'medium' | 'high';
+    testingRequired: boolean;
+  }>;
+}
+
+interface EstimationAdjustment {
+  taskTitle: string;
+  originalHours: number;
+  suggestedHours: number;
+  reason: string;
+  confidence: number;
+}
+
+interface EstimationResult {
+  adjustments: EstimationAdjustment[];
+  totalOriginal: number;
+  totalAdjusted: number;
+  overallConfidence: number;
+}
+
+interface TaskAssignment {
+  taskTitle: string;
+  assignedTo: string;
+  matchScore: number;
+  reason: string;
+  alternatives: string[];
+}
+
+interface AssignmentResult {
+  assignments: TaskAssignment[];
+  workloadDistribution: Record<string, number>;
+  warnings: string[];
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  qualityScore: number;
+  warnings: string[];
+  suggestions: string[];
+  criticalIssues: string[];
+  confidence: number;
+}
+
 /**
  * ========================================
  * AI ORCHESTRATOR SERVICE
@@ -30,7 +116,7 @@ export class AiOrchestratorService {
     goals?: string;
     userId: string;
   }): Promise<{
-    analysis: any;
+    analysis: ProjectAnalysis;
     insights: string[];
     tokensUsed: number;
   }> {
@@ -77,7 +163,7 @@ Respond in JSON:
       2000,
     );
 
-    const analysis = this.openaiService.parseJsonResponse(content);
+    const analysis = this.openaiService.parseJsonResponse(content) as ProjectAnalysis;
 
     // Generate insights
 
@@ -96,11 +182,11 @@ Respond in JSON:
    * Model: gpt-4o (strongest reasoning)
    */
   async planningAgent(input: {
-    analysis: any;
+    analysis: ProjectAnalysis;
     description: string;
     userId: string;
   }): Promise<{
-    plan: any;
+    plan: ProjectPlan;
     tokensUsed: number;
   }> {
     this.logger.log('📋 Planning Agent: Creating project structure...');
@@ -160,7 +246,7 @@ Respond in JSON:
       4000,
     );
 
-    const plan = this.openaiService.parseJsonResponse(content);
+    const plan = this.openaiService.parseJsonResponse(content) as ProjectPlan;
 
     this.logger.log(`   ✅ ${plan.milestones.length} milestones, ${plan.totalDuration}`);
 
@@ -175,11 +261,14 @@ Respond in JSON:
    * Model: gpt-4o-mini (efficient breakdown)
    */
   async breakdownAgent(input: {
-    milestone: any;
-    projectContext: any;
+    milestone: ProjectPlan['milestones'][0];
+    projectContext: {
+      projectType: string;
+      complexity: string;
+    };
     userId: string;
   }): Promise<{
-    tasks: any[];
+    tasks: TaskBreakdownResult['tasks'];
     tokensUsed: number;
   }> {
     this.logger.log(`🔨 Breakdown Agent: ${input.milestone.title}...`);
@@ -235,7 +324,7 @@ Respond in JSON:
       3000,
     );
 
-    const result = this.openaiService.parseJsonResponse(content);
+    const result = this.openaiService.parseJsonResponse(content) as TaskBreakdownResult;
 
     this.logger.log(`   ✅ ${result.tasks.length} tasks generated`);
 
@@ -250,11 +339,11 @@ Respond in JSON:
    * Model: gpt-4o-mini (quick validation)
    */
   async estimationAgent(input: {
-    tasks: any[];
+    tasks: TaskBreakdownResult['tasks'];
     historicalData?: any;
   }): Promise<{
-    refinedTasks: any[];
-    adjustments: any[];
+    refinedTasks: TaskBreakdownResult['tasks'];
+    adjustments: EstimationAdjustment[];
     tokensUsed: number;
   }> {
     this.logger.log('⏱️ Estimation Agent: Refining estimates...');
@@ -306,7 +395,7 @@ Respond in JSON:
       2000,
     );
 
-    const result = this.openaiService.parseJsonResponse(content);
+    const result = this.openaiService.parseJsonResponse(content) as EstimationResult;
 
     // Apply adjustments
     const refinedTasks = input.tasks.map((task) => {
@@ -338,10 +427,10 @@ Respond in JSON:
    * Model: gpt-4o-mini (fast matching)
    */
   async assignmentAgent(input: {
-    tasks: any[];
+    tasks: TaskBreakdownResult['tasks'];
     teamMembers: any[];
   }): Promise<{
-    assignments: any[];
+    assignments: TaskAssignment[];
     tokensUsed: number;
   }> {
     this.logger.log('👥 Assignment Agent: Matching tasks to team...');
@@ -401,7 +490,7 @@ Respond in JSON:
       2000,
     );
 
-    const result = this.openaiService.parseJsonResponse(content);
+    const result = this.openaiService.parseJsonResponse(content) as AssignmentResult;
 
     this.logger.log(`   ✅ ${result.assignments.length} tasks assigned`);
 
@@ -419,9 +508,9 @@ Respond in JSON:
    * Model: gpt-4o-mini (quick validation)
    */
   async validationAgent(input: {
-    plan: any;
-    tasks: any[];
-    assignments: any[];
+    plan: ProjectPlan;
+    tasks: TaskBreakdownResult['tasks'];
+    assignments: TaskAssignment[];
   }): Promise<{
     isValid: boolean;
     score: number;
@@ -470,7 +559,7 @@ Respond in JSON:
       2000,
     );
 
-    const result = this.openaiService.parseJsonResponse(content);
+    const result = this.openaiService.parseJsonResponse(content) as ValidationResult;
 
     this.logger.log(`   ✅ Quality Score: ${result.qualityScore}/100`);
 
@@ -488,7 +577,7 @@ Respond in JSON:
    * HELPER: Generate Insights
    * ========================================
    */
-  private generateInsights(analysis: any, ragContext: string): string[] {
+  private generateInsights(analysis: ProjectAnalysis, ragContext: string): string[] {
     const insights = [];
 
     if (analysis.complexity === 'high') {
