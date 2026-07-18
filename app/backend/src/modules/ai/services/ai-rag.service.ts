@@ -267,6 +267,146 @@ export class AiRagService {
   }
 
   /**
+   * ========================================
+   * ADVANCED RAG: Multi-Query Expansion
+   * ========================================
+   * Expands query into multiple variations for better retrieval
+   */
+  async expandQuery(originalQuery: string): Promise<string[]> {
+    try {
+      const prompt = `Given this search query: "${originalQuery}"
+
+Generate 2 alternative phrasings that capture the same intent.
+These will search a project management database.
+
+Return ONLY a JSON array:
+["alternative 1", "alternative 2"]`;
+
+      const { content } = await this.openaiService.callChatCompletion(
+        prompt,
+        'gpt-4o-mini',
+        0.7,
+        500,
+      );
+
+      const alternatives = JSON.parse(content);
+      return [originalQuery, ...alternatives];
+    } catch (error) {
+      this.logger.warn(`Query expansion failed: ${error}`);
+      return [originalQuery];  // Fallback to original
+    }
+  }
+
+  /**
+   * ========================================
+   * ADVANCED RAG: Multi-Vector Retrieval
+   * ========================================
+   * Searches using multiple query variations
+   */
+  async multiVectorRetrieval(
+    queries: string[],
+    userId: string,
+    limit: number = 5,
+  ): Promise<any[]> {
+    const allResults: any[] = [];
+
+    for (const query of queries) {
+      const results = await this.retrieveSimilarContext(query, userId, limit, 0.7);
+      allResults.push(...results);
+    }
+
+    // Remove duplicates
+    const uniqueResults = this.removeDuplicates(allResults);
+    return uniqueResults.slice(0, limit * 2);  // Return top results
+  }
+
+  /**
+   * Remove duplicate results based on projectId + contentType
+   */
+  private removeDuplicates(results: any[]): any[] {
+    const seen = new Set<string>();
+    return results.filter((r) => {
+      const key = `${r.projectId}-${r.contentType}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  /**
+   * ========================================
+   * ADVANCED RAG: Re-ranking
+   * ========================================
+   * Re-ranks results based on multiple factors
+   */
+  async reRankResults(results: any[], query: string): Promise<any[]> {
+    const scoredResults = results.map((result) => {
+      let score = result.similarity;  // Base score
+
+      // Factor 1: Content type boost
+      if (result.contentType === 'task') score += 0.05;
+      if (result.contentType === 'milestone') score += 0.03;
+
+      // Factor 2: Metadata boost (if available)
+      if (result.metadata?.status === 'completed') {
+        score += 0.10;  // Completed projects are better examples
+      }
+
+      return { ...result, finalScore: score };
+    });
+
+    return scoredResults
+      .sort((a, b) => b.finalScore - a.finalScore)
+      .slice(0, 5);
+  }
+
+  /**
+   * ========================================
+   * ADVANCED RAG: Complete Pipeline
+   * ========================================
+   * Full RAG pipeline with expansion, retrieval, and re-ranking
+   */
+  async advancedRetrievalPipeline(
+    query: string,
+    userId: string,
+  ): Promise<string> {
+    this.logger.log(`🚀 Advanced RAG Pipeline for: "${query}"`);
+
+    // Step 1: Query Expansion
+    const expandedQueries = await this.expandQuery(query);
+    this.logger.log(`   📝 Expanded to ${expandedQueries.length} queries`);
+
+    // Step 2: Multi-Vector Retrieval
+    const allResults = await this.multiVectorRetrieval(expandedQueries, userId, 5);
+    this.logger.log(`   🔍 Found ${allResults.length} results`);
+
+    if (allResults.length === 0) {
+      return '';
+    }
+
+    // Step 3: Re-ranking
+    const reRankedResults = await this.reRankResults(allResults, query);
+    this.logger.log(`   🎯 Re-ranked to top ${reRankedResults.length}`);
+
+    // Step 4: Format for prompt
+    const sections = reRankedResults.map((r, i) => {
+      const matchPercent = (r.finalScore * 100).toFixed(0);
+      const typeLabel = this.getContentTypeLabel(r.contentType);
+      return `[${typeLabel} ${i + 1} - ${matchPercent}% relevance]\n${r.text}`;
+    });
+
+    return [
+      '',
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      '📚 RELEVANT PAST EXPERIENCES (analyzed)',
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      ...sections,
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      '',
+    ].join('\n');
+  }
+
+  /**
    * Log search for analytics and monitoring
    */
   private async logSearch(
