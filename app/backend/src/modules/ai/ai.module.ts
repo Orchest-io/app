@@ -19,6 +19,7 @@ import { AiUsageService } from './services/ai-usage.service';
 import { AiAgentsService } from './services/ai-agents.service';
 import { AiPipelineService } from './services/ai-pipeline.service';
 import { AiRagService } from './services/ai-rag.service';
+import { AiOrchestratorService } from './services/ai-orchestrator.service';
 import { AiAssistantService } from './services/ai-assistant.service';
 import { AiTaskGeneratorService } from './services/ai-task-generator.service';
 
@@ -53,6 +54,7 @@ import { TasksModule } from '../tasks/tasks.module';
     AiAgentsService,
     AiPipelineService,
     AiRagService,
+    AiOrchestratorService,
     AiAssistantService,
     AiTaskGeneratorService,
   ],

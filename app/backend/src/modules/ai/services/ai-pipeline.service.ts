@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AiJobService } from './ai-job.service';
 import { AiAgentsService } from './ai-agents.service';
+import { AiOrchestratorService } from './ai-orchestrator.service';
 import { GenerateProjectPlanDto, GeneratedPlan } from '@orchest/shared';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -11,11 +12,179 @@ export class AiPipelineService {
   constructor(
     private aiJobService: AiJobService,
     private aiAgentsService: AiAgentsService,
+    private orchestrator: AiOrchestratorService,
     private eventEmitter: EventEmitter2,
   ) {}
 
   /**
-   * Execute 5-stage AI pipeline
+   * Execute ADVANCED 6-Agent Pipeline
+   * Uses specialized agents for maximum accuracy
+   */
+  async executeAdvancedPipeline(
+    jobId: string,
+    userId: string,
+    input: GenerateProjectPlanDto,
+  ): Promise<void> {
+    this.logger.log(`🚀 Starting ADVANCED Multi-Agent Pipeline for job ${jobId}`);
+    let totalTokensUsed = 0;
+
+    try {
+      await this.aiJobService.startJob(jobId);
+
+      // ========================================
+      // AGENT 1: Research (15%)
+      // ========================================
+      this.logger.log(`[${jobId}] 🔍 Agent 1: Research & Analysis`);
+      await this.updateProgress(jobId, 15, 'Analyzing requirements...');
+      
+      const { analysis, insights, tokensUsed: researchTokens } = 
+        await this.orchestrator.researchAgent({
+          description: input.description,
+          goals: input.goals,
+          userId,
+        });
+      totalTokensUsed += researchTokens;
+
+      // ========================================
+      // AGENT 2: Planning (30%)
+      // ========================================
+      this.logger.log(`[${jobId}] 📋 Agent 2: Strategic Planning`);
+      await this.updateProgress(jobId, 30, 'Creating project structure...');
+      
+      const { plan, tokensUsed: planTokens } = 
+        await this.orchestrator.planningAgent({
+          analysis,
+          description: input.description,
+          userId,
+        });
+      totalTokensUsed += planTokens;
+
+      // ========================================
+      // AGENT 3: Breakdown (50%)
+      // ========================================
+      this.logger.log(`[${jobId}] 🔨 Agent 3: Task Breakdown`);
+      await this.updateProgress(jobId, 50, 'Breaking down into tasks...');
+      
+      const allTasks: any[] = [];
+      for (const milestone of plan.milestones) {
+        const { tasks, tokensUsed: breakdownTokens } = 
+          await this.orchestrator.breakdownAgent({
+            milestone,
+            projectContext: {
+              projectType: analysis.projectType,
+              complexity: analysis.complexity,
+            },
+            userId,
+          });
+        
+        milestone.tasks = tasks;
+        allTasks.push(...tasks);
+        totalTokensUsed += breakdownTokens;
+      }
+
+      // ========================================
+      // AGENT 4: Estimation (65%)
+      // ========================================
+      this.logger.log(`[${jobId}] ⏱️ Agent 4: Estimate Refinement`);
+      await this.updateProgress(jobId, 65, 'Refining estimates...');
+      
+      const { refinedTasks, adjustments, tokensUsed: estTokens } = 
+        await this.orchestrator.estimationAgent({
+          tasks: allTasks,
+        });
+      totalTokensUsed += estTokens;
+
+      // Update milestones with refined tasks
+      let taskIndex = 0;
+      for (const milestone of plan.milestones) {
+        const count = milestone.tasks.length;
+        milestone.tasks = refinedTasks.slice(taskIndex, taskIndex + count);
+        taskIndex += count;
+      }
+
+      // ========================================
+      // AGENT 5: Assignment (80%)
+      // ========================================
+      this.logger.log(`[${jobId}] 👥 Agent 5: Team Assignment`);
+      await this.updateProgress(jobId, 80, 'Matching tasks to team...');
+      
+      const { assignments, tokensUsed: assignTokens } = 
+        await this.orchestrator.assignmentAgent({
+          tasks: refinedTasks,
+          teamMembers: input.teamMembers || [],
+        });
+      totalTokensUsed += assignTokens;
+
+      // Apply assignments
+      if (assignments.length > 0) {
+        for (const milestone of plan.milestones) {
+          milestone.tasks = milestone.tasks.map((task: any) => {
+            const assignment = assignments.find((a: any) => a.taskTitle === task.title);
+            if (assignment) {
+              return {
+                ...task,
+                suggestedAssignee: {
+                  email: assignment.assignedTo,
+                  matchScore: assignment.matchScore,
+                  reason: assignment.reason,
+                  alternatives: assignment.alternatives,
+                },
+              };
+            }
+            return task;
+          });
+        }
+      }
+
+      // ========================================
+      // AGENT 6: Validation (100%)
+      // ========================================
+      this.logger.log(`[${jobId}] ✅ Agent 6: Final Validation`);
+      await this.updateProgress(jobId, 100, 'Finalizing your plan...');
+      
+      const validation = await this.orchestrator.validationAgent({
+        plan,
+        tasks: refinedTasks,
+        assignments,
+      });
+      totalTokensUsed += validation.tokensUsed;
+
+      // ========================================
+      // Build Final Result
+      // ========================================
+      const result: GeneratedPlan = {
+        projectName: this.generateProjectName(input.description, analysis.projectType),
+        estimatedDuration: plan.totalDuration,
+        complexity: analysis.complexity,
+        milestones: plan.milestones.map(milestone => ({
+          title: milestone.title,
+          description: milestone.description,
+          estimatedWeeks: milestone.estimatedWeeks,
+          tasks: milestone.tasks || [],
+          order: milestone.order,
+        })),
+        totalTasks: refinedTasks.length,
+        confidence: validation.score,
+        warnings: validation.warnings,
+        suggestions: validation.suggestions,
+        insights: insights,
+        tokensUsed: totalTokensUsed,
+        modelUsed: 'gpt-4o + multi-agent',
+      };
+
+      await this.aiJobService.completeJob(jobId, result);
+      this.logger.log(`✨ [${jobId}] Advanced pipeline completed! Quality: ${validation.score}/100`);
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`[${jobId}] Pipeline failed: ${errorMessage}`);
+      await this.aiJobService.failJob(jobId, errorMessage);
+      throw error;
+    }
+  }
+
+  /**
+   * Execute BASIC 5-stage AI pipeline (Legacy - for comparison)
    * Runs asynchronously in background
    */
   async executePipeline(

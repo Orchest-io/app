@@ -39,7 +39,20 @@ export default function App() {
     <>
       <ThemeSync />
       <LanguageSync />
-      <Toaster position="top-right" theme={resolvedTheme} closeButton richColors />
+      <Toaster 
+        position="top-right" 
+        theme={resolvedTheme} 
+        closeButton 
+        richColors
+        toastOptions={{
+          style: {
+            fontSize: '15px',
+            padding: '16px 20px',
+            minHeight: '64px',
+          },
+          className: 'sonner-toast-custom',
+        }}
+      />
 
       <Routes>
         {/* Public */}

@@ -308,21 +308,28 @@ function NotificationsSection() {
 			/>
 
 			<Card className="flex flex-col divide-y divide-border-low">
-				{rows.map(({ key, label, desc, icon }) => (
+				{rows.map(({ key, label, desc, icon, available }) => (
 					<div
 						key={key}
 						className="flex items-center justify-between py-5 first:pt-0 last:pb-0"
 					>
-						<div className="flex items-start gap-4">
+						<div className="flex items-start gap-4 flex-1">
 							<div className="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant">
 								<span className="material-symbols-outlined text-[20px]">
 									{icon}
 								</span>
 							</div>
-							<div>
-								<p className="font-heading text-sm font-semibold text-on-surface">
-									{label}
-								</p>
+							<div className="flex-1">
+								<div className="flex items-center gap-2">
+									<p className="font-heading text-sm font-semibold text-on-surface">
+										{label}
+									</p>
+									{!available && (
+										<span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-heading font-bold uppercase tracking-wider border border-amber-500/30 whitespace-nowrap">
+											{t("settings.comingSoon")}
+										</span>
+									)}
+								</div>
 								<p className="text-xs text-on-surface-variant mt-0.5">{desc}</p>
 							</div>
 						</div>
@@ -338,25 +345,27 @@ function NotificationsSection() {
 			{/* Weekly Reports */}
 			<Card className="mt-6">
 				<div className="flex items-center justify-between">
-					<div>
-						<p className="font-heading text-sm font-semibold text-on-surface">
-							{t("settings.weeklyReports")}
-						</p>
+					<div className="flex-1">
+						<div className="flex items-center gap-2">
+							<p className="font-heading text-sm font-semibold text-on-surface">
+								{t("settings.weeklyReports")}
+							</p>
+							<span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-heading font-bold uppercase tracking-wider border border-amber-500/30 whitespace-nowrap">
+								{t("settings.comingSoon")}
+							</span>
+						</div>
 						<p className="text-xs text-on-surface-variant mt-0.5">
 							{t("settings.weeklyReportsDesc")}
 						</p>
 					</div>
 					<Toggle
-						checked={settings?.weeklyReports ?? false}
-						onChange={(e) =>
-							updateSettings.mutate(
-								{ weeklyReports: e.target.checked },
-								{
-									onSuccess: () => toast.success(t("settings.preferenceSaved")),
-								},
-							)
-						}
-						disabled={updateSettings.isPending}
+						checked={false}
+						onChange={(e) => {
+							e.preventDefault();
+							toast.info(t("settings.featureComingSoon"), {
+								description: t("settings.notAvailableYet"),
+							});
+						}}
 					/>
 				</div>
 			</Card>
@@ -378,18 +387,21 @@ function AiSection() {
 			label: t("settings.aiSuggestions"),
 			desc: t("settings.aiSuggestionsDesc"),
 			icon: "auto_awesome",
+			available: true,
 		},
 		{
 			key: "aiRisk",
 			label: t("settings.aiRisk"),
 			desc: t("settings.aiRiskDesc"),
 			icon: "warning",
+			available: false,
 		},
 		{
 			key: "aiCopilot",
 			label: t("settings.aiCopilot"),
 			desc: t("settings.aiCopilotDesc"),
 			icon: "smart_toy",
+			available: false,
 		},
 	];
 
@@ -512,7 +524,7 @@ function AiSection() {
 							checked={
 								key === "aiSuggestions"
 									? (settings?.aiSuggestions ?? true)
-									: true
+									: false
 							}
 							onChange={(e) => {
 								if (key === "aiSuggestions") {
@@ -524,7 +536,11 @@ function AiSection() {
 										},
 									);
 								} else {
-									toast.info(t("settings.comingSoon"));
+									// Prevent toggle from changing and show toast
+									e.preventDefault();
+									toast.info(t("settings.featureComingSoon"), {
+										description: t("settings.notAvailableYet"),
+									});
 								}
 							}}
 							disabled={updateSettings.isPending}
@@ -673,32 +689,32 @@ function SecuritySection() {
 							</span>
 						</div>
 						<div className="flex-1">
-							<p className="font-heading text-sm font-bold text-on-surface">
-								{t("settings.twoFactorAuth")}
-							</p>
+								<div className="flex items-center gap-2">
+									<p className="font-heading text-sm font-bold text-on-surface">
+										{t("settings.twoFactorAuth")}
+									</p>
+									<span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-heading font-bold uppercase tracking-wider border border-amber-500/30 whitespace-nowrap">
+										{t("settings.comingSoon")}
+									</span>
+								</div>
 						</div>
-						<span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-heading font-bold uppercase tracking-wider">
-							{settings?.twoFactorEnabled ? t("settings.active") : "Off"}
+						<span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[10px] font-heading font-bold uppercase tracking-wider">
+							Off
 						</span>
 					</div>
 					<p className="text-xs text-on-surface-variant leading-relaxed">
-						{settings?.twoFactorEnabled
-							? t("settings.twoFactorActiveDesc")
-							: t("settings.twoFactorInactiveDesc")}
+						{t("settings.twoFactorInactiveDesc")}
 					</p>
 					<Button
 						size="sm"
 						variant="secondary"
-						onClick={() =>
-							updateSettings.mutate(
-								{ twoFactorEnabled: !settings?.twoFactorEnabled },
-								{ onSuccess: () => toast.success(t("settings.twoFAUpdated")) },
-							)
-						}
+						onClick={() => {
+							toast.info(t("settings.featureComingSoon"), {
+								description: t("settings.notAvailableYet"),
+							});
+						}}
 					>
-						{settings?.twoFactorEnabled
-							? t("settings.disable2FA")
-							: t("settings.enable2FA")}
+						{t("settings.enable2FA")}
 					</Button>
 				</Card>
 

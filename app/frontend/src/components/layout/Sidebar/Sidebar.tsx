@@ -45,20 +45,20 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
   return (
     <aside
-      className={`fixed top-0 h-screen bg-surface-container-low flex flex-col p-4 z-50 transition-[width] duration-300 overflow-hidden ${
-        collapsed ? 'w-sidebar-c items-center' : 'w-sidebar-w'
+      className={`fixed top-0 h-screen bg-surface-container-low flex flex-col p-4 z-50 transition-all duration-500 ease-in-out overflow-hidden ${
+        collapsed ? 'w-20 items-center' : 'w-sidebar-w'
       } ltr:left-0 ltr:border-r rtl:right-0 rtl:border-l border-border-low`}
     >
       {/* Logo */}
       <div
-        className="flex items-center gap-3 px-2 mb-8 w-full cursor-pointer hover:opacity-90 select-none"
+        className="flex items-center gap-3  mb-8 w-full cursor-pointer hover:opacity-90 select-none"
         onClick={() => navigate('/')}
       >
         {collapsed ? (
           <img 
             src="/orkest-icon.png" 
             alt="Orkest" 
-            className="w-22 h-22 shrink-0"
+            className="w-20 h-14 mx-0 shrink-0"
             style={{ filter: logoFilter }}
           />
         ) : (

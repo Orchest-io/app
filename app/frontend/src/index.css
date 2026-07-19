@@ -118,8 +118,18 @@
   --radius-xl: 24px;
 
   /* Fonts */
-  --font-body: 'Inter', sans-serif;
-  --font-heading: 'Geist', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  /* Base Font Sizes - Increased for better readability */
+  --font-size-xs: 0.875rem;    /* 14px */
+  --font-size-sm: 0.9375rem;   /* 15px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-size-3xl: 1.875rem;   /* 30px */
+  --font-size-4xl: 2.25rem;    /* 36px */
 }
 
 @layer base {
@@ -129,6 +139,98 @@
     color: var(--color-on-surface);
     overflow-x: hidden;
     transition: background-color 0.2s ease, color 0.2s ease;
+    font-size: var(--font-size-base);
+    line-height: 1.7; /* Increased from 1.6 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: 0.01em; /* Slight letter spacing for better readability */
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.02em; /* Tighter spacing for headings */
+  }
+
+  h1 {
+    font-size: var(--font-size-4xl);
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+  }
+
+  h3 {
+    font-size: var(--font-size-2xl);
+    font-weight: 600;
+  }
+
+  h4 {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+  }
+
+  h5 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+  }
+
+  h6 {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+  }
+
+  p {
+    font-size: var(--font-size-base);
+    line-height: 1.7; /* Increased from 1.6 */
+  }
+
+  /* Arabic text specific improvements */
+  :root[lang="ar"] body,
+  :root[lang="ar"] * {
+    letter-spacing: 0 !important; /* Reset letter spacing for Arabic */
+  }
+
+  :root[lang="ar"] body {
+    line-height: 1.8; /* More line height for Arabic */
+  }
+
+  :root[lang="ar"] h1,
+  :root[lang="ar"] h2,
+  :root[lang="ar"] h3,
+  :root[lang="ar"] h4,
+  :root[lang="ar"] h5,
+  :root[lang="ar"] h6 {
+    letter-spacing: 0 !important;
+    line-height: 1.4;
+  }
+
+  /* Increase base font size for better readability */
+  button, input, select, textarea {
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+  }
+
+  /* Increase button text size */
+  button {
+    font-size: 0.9375rem !important; /* 15px */
+    padding: 0.625rem 1.25rem; /* Increase padding for better touch targets */
+    min-height: 2.75rem; /* Increase minimum height */
+  }
+
+  /* Increase input text size */
+  input, select, textarea {
+    font-size: 0.9375rem !important; /* 15px */
+    padding: 0.625rem 0.875rem; /* Increase padding */
+    min-height: 2.75rem; /* Increase minimum height */
+  }
+
+  label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
   }
 
   /* Custom Scrollbar */
@@ -154,8 +256,16 @@
   /* Material Symbols */
   .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-size: 1.5rem !important; /* Increase icon size */
     vertical-align: middle;
     user-select: none;
+  }
+  
+  /* Smaller icons when specifically needed */
+  .text-\[14px\] .material-symbols-outlined,
+  .text-\[16px\] .material-symbols-outlined,
+  .text-\[18px\] .material-symbols-outlined {
+    font-size: 1.25rem !important;
   }
 }
 
@@ -185,4 +295,205 @@
   50%       { transform: translateY(-10px); }
 }
 
+/* Typography Utilities - Larger Font Sizes */
+@layer utilities {
+  .text-xs { font-size: var(--font-size-xs); }
+  .text-sm { font-size: var(--font-size-sm); }
+  .text-base { font-size: var(--font-size-base); }
+  .text-lg { font-size: var(--font-size-lg); }
+  .text-xl { font-size: var(--font-size-xl); }
+  .text-2xl { font-size: var(--font-size-2xl); }
+  .text-3xl { font-size: var(--font-size-3xl); }
+  .text-4xl { font-size: var(--font-size-4xl); }
+  
+  /* Global font size increases */
+  .card-title {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  
+  .card-subtitle {
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+  }
+  
+  .stat-label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+  
+  .stat-value {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  
+  .button-text {
+    font-size: var(--font-size-base);
+    font-weight: 500;
+  }
+  
+  .input-text {
+    font-size: var(--font-size-base);
+  }
+  
+  .label-text {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+  
+  .menu-item {
+    font-size: var(--font-size-base);
+    font-weight: 500;
+  }
 
+  /* Override small text sizes globally */
+  [class*="text-[10px]"],
+  [class*="text-[11px]"],
+  [class*="text-[12px]"] {
+    font-size: 0.875rem !important; /* 14px */
+  }
+  
+  [class*="text-[13px]"],
+  [class*="text-[14px]"] {
+    font-size: 0.9375rem !important; /* 15px */
+  }
+  
+  /* Increase base Tailwind text sizes */
+  .text-xs {
+    font-size: 0.875rem !important; /* 14px instead of 12px */
+  }
+  
+  .text-sm {
+    font-size: 0.9375rem !important; /* 15px instead of 14px */
+  }
+  
+  .text-base {
+    font-size: 1rem !important; /* 16px */
+  }
+  
+  .text-lg {
+    font-size: 1.125rem !important; /* 18px */
+  }
+  
+  .text-xl {
+    font-size: 1.25rem !important; /* 20px */
+  }
+  
+  .text-2xl {
+    font-size: 1.5rem !important; /* 24px */
+  }
+  
+  .text-3xl {
+    font-size: 1.875rem !important; /* 30px */
+  }
+  
+  .text-4xl {
+    font-size: 2.25rem !important; /* 36px */
+  }
+  
+  .text-5xl {
+    font-size: 3rem !important; /* 48px */
+  }
+
+  /* Specific component overrides */
+  
+  /* Card headers and titles */
+  [class*="card"] h1,
+  [class*="card"] h2,
+  [class*="card"] h3,
+  [class*="card"] h4 {
+    font-size: 1.125rem !important; /* 18px */
+    font-weight: 600;
+  }
+
+  /* Stat values should be large */
+  [class*="text-[28px]"],
+  [class*="text-[24px]"],
+  [class*="text-[26px]"],
+  [class*="text-[30px]"] {
+    font-size: 2rem !important; /* 32px */
+    font-weight: 700;
+  }
+
+  /* Badge and pill text */
+  [class*="px-2"][class*="rounded"],
+  [class*="px-2.5"][class*="rounded"] {
+    font-size: 0.8125rem !important; /* 13px */
+    padding-top: 0.375rem !important;
+    padding-bottom: 0.375rem !important;
+  }
+
+  /* Menu items in sidebar */
+  nav a,
+  nav button {
+    font-size: 0.9375rem !important; /* 15px */
+    font-weight: 500;
+  }
+
+  /* Table text */
+  table {
+    font-size: 0.9375rem !important; /* 15px */
+  }
+
+  table th {
+    font-size: 0.875rem !important; /* 14px */
+    font-weight: 600;
+  }
+
+  table td {
+    font-size: 0.9375rem !important; /* 15px */
+  }
+
+  /* Sonner Toast Notifications - Better styling */
+  [data-sonner-toast] {
+    font-size: 0.9375rem !important; /* 15px */
+    padding: 1rem 1.25rem !important;
+    min-height: 4rem !important;
+  }
+
+  [data-sonner-toast] [data-title] {
+    font-size: 0.9375rem !important;
+    font-weight: 600 !important;
+  }
+
+  [data-sonner-toast] [data-description] {
+    font-size: 0.875rem !important;
+  }
+
+  /* Better close button for toasts */
+  [data-sonner-toast] [data-close-button],
+  [data-sonner-toast] button[aria-label="Close toast"] {
+    width: 1.75rem !important;
+    height: 1.75rem !important;
+    min-width: 1.75rem !important;
+    min-height: 1.75rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 1.5rem !important;
+    opacity: 0.6 !important;
+    transition: all 0.2s ease !important;
+    position: relative !important;
+  }
+
+  [data-sonner-toast] [data-close-button]:hover,
+  [data-sonner-toast] button[aria-label="Close toast"]:hover {
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Make the × symbol larger and clearer */
+  [data-sonner-toast] [data-close-button] svg,
+  [data-sonner-toast] button[aria-label="Close toast"] svg {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    stroke-width: 2.5 !important;
+  }
+
+  /* Custom class for our toast */
+  .sonner-toast-custom {
+    font-family: var(--font-body) !important;
+  }
+}
